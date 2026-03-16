@@ -16,11 +16,11 @@ Almacena la información principal de la cuenta.
 Define el hábito que el usuario quiere rastrear.
 * `id` (UUID, Primary Key)
 * `usuario_id` (UUID, Foreign Key -> Usuario.id)
-* `nombre` (String, Not Null) - *Ej: "Leer", "Sentadilla Hack"*
+* `nombre` (String, Not Null) - *Ej: "Leer", "Sentadilla Hack,"Ahorrar", "Meditar", "Beber agua"*
 * `descripcion` (String, Nullable)
 * `tipo_medicion` (Enum: 'BOOLEANO', 'NUMERICO', 'TIEMPO') - *Crucial para saber si se registra un "Check", un valor en Kg/Lbs, o minutos.*
 * `meta_diaria` (Decimal, Nullable) - *El objetivo a alcanzar.*
-* `unidad` (String, Nullable) - *Ej: "kg", "lbs", "minutos", "páginas".*
+* `unidad` (String, Nullable) - *Ej: "páginas", "$ pesos", "minutos", "litros".*
 * `frecuencia` (Enum: 'DIARIO', 'SEMANAL', 'PERSONALIZADO')
 * `fecha_creacion` (Timestamp, Default NOW)
 * `activo` (Boolean, Default TRUE)
@@ -31,7 +31,7 @@ Almacena cada vez que el usuario interactúa con un hábito en un día específi
 * `habito_id` (UUID, Foreign Key -> Habito.id)
 * `fecha_registro` (Date, Not Null)
 * `completado` (Boolean, Default FALSE) - *Para hábitos de sí/no.*
-* `valor_registrado` (Decimal, Nullable) - *Para rastrear progreso real (Ej: 50.0 para 50kg/lbs).*
+* `valor_registrado` (Decimal, Nullable) - *Para rastrear progreso real (Ej: 50.0 para 50kg/lbs o 15 para páginas leidas o dinero ahorrado).*
 * `notas` (String, Nullable) - *Ej: "Me costó más trabajo hoy pero salieron las reps".*
 * `fecha_creacion` (Timestamp, Default NOW)
 

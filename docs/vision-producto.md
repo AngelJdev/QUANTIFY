@@ -40,14 +40,14 @@ Mide la constancia pura del usuario, independientemente del rendimiento. Es el i
 * **Fórmula:** $Adherencia = \left( \frac{\text{Días Cumplidos}}{\text{Días Programados}} \right) \times 100$
 * **Métrica de éxito:** Superar el 80% de adherencia durante 66 días (tiempo promedio científico para la automatización de un hábito).
 
-### B. Índice de Progresión (Sobrecarga Progresiva)
-Para hábitos cuantitativos, el éxito no es hacer lo mismo para siempre, sino la adaptación al estímulo. Quantify analiza la tendencia de los `valores_registrados` a lo largo del tiempo.
-* **Métrica de éxito:** Una pendiente positiva (derivada mayor a cero) en la gráfica temporal del hábito.
-* **Caso de uso:** Si el usuario registra una serie con dos discos de 45lbs de cada lado, el sistema no solo anota el evento, sino que compara el volumen total. Pasar de sacar 8 repeticiones a 10 repeticiones manteniendo la misma postura bajo esa misma carga representa una progresión calculable y demostrable en el sistema.
+### B. Tendencia de Crecimiento (Growth Trend)
+Para hábitos cuantitativos, el éxito es la mejora continua. Quantify analiza la tendencia de los `valores_registrados` a lo largo del tiempo.
+* **Métrica de éxito:** Una pendiente positiva en la gráfica temporal del hábito.
+* **Caso de uso:** Pasar de estudiar 30 minutos a 1 hora diaria, o de ahorrar 20 a 50 pesos diarios (por poner de ejemplo la moneda mexicana) de forma consistente. El sistema no solo anota el evento, sino que demuestra gráficamente la expansión de la capacidad del usuario.
 
-### C. Tasa de Esfuerzo Percibido (RPE - Rate of Perceived Exertion)
-El sistema permitirá correlacionar el valor numérico registrado con notas cualitativas (ej. "me costó más, pero salieron bien"). 
-* **Métrica de éxito:** Mantener o aumentar el volumen de carga (peso, tiempo, páginas leídas) mientras el indicador de fricción mental o física disminuye a lo largo de las semanas.
+### C. Nivel de Fricción (Friction Score)
+El sistema permitirá correlacionar el valor numérico registrado con notas cualitativas sobre qué tan difícil fue cumplir el hábito ese día.
+* **Métrica de éxito:** Mantener el rendimiento (páginas, tiempo, ahorro) mientras la sensación de dificultad o esfuerzo mental disminuye con el paso de las semanas.
 
 ### D. Tasa de Retención a Largo Plazo (Cohort Analysis)
 A nivel sistema, mediremos el porcentaje de usuarios que siguen registrando datos después de 30, 60 y 90 días usando análisis de cohortes para iterar sobre el UX/UI de la aplicación.
