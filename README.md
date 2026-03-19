@@ -14,13 +14,13 @@ Permitir a los usuarios:
 ## Tecnologías
 
 Frontend:
-- (POR DEFINIR)
+- React 
 
 Backend:
-- (POR DEFINIR)
+- Node.js
 
 Base de datos:
-- (POR DEFINIR)
+- MySQL (SQL)
 
 ## Estructura del proyecto
 
