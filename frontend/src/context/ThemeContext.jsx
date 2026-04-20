@@ -26,20 +26,11 @@ export const ThemeProvider = ({ children }) => {
     }, [isDark]);
 
     const toggleTheme = () => {
-        if (!document.startViewTransition) {
-            setIsDark(!isDark);
-            return;
-        }
-
-        document.documentElement.classList.add('view-transition-ripple');
-        
-        const transition = document.startViewTransition(() => {
-            setIsDark(!isDark);
-        });
-
-        transition.finished.finally(() => {
-            document.documentElement.classList.remove('view-transition-ripple');
-        });
+        setIsDark(!isDark);
+        // Disparar animación global de "Pop Out" al cambiar la capa entera
+        document.body.classList.remove('theme-pop');
+        void document.body.offsetWidth; // Force Reflow
+        document.body.classList.add('theme-pop');
     };
 
     return (

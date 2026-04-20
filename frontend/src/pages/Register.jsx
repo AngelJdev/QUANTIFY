@@ -1,408 +1,140 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft, FiAtSign } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 
-const steps = [
-    { id: 'privacy', title: 'Legalidad LFPDPPP', icon: FiShield },
-    { id: 'credentials', title: 'Identidad Digital', icon: FiUser },
-    { id: 'metrics', title: 'Perímetro Biométrico', icon: FiActivity }
-];
-
-export default function Register() {
+const Register = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
-    const [currentStep, setCurrentStep] = useState(0);
     const [errorMsg, setErrorMsg] = useState('');
-
-    const validationSchema = Yup.object().shape({
-        // Step 0: Privacy
-        lfpdppp_agreed: Yup.boolean().when([], {
-            is: () => currentStep === 0,
-            then: (sch) => sch.oneOf([true], 'Debes aceptar los términos para continuar.')
-        }),
-        // Step 1: Account & Security
-        nombre: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.min(3, 'Mínimo 3 caracteres').required('Requerido')
-        }),
-        username: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.min(3, 'Mínimo 3 caracteres').max(30, 'Máximo 30 caracteres').matches(/^[a-zA-Z0-9]+$/, 'Solo letras y números').required('Requerido')
-        }),
-        email: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.email('Email inválido').required('Requerido')
-        }),
-        password: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.min(6, 'Mínimo 6 caracteres').required('Requerido')
-        }),
-        confirmPassword: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.oneOf([Yup.ref('password'), null], 'No coinciden').required('Requerido')
-        }),
-        securityPhrase: Yup.string().when([], {
-            is: () => currentStep === 1,
-            then: (sch) => sch.min(10, 'Frase demasiado corta (mín 10 carc)').required('Requerido')
-        }),
-        // Step 2: Metrics
-        edad: Yup.number().when([], {
-            is: () => currentStep === 2,
-            then: (sch) => sch.min(13).max(100).required('Requerido')
-        }),
-        peso: Yup.number().when([], {
-            is: () => currentStep === 2,
-            then: (sch) => sch.min(30).max(300).required('Requerido')
-        }),
-        estatura: Yup.number().when([], {
-            is: () => currentStep === 2,
-            then: (sch) => sch.min(100).max(250).required('Requerido')
-        })
-    });
 
     const formik = useFormik({
         initialValues: {
-            lfpdppp_agreed: false,
             nombre: '',
-            username: '',
             email: '',
             password: '',
             confirmPassword: '',
-            securityPhrase: '',
-            edad: '',
-            peso: '',
-            estatura: '',
-            genero: 'OTRO',
-            nivel_actividad: 'MODERADO',
-            pais: 'México',
-            discapacidad: 'NINGUNA',
-            ocupacion: 'ESTUDIANTE'
         },
-        validationSchema,
+        validationSchema: Yup.object({
+            nombre: Yup.string().min(3, 'El nombre debe tener al menos 3 caracteres').required('Requerido'),
+            email: Yup.string().email('Correo inválido').required('Requerido'),
+            password: Yup.string().min(6, 'Debe tener al menos 6 caracteres').required('Requerido'),
+            confirmPassword: Yup.string()
+                .oneOf([Yup.ref('password'), null], 'Las contraseñas no coinciden')
+                .required('Requerido'),
+        }),
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                const payload = {
-                    nombre: values.nombre,
-                    username: values.username,
-                    email: values.email,
-                    password: values.password,
-                    securityPhrase: values.securityPhrase,
-                    metrics: {
-                        edad: parseInt(values.edad),
-                        peso: parseFloat(values.peso),
-                        estatura: parseInt(values.estatura),
-                        genero: values.genero,
-                        nivel_actividad: values.nivel_actividad,
-                        discapacidad: values.discapacidad,
-                        ocupacion: values.ocupacion
-                    },
-                    pais: values.pais
-                };
-                await register(payload);
+                // Removemos confirmPassword antes de enviarlo a la API
+                const userData = { nombre: values.nombre, email: values.email, password: values.password };
+                setErrorMsg('');
+                await register(userData);
                 navigate('/dashboard');
             } catch (error) {
-                setErrorMsg(error.response?.data?.message || 'Error al procesar la vinculación.');
+                setErrorMsg(error.response?.data?.message || 'Error al registrar.');
             } finally {
                 setSubmitting(false);
             }
-        }
+        },
     });
 
-    const nextStep = async () => {
-        const fields = currentStep === 0
-            ? ['lfpdppp_agreed']
-            : currentStep === 1
-                ? ['nombre', 'username', 'email', 'password', 'confirmPassword', 'securityPhrase']
-                : ['edad', 'peso', 'estatura'];
-
-        const errors = await formik.validateForm();
-        const stepErrors = fields.filter(f => !!errors[f]);
-
-        if (stepErrors.length === 0) {
-            if (currentStep < 2) setCurrentStep(prev => prev + 1);
-            else formik.handleSubmit();
-        } else {
-            fields.forEach(f => formik.setFieldTouched(f, true));
-        }
-    };
-
-    const prevStep = () => setCurrentStep(prev => prev - 1);
-
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
-            <div className="absolute top-8 right-8">
-                <ThemeToggle className="bg-surface shadow-xl border border-gray-200 dark:border-white/10" />
+        <div className="h-screen w-full flex flex-col overflow-hidden bg-background fade-in">
+            {/* Absolute Theme Toggle */}
+            <div className="absolute top-4 right-6 lg:top-6 lg:right-10 flex justify-end w-full z-50">
+                <ThemeToggle className="bg-surface shadow-sm border border-gray-200 dark:border-white/5" />
             </div>
 
-            <div className="w-full max-w-xl">
-                <header className="text-center mb-10">
-                    <div className="inline-flex bg-surface dark:bg-white/5 p-3 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl mb-6">
-                        <Logo className="w-8 h-8" />
+            <div className="flex-1 flex flex-col items-center justify-center p-4 relative z-20">
+                {/* Dhero-style Volumetric Glows */}
+                <div className="absolute top-[10%] left-[50%] -translate-x-1/2 w-[600px] h-[300px] bg-cyan-400/5 dark:bg-accent/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+                <div className="w-full max-w-[340px] relative z-10 bg-surface dark:bg-[#0A0A0A] p-6 lg:p-8 rounded-3xl shadow-2xl dark:shadow-none border border-gray-200 dark:border-white/10">
+                    
+                    <div className="flex flex-col items-center gap-3 mb-6">
+                        <div className="bg-white dark:bg-[#111111] p-2 rounded-2xl shadow-sm border border-gray-200 dark:border-white/5">
+                            <Logo className="w-8 h-8" />
+                        </div>
+                        <h2 className="text-2xl font-extrabold tracking-tight text-textPrimary mt-2">
+                            Crear Cuenta
+                        </h2>
                     </div>
-                    <h1 className="text-4xl font-black text-textPrimary dark:text-white tracking-tight leading-none mb-2">Quantify Intelligence</h1>
-                    <p className="text-textMuted uppercase text-[10px] font-black tracking-[0.2em]">Capa de Abstracción de Datos v2.0</p>
-                </header>
-
-                <div className="bg-surface border border-gray-200 dark:border-white/10 rounded-[2.5rem] shadow-2xl p-8 md:p-12 relative overflow-hidden transition-all duration-500">
-                    {/* Progress Bar */}
-                    <div className="flex gap-2 mb-10">
-                        {steps.map((s, i) => (
-                            <div
-                                key={i}
-                                className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i <= currentStep ? 'bg-primary dark:bg-white' : 'bg-gray-100 dark:bg-white/5'}`}
-                            />
-                        ))}
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentStep}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-                        >
-                            {/* STEP 0: PRIVACY */}
-                            {currentStep === 0 && (
-                                <div className="space-y-8 py-4">
-                                    <div className="flex gap-4 p-6 bg-primary/5 border border-primary/20 rounded-3xl">
-                                        <FiShield className="text-3xl text-primary shrink-0" />
-                                        <div>
-                                            <h3 className="font-bold text-textPrimary dark:text-white mb-2 uppercase tracking-wide text-sm">Protección de Datos (LFPDPPP)</h3>
-                                            <p className="text-xs text-textMuted leading-relaxed">
-                                                Para iniciar el protocolo, necesitamos su consentimiento. Sus datos serán cifrados y procesados bajo la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (México).
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <label className="flex items-center gap-4 cursor-pointer p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors border border-transparent hover:border-textMuted/10">
-                                        <input
-                                            type="checkbox"
-                                            {...formik.getFieldProps('lfpdppp_agreed')}
-                                            className="w-6 h-6 rounded-lg text-primary focus:ring-primary border-gray-300 dark:border-white/20 dark:bg-black"
-                                        />
-                                        <span className="text-sm font-bold text-textPrimary dark:text-white">He leído y acepto el Aviso de Privacidad Simplificado.</span>
-                                    </label>
-                                    {formik.touched.lfpdppp_agreed && formik.errors.lfpdppp_agreed && <p className="text-danger text-[10px] font-black uppercase pl-2">{formik.errors.lfpdppp_agreed}</p>}
-                                </div>
-                            )}
-
-                            {/* STEP 1: ACCOUNT & SECURITY */}
-                            {currentStep === 1 && (
-                                <div className="space-y-6">
-                                    <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-6 uppercase tracking-tight">Identificación y Cifrado</h2>
-                                    <div className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="label-style">Nombre de Enlace</label>
-                                                <div className="relative">
-                                                    <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                    <input {...formik.getFieldProps('nombre')} className="input-field pl-12" placeholder="Usuario" />
-                                                </div>
-                                                {formik.touched.nombre && formik.errors.nombre && <p className="error-text">{formik.errors.nombre}</p>}
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="label-style">Username</label>
-                                                <div className="relative">
-                                                    <FiAtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                    <input {...formik.getFieldProps('username')} className="input-field pl-12" placeholder="miusuario123" />
-                                                </div>
-                                                <p className="text-[9px] text-textMuted italic mt-0.5 font-bold">Solo letras y números, sin espacios ni caracteres especiales.</p>
-                                                {formik.touched.username && formik.errors.username && <p className="error-text">{formik.errors.username}</p>}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Email de Registro</label>
-                                            <div className="relative">
-                                                <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                <input {...formik.getFieldProps('email')} className="input-field pl-12" type="email" placeholder="usuario@quantify.ai" />
-                                            </div>
-                                            {formik.touched.email && formik.errors.email && <p className="error-text">{formik.errors.email}</p>}
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="label-style">Contraseña</label>
-                                                <div className="relative">
-                                                    <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                    <input {...formik.getFieldProps('password')} className="input-field pl-12" type="password" placeholder="••••••••" />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="label-style">Confirmar Contraseña</label>
-                                                <div className="relative">
-                                                    <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                    <input {...formik.getFieldProps('confirmPassword')} className="input-field pl-12" type="password" placeholder="••••••••" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Frase Secreta de Recuperación</label>
-                                            <div className="relative">
-                                                <FiKey className="absolute left-4 top-4 text-textMuted" />
-                                                <textarea
-                                                    {...formik.getFieldProps('securityPhrase')}
-                                                    className="input-field pl-12 pt-3 min-h-[80px] resize-none"
-                                                    placeholder="Ej: mi_primera_logro_es_ser_constante"
-                                                />
-                                            </div>
-                                            <p className="text-[9px] text-textMuted italic mt-1 uppercase font-bold">Esta frase es el único método de restauración de su cuenta.</p>
-                                            {formik.touched.securityPhrase && formik.errors.securityPhrase && <p className="error-text">{formik.errors.securityPhrase}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* STEP 2: METRICS */}
-                            {currentStep === 2 && (
-                                <div className="space-y-6">
-                                    <h2 className="text-2xl font-black text-textPrimary dark:text-white uppercase tracking-tight">Variables Antropométricas</h2>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="label-style">Edad</label>
-                                            <input {...formik.getFieldProps('edad')} className="input-field" type="number" placeholder="25" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Peso (kg)</label>
-                                            <input {...formik.getFieldProps('peso')} className="input-field" type="number" step="0.1" placeholder="70" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Estatura (cm)</label>
-                                            <input {...formik.getFieldProps('estatura')} className="input-field" type="number" placeholder="175" />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="label-style">Género</label>
-                                            <select {...formik.getFieldProps('genero')} className="input-field">
-                                                <option value="MASCULINO">Masculino</option>
-                                                <option value="FEMENINO">Femenino</option>
-                                                <option value="OTRO">Otro</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Nivel Actividad</label>
-                                            <select {...formik.getFieldProps('nivel_actividad')} className="input-field">
-                                                <option value="SEDENTARIO">Sedentario</option>
-                                                <option value="MODERADO">Moderado</option>
-                                                <option value="ACTIVO">Activo</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="label-style">País</label>
-                                            <select {...formik.getFieldProps('pais')} className="input-field">
-                                                <option value="México">México</option>
-                                                <option value="Estados Unidos">Estados Unidos</option>
-                                                <option value="Colombia">Colombia</option>
-                                                <option value="Argentina">Argentina</option>
-                                                <option value="España">España</option>
-                                                <option value="Chile">Chile</option>
-                                                <option value="Perú">Perú</option>
-                                                <option value="Brasil">Brasil</option>
-                                                <option value="Ecuador">Ecuador</option>
-                                                <option value="Venezuela">Venezuela</option>
-                                                <option value="Guatemala">Guatemala</option>
-                                                <option value="Cuba">Cuba</option>
-                                                <option value="Bolivia">Bolivia</option>
-                                                <option value="Rep. Dominicana">Rep. Dominicana</option>
-                                                <option value="Honduras">Honduras</option>
-                                                <option value="Paraguay">Paraguay</option>
-                                                <option value="El Salvador">El Salvador</option>
-                                                <option value="Costa Rica">Costa Rica</option>
-                                                <option value="Panamá">Panamá</option>
-                                                <option value="Uruguay">Uruguay</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Discapacidad</label>
-                                            <select {...formik.getFieldProps('discapacidad')} className="input-field">
-                                                <option value="NINGUNA">Ninguna</option>
-                                                <option value="MOTRIZ">Motriz</option>
-                                                <option value="VISUAL">Visual</option>
-                                                <option value="AUDITIVA">Auditiva</option>
-                                                <option value="INTELECTUAL">Intelectual</option>
-                                                <option value="PSICOSOCIAL">Psicosocial</option>
-                                                <option value="DEL_HABLA">Del Habla</option>
-                                                <option value="MULTIPLE">Múltiple</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="label-style">Ocupación</label>
-                                            <select {...formik.getFieldProps('ocupacion')} className="input-field">
-                                                <option value="ESTUDIANTE">Estudiante</option>
-                                                <option value="EMPLEADO">Empleado</option>
-                                                <option value="FREELANCE">Freelance</option>
-                                                <option value="EMPRESARIO">Empresario</option>
-                                                <option value="DESEMPLEADO">Desempleado</option>
-                                                <option value="JUBILADO">Jubilado</option>
-                                                <option value="DOCENTE">Docente</option>
-                                                <option value="MEDICO">Médico</option>
-                                                <option value="INGENIERO">Ingeniero</option>
-                                                <option value="ABOGADO">Abogado</option>
-                                                <option value="CONTADOR">Contador</option>
-                                                <option value="DISEÑADOR">Diseñador</option>
-                                                <option value="PROGRAMADOR">Programador</option>
-                                                <option value="COMERCIANTE">Comerciante</option>
-                                                <option value="AGRICULTOR">Agricultor</option>
-                                                <option value="ARTISTA">Artista</option>
-                                                <option value="DEPORTISTA">Deportista</option>
-                                                <option value="INVESTIGADOR">Investigador</option>
-                                                <option value="AMA_DE_CASA">Ama de Casa</option>
-                                                <option value="OTRO">Otro</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-
+                    
                     {errorMsg && (
-                        <div className="mt-6 p-4 bg-danger/10 border border-danger/20 rounded-xl text-danger text-[10px] font-black uppercase text-center tracking-widest">
-                            ERROR SISTEMA: {errorMsg}
+                        <div className="bg-danger/10 border border-danger/30 text-danger px-3 py-2 rounded-xl mb-4 text-xs font-medium text-center">
+                            {errorMsg}
                         </div>
                     )}
 
-                    <footer className="mt-12 flex items-center justify-between">
-                        <button
-                            type="button"
-                            onClick={prevStep}
-                            disabled={currentStep === 0}
-                            className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-textMuted hover:text-textPrimary dark:hover:text-white transition-opacity ${currentStep === 0 ? 'opacity-0' : 'opacity-100'}`}
-                        >
-                            <FiArrowLeft /> Retornar
+                    <form onSubmit={formik.handleSubmit} className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-textPrimary uppercase tracking-wider">Nombre</label>
+                            <input
+                                type="text"
+                                name="nombre"
+                                className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
+                                {...formik.getFieldProps('nombre')}
+                            />
+                             {formik.touched.nombre && formik.errors.nombre ? (
+                                <div className="text-danger text-[10px] font-semibold pl-1">{formik.errors.nombre}</div>
+                            ) : null}
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-textPrimary uppercase tracking-wider">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
+                                {...formik.getFieldProps('email')}
+                            />
+                             {formik.touched.email && formik.errors.email ? (
+                                <div className="text-danger text-[10px] font-semibold pl-1">{formik.errors.email}</div>
+                            ) : null}
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-textPrimary uppercase tracking-wider">Contraseña</label>
+                            <input
+                                type="password"
+                                name="password"
+                                className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
+                                {...formik.getFieldProps('password')}
+                            />
+                            {formik.touched.password && formik.errors.password ? (
+                                <div className="text-danger text-[10px] font-semibold pl-1">{formik.errors.password}</div>
+                            ) : null}
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-textPrimary uppercase tracking-wider">Confirmar</label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
+                                {...formik.getFieldProps('confirmPassword')}
+                            />
+                            {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+                                <div className="text-danger text-[10px] font-semibold pl-1">{formik.errors.confirmPassword}</div>
+                            ) : null}
+                        </div>
+
+                        <button type="submit" disabled={formik.isSubmitting} className="btn-primary mt-6 text-sm py-3">
+                            {formik.isSubmitting ? 'Creando...' : 'Comenzar Ahora'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={nextStep}
-                            disabled={formik.isSubmitting}
-                            className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all"
-                        >
-                            {formik.isSubmitting ? 'Procesando Enlace...' : currentStep === 2 ? 'Sellado de Datos' : 'Siguiente'}
-                            {currentStep < 2 && <FiArrowRight />}
-                        </button>
-                    </footer>
+                    </form>
+
+
+                    <p className="text-center text-xs text-textMuted mt-6 font-medium">
+                        ¿Ya tienes cuenta? <Link to="/login" className="text-primary dark:text-white font-extrabold hover:underline">Entrar</Link>
+                    </p>
                 </div>
-
-                <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-textMuted leading-loose">
-                    ¿Cuenta existente? <Link to="/login" className="text-primary dark:text-white hover:underline">Acceso Directo</Link>
-                </p>
             </div>
-
-            <style jsx>{`
-                .label-style {
-                    @apply text-[10px] font-black text-textMuted uppercase tracking-[0.2em] block mb-2 px-1;
-                }
-                .error-text {
-                    @apply text-[9px] font-bold text-danger mt-1 uppercase pl-1;
-                }
-            `}</style>
         </div>
     );
-}
+};
+
+export default Register;

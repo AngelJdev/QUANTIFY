@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }) => {
         setToken(res.data.token);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
-        return res.data.user;
     };
 
     const register = async (userData) => {
@@ -39,19 +38,6 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.user);
     };
 
-    const refreshUser = async () => {
-        try {
-            const res = await fetchProfile();
-            setUser(res.data.user);
-        } catch (error) {
-            console.error('Failed to refresh profile');
-        }
-    };
-
-    const updateLocalUser = (changes) => {
-        setUser(prevUser => prevUser ? { ...prevUser, ...changes } : null);
-    };
-
     const logout = () => {
         setToken(null);
         setUser(null);
@@ -59,9 +45,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ 
-            user, token, loading, login, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user 
-        }}>
+        <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAuthenticated: !!user }}>
             {!loading && children}
         </AuthContext.Provider>
     );

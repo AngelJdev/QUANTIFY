@@ -20,17 +20,7 @@ export const getAdherence = async (habitId) => {
     return response.data;
 };
 
-export const getGlobalStats = async () => {
-    const response = await api.get('/logs/global-stats');
-    return response.data;
-};
-
 export const deleteHabit = async (habitId) => {
     const response = await api.delete(`/habits/${habitId}`);
-    return response.data;
-};
-
-export const getAchievements = async () => {
-    const response = await api.get('/achievements');
     return response.data;
 };

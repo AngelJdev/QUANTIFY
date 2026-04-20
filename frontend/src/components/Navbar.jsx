@@ -1,82 +1,70 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { FiZap } from 'react-icons/fi';
+import { FiLogOut, FiActivity, FiSettings } from 'react-icons/fi';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const { scrollY } = useScroll();
-    const [hidden, setHidden] = useState(false);
 
-    useMotionValueEvent(scrollY, "change", (latest) => {
-        const previous = scrollY.getPrevious();
-        if (latest > previous && latest > 150) {
-            setHidden(true);
-        } else {
-            setHidden(false);
-        }
-    });
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    if (!user) return null;
 
     return (
-        <motion.nav 
-            variants={{
-                visible: { y: 0 },
-                hidden: { y: -100 },
-            }}
-            animate={hidden ? "hidden" : "visible"}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="fixed top-0 w-full h-20 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10 flex items-center justify-between px-6 md:px-12 z-[100]"
-        >
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-                <div className="bg-primary p-1.5 rounded-xl text-white shadow-lg shadow-primary/20 dark:bg-white dark:text-black">
-                    <Logo className="w-6 h-6" />
-                </div>
-                <span className="text-2xl font-black tracking-tight text-primary dark:text-white">QUANTIFY</span>
-            </Link>
-
-            {/* Smart Navigation */}
-            <div className="flex items-center gap-4">
-                <ThemeToggle className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10" />
-                
-                {isAuthenticated && user ? (
-                    <div className="flex items-center gap-4 border-l border-gray-200 dark:border-white/10 pl-4 ml-2">
-                        {/* Streak Counter */}
-                        <div className="flex items-center gap-1.5 bg-orange-100 dark:bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-200 dark:border-orange-500/20 shadow-sm shadow-orange-500/5">
-                            <FiZap className="text-orange-500 text-lg" />
-                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">66</span>
+        <aside className="w-64 min-h-screen bg-primary dark:bg-background text-white hidden md:flex flex-col border-r border-black/20 dark:border-white/5 z-40 relative">
+            {/* Logo Area */}
+            <div className="p-8 border-b border-black/10 dark:border-white/5">
+                <Link to="/dashboard" className="flex flex-col gap-2 items-start justify-center">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-surface p-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-white/5">
+                            <Logo className="w-8 h-8" />
                         </div>
-
-                        <div className="hidden md:block text-right">
-                            <p className="text-sm font-bold text-primary dark:text-white">{user.nombre}</p>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest dark:text-gray-400">Usuario Verificado</p>
-                        </div>
-                        <div className="w-10 h-10 bg-accent text-gray-900 rounded-full flex items-center justify-center font-black text-lg shadow-md border border-black/10">
-                            {user.nombre.charAt(0).toUpperCase()}
-                        </div>
-                        <button 
-                            onClick={() => navigate('/dashboard')}
-                            className="bg-primary dark:bg-white text-surface dark:text-black font-black py-2.5 px-8 rounded-full shadow-lg shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all text-xs uppercase tracking-widest"
-                        >
-                            Dashboard
-                        </button>
+                        <span className="text-2xl font-extrabold tracking-tight dark:text-white">QUANTIFY</span>
                     </div>
-                ) : (
-                    <div className="flex items-center gap-3 border-l border-gray-200 dark:border-white/10 pl-4 ml-2">
-                        <button 
-                            onClick={() => navigate('/login')}
-                            className="bg-primary dark:bg-white text-surface dark:text-black font-black py-2.5 px-8 rounded-full shadow-lg shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all text-xs uppercase tracking-widest"
-                        >
-                            Iniciar Sesión
-                        </button>
-                    </div>
+                </Link>
+            </div>
+            
+            {/* Navigation Links */}
+            <div className="flex-1 px-4 py-8 space-y-2">
+                <p className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-4">Menú Principal</p>
+                <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-black/10 dark:bg-white/5 transition-colors font-bold text-sm shadow-inner dark:shadow-none border border-transparent dark:border-white/10 dark:text-white">
+                    <FiActivity /> Dashboard
+                </Link>
+                {user.rol === 'ADMIN' && (
+                    <span className="flex items-center gap-3 px-4 py-3.5 rounded-2xl cursor-not-allowed opacity-50 font-medium text-sm">
+                        <FiSettings /> Panel de Control
+                    </span>
                 )}
             </div>
-        </motion.nav>
+
+            {/* Profile & Logout */}
+            <div className="p-6 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-transparent">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 bg-accent text-gray-900 rounded-full flex items-center justify-center font-black text-lg shadow-md border border-black/10">
+                        {user.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="overflow-hidden">
+                        <p className="text-sm font-extrabold truncate dark:text-white">{user.nombre}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 truncate font-medium">{user.email}</p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <ThemeToggle className="flex-none bg-black/10 hover:bg-black/20 dark:bg-white/5 dark:hover:bg-white/10 border border-transparent dark:border-white/10 rounded-xl transition-all" />
+                    <button 
+                        onClick={handleLogout}
+                        className="flex-1 flex items-center justify-center gap-2 bg-black/10 dark:bg-white/5 hover:bg-danger dark:hover:bg-danger text-white py-2.5 rounded-xl transition-all text-xs font-bold border border-transparent dark:border-white/10"
+                        title="Cerrar Sesión"
+                    >
+                        <FiLogOut strokeWidth={2.5} /> Salir
+                    </button>
+                </div>
+            </div>
+        </aside>
     );
 };
 

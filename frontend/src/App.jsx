@@ -1,88 +1,67 @@
-import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import Sidebar from './components/Sidebar';
+import Navbar from './components/Navbar';
 import Breadcrumbs from './components/Breadcrumbs';
 import ProtectedRoute from './components/ProtectedRoute';
-import { AnimatePresence } from 'framer-motion';
 
 // Pages
-import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import OnboardingWizard from './pages/OnboardingWizard';
 import NotFound from './pages/NotFound';
 import Sitemap from './pages/Sitemap';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminPanel from './pages/AdminPanel';
-import ProfilePage from './pages/ProfilePage';
-import SupportPage from './pages/SupportPage';
-import Error500 from './pages/Error500';
-
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import ForgotPassword from './pages/ForgotPassword';
-import Footer from './components/Footer';
 
 const PublicRoute = () => {
-    const { isAuthenticated, user, loading } = useAuth();
+    const { isAuthenticated, loading } = useAuth();
     if (loading) return <div className="h-screen flex items-center justify-center text-primary">Cargando...</div>;
-    if (isAuthenticated) {
-        return <Navigate to={user?.rol === 0 || user?.rol === 2 ? '/admin-panel' : '/dashboard'} replace />;
-    }
-    return <Outlet />;
+    return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
 };
 
 const ProtectedLayout = () => {
     return (
       <div className="flex flex-1 relative w-full h-full overflow-hidden">
-        <Sidebar />
+        <Navbar />
+        {/* Main Content Area */}
         <div className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
-          <div className="w-full max-w-7xl px-6 md:px-10 py-8 space-y-8 fade-in">
+          <div className="w-full max-w-7xl px-4 py-8 relative">
             <Breadcrumbs />
             <Outlet />
           </div>
-          <Footer />
+          
+          <footer className="mt-auto border-t border-gray-200 dark:border-white/5 bg-background py-6 w-full text-center text-xs text-textMuted mt-12 z-10 relative">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8">
+              <p>© {new Date().getFullYear()} Quantify MVP - Ingeniería de Personal</p>
+              <div className="mt-2 md:mt-0 flex gap-4">
+                <a href="/sitemap" className="transition hover:text-primary dark:hover:text-white">Sitemap</a>
+              </div>
+            </div>
+          </footer>
         </div>
       </div>
     );
 };
 
 function App() {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+    <Routes>
+      {/* Rutas Públicas Estrictas (Si está logueado, expulsa a Dashboard) */}
+      <Route element={<PublicRoute />}>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Route>
 
-        {/* Rutas de Autenticación */}
-        <Route element={<PublicRoute />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+      {/* Rutas Protegidas (Con Layout de Aplicación) */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sitemap" element={<Sitemap />} />
         </Route>
+      </Route>
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/onboarding" element={<OnboardingWizard />} />
-          <Route element={<ProtectedLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/mapa-del-sitio" element={<Sitemap />} />
-            <Route path="/soporte" element={<SupportPage />} />
-            <Route path="/error-servidor" element={<Error500 />} />
-            
-            {/* Solo Administradores y Moderadores */}
-            <Route element={<ProtectedRoute requireAdmin={true} />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin-panel" element={<AdminPanel />} />
-            </Route>
-          </Route>
-        </Route>
-
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+      {/* Seguridad ante rutas huérfanas */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 
