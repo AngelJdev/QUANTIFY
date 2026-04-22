@@ -6,9 +6,24 @@ CREATE TABLE IF NOT EXISTS users (
     nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    security_phrase_hash VARCHAR(255),
     rol ENUM('USER', 'ADMIN') DEFAULT 'USER',
+    current_streak INT DEFAULT 0,
+    max_streak INT DEFAULT 0,
+    last_login_date DATE,
     preferencias JSON,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE achievements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    mes_logro VARCHAR(50),
+    icono_url VARCHAR(255),
+    fecha_obtencion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS habits (
