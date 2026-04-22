@@ -31,6 +31,26 @@ const User = sequelize.define('User', {
     preferencias: {
         type: DataTypes.JSON,
         allowNull: true,
+    },
+    security_phrase_hash: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    avatar_url: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    current_streak: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
+    max_streak: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
+    last_login_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
     }
 }, {
     tableName: 'users',
@@ -43,11 +63,19 @@ const User = sequelize.define('User', {
                 const salt = await bcrypt.genSalt(10);
                 user.password_hash = await bcrypt.hash(user.password_hash, salt);
             }
+            if (user.security_phrase_hash) {
+                const salt = await bcrypt.genSalt(10);
+                user.security_phrase_hash = await bcrypt.hash(user.security_phrase_hash, salt);
+            }
         },
         beforeUpdate: async (user) => {
             if (user.changed('password_hash')) {
                 const salt = await bcrypt.genSalt(10);
                 user.password_hash = await bcrypt.hash(user.password_hash, salt);
+            }
+            if (user.changed('security_phrase_hash')) {
+                const salt = await bcrypt.genSalt(10);
+                user.security_phrase_hash = await bcrypt.hash(user.security_phrase_hash, salt);
             }
         }
     }
@@ -56,6 +84,12 @@ const User = sequelize.define('User', {
 // Method to verify passwords
 User.prototype.verifyPassword = async function (password) {
     return await bcrypt.compare(password, this.password_hash);
+};
+
+// Method to verify the security/recovery phrase
+User.prototype.verifySecurityPhrase = async function (phrase) {
+    if (!this.security_phrase_hash) return false;
+    return await bcrypt.compare(phrase, this.security_phrase_hash);
 };
 
 // Method to return safe info (without password_hash)
