@@ -1,0 +1,80 @@
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Sidebar from './components/Sidebar';
+import Breadcrumbs from './components/Breadcrumbs';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AnimatePresence } from 'framer-motion';
+
+// Pages
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import OnboardingWizard from './pages/OnboardingWizard';
+import NotFound from './pages/NotFound';
+import Sitemap from './pages/Sitemap';
+import AdminDashboard from './pages/AdminDashboard';
+import ProfilePage from './pages/ProfilePage';
+
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import ForgotPassword from './pages/ForgotPassword';
+import Footer from './components/Footer';
+
+const PublicRoute = () => {
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) return <div className="h-screen flex items-center justify-center text-primary">Cargando...</div>;
+    return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+};
+
+const ProtectedLayout = () => {
+    return (
+      <div className="flex flex-1 relative w-full h-full overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
+          <div className="w-full max-w-7xl px-6 md:px-10 py-8 space-y-8 fade-in">
+            <Breadcrumbs />
+            <Outlet />
+          </div>
+          <Footer />
+        </div>
+      </div>
+    );
+};
+
+function App() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+
+        {/* Rutas de Autenticación */}
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding" element={<OnboardingWizard />} />
+          <Route element={<ProtectedLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/sitemap" element={<Sitemap />} />
+            
+            {/* Solo Administradores */}
+            <Route element={<ProtectedRoute requireAdmin={true} />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+          </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
+export default App;
