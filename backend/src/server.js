@@ -12,6 +12,15 @@ import authRoutes from './routes/auth.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import logRoutes from './routes/log.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import onboardingRoutes from './routes/onboarding.routes.js';
+import achievementRoutes from './routes/achievement.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+
+// Pre-load relationships & Models to trigger automatic sync
+import './models/user.model.js';
+import './models/habit.model.js';
+import './models/userMetric.model.js';
+import './models/achievement.model.js';
 
 dotenv.config();
 
@@ -39,6 +48,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });
