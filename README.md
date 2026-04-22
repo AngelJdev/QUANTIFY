@@ -109,6 +109,49 @@ erDiagram
 ```
 
 
+## Cómo Levantar el Proyecto
+
+Sigue estos pasos para configurar y ejecutar el proyecto localmente.
+
+### Prerrequisitos
+- **Node.js** (v18 o superior)
+- **MySQL** (Instancia corriendo)
+- **MongoDB** (Instancia corriendo)
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/AngelJdev/QUANTIFY.git
+cd QUANTIFY
+```
+
+### 2. Configuración del Backend
+```bash
+cd backend
+npm install
+```
+Crea un archivo `.env` en la carpeta `backend` basado en `.env.example`:
+```bash
+cp .env.example .env
+```
+*Asegúrate de configurar correctamente tus credenciales de MySQL y MongoDB en el `.env`.*
+
+**Inicializar Base de Datos:**
+Importa el archivo `database/mysql/init.sql` y `database/mysql/02_onboarding_achievements.sql` en tu MySQL.
+
+**Ejecutar Backend:**
+```bash
+npm run dev
+```
+
+### 3. Configuración del Frontend
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+La aplicación debería estar disponible en `http://localhost:5173`.
+
 ## Estructura del proyecto
 
  QUANTIFY │ 
