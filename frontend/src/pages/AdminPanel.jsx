@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiTrash2, FiUserX, FiShield, FiActivity, FiTrendingUp, FiEye, FiX, FiAlertTriangle } from 'react-icons/fi';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
-import { io as socketIO } from 'socket.io-client';
 
 const ROL_LABELS = { 0: 'Admin', 1: 'Usuario', 2: 'Moderador' };
 const ROL_BADGES = { 0: 'bg-amber-500/10 border-amber-500/20 text-amber-400', 1: 'bg-blue-500/10 border-blue-500/20 text-blue-400', 2: 'bg-purple-500/10 border-purple-500/20 text-purple-400' };
@@ -16,25 +15,12 @@ const AdminPanel = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [stats, setStats] = useState({ totalUsers: 0, totalHabits: 0 });
-    const socketRef = useRef(null);
 
     // Habits modal state
     const [habitsModal, setHabitsModal] = useState({ open: false, user: null, habits: [], loading: false });
 
     useEffect(() => {
         loadData();
-
-        // Connect to Socket.IO for real-time updates
-        const socket = socketIO('http://localhost:5000');
-        socketRef.current = socket;
-
-        socket.on('admin:data-changed', () => {
-            loadData();
-        });
-
-        return () => {
-            socket.disconnect();
-        };
     }, []);
 
     const loadData = async () => {

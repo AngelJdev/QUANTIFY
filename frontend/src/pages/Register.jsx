@@ -74,7 +74,10 @@ export default function Register() {
             peso: '',
             estatura: '',
             genero: 'OTRO',
-            nivel_actividad: 'MODERADO'
+            nivel_actividad: 'MODERADO',
+            pais: 'México',
+            discapacidad: 'NINGUNA',
+            ocupacion: 'ESTUDIANTE'
         },
         validationSchema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -89,8 +92,11 @@ export default function Register() {
                         peso: parseFloat(values.peso),
                         estatura: parseInt(values.estatura),
                         genero: values.genero,
-                        nivel_actividad: values.nivel_actividad
-                    }
+                        nivel_actividad: values.nivel_actividad,
+                        discapacidad: values.discapacidad,
+                        ocupacion: values.ocupacion
+                    },
+                    pais: values.pais
                 };
                 await register(payload);
                 navigate('/dashboard');
@@ -269,6 +275,71 @@ export default function Register() {
                                                 <option value="SEDENTARIO">Sedentario</option>
                                                 <option value="MODERADO">Moderado</option>
                                                 <option value="ACTIVO">Activo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="label-style">País</label>
+                                            <select {...formik.getFieldProps('pais')} className="input-field">
+                                                <option value="México">México</option>
+                                                <option value="Estados Unidos">Estados Unidos</option>
+                                                <option value="Colombia">Colombia</option>
+                                                <option value="Argentina">Argentina</option>
+                                                <option value="España">España</option>
+                                                <option value="Chile">Chile</option>
+                                                <option value="Perú">Perú</option>
+                                                <option value="Brasil">Brasil</option>
+                                                <option value="Ecuador">Ecuador</option>
+                                                <option value="Venezuela">Venezuela</option>
+                                                <option value="Guatemala">Guatemala</option>
+                                                <option value="Cuba">Cuba</option>
+                                                <option value="Bolivia">Bolivia</option>
+                                                <option value="Rep. Dominicana">Rep. Dominicana</option>
+                                                <option value="Honduras">Honduras</option>
+                                                <option value="Paraguay">Paraguay</option>
+                                                <option value="El Salvador">El Salvador</option>
+                                                <option value="Costa Rica">Costa Rica</option>
+                                                <option value="Panamá">Panamá</option>
+                                                <option value="Uruguay">Uruguay</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="label-style">Discapacidad</label>
+                                            <select {...formik.getFieldProps('discapacidad')} className="input-field">
+                                                <option value="NINGUNA">Ninguna</option>
+                                                <option value="MOTRIZ">Motriz</option>
+                                                <option value="VISUAL">Visual</option>
+                                                <option value="AUDITIVA">Auditiva</option>
+                                                <option value="INTELECTUAL">Intelectual</option>
+                                                <option value="PSICOSOCIAL">Psicosocial</option>
+                                                <option value="DEL_HABLA">Del Habla</option>
+                                                <option value="MULTIPLE">Múltiple</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="label-style">Ocupación</label>
+                                            <select {...formik.getFieldProps('ocupacion')} className="input-field">
+                                                <option value="ESTUDIANTE">Estudiante</option>
+                                                <option value="EMPLEADO">Empleado</option>
+                                                <option value="FREELANCE">Freelance</option>
+                                                <option value="EMPRESARIO">Empresario</option>
+                                                <option value="DESEMPLEADO">Desempleado</option>
+                                                <option value="JUBILADO">Jubilado</option>
+                                                <option value="DOCENTE">Docente</option>
+                                                <option value="MEDICO">Médico</option>
+                                                <option value="INGENIERO">Ingeniero</option>
+                                                <option value="ABOGADO">Abogado</option>
+                                                <option value="CONTADOR">Contador</option>
+                                                <option value="DISEÑADOR">Diseñador</option>
+                                                <option value="PROGRAMADOR">Programador</option>
+                                                <option value="COMERCIANTE">Comerciante</option>
+                                                <option value="AGRICULTOR">Agricultor</option>
+                                                <option value="ARTISTA">Artista</option>
+                                                <option value="DEPORTISTA">Deportista</option>
+                                                <option value="INVESTIGADOR">Investigador</option>
+                                                <option value="AMA_DE_CASA">Ama de Casa</option>
+                                                <option value="OTRO">Otro</option>
                                             </select>
                                         </div>
                                     </div>
