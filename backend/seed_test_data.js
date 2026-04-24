@@ -1,10 +1,10 @@
-import User from './src/models/user.model.js';
-import UserMetric from './src/models/userMetric.model.js';
-import Habit from './src/models/habit.model.js';
-import Log from './src/models/log.model.js';
-import Achievement from './src/models/achievement.model.js';
-import sequelize from './src/config/db.mysql.js';
-import { connectMongo } from './src/config/db.mongo.js';
+import User from './SQL/models/user.model.js';
+import UserMetric from './SQL/models/userMetric.model.js';
+import Habit from './SQL/models/habit.model.js';
+import Log from './NoSQL/models/log.nosql.js';
+import Achievement from './SQL/models/achievement.model.js';
+import sequelize from './SQL/config/db.mysql.js';
+import { connectMongo } from './NoSQL/config/db.mongo.js';
 import mongoose from 'mongoose';
 
 async function seed() {

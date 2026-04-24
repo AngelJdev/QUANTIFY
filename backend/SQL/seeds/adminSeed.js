@@ -23,7 +23,8 @@ export const seedAdmins = async () => {
                     email: admin.email,
                     password_hash: admin.password,
                     security_phrase_hash: admin.securityPhrase,
-                    rol: 0 // ADMIN
+                    rol: 0,
+                    pais: 'México'
                 }
             });
 

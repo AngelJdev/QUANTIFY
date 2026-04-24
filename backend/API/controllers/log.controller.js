@@ -1,4 +1,4 @@
-import Log from '../../SQL/models/log.model.js';
+import Log from '../../NoSQL/models/log.nosql.js';
 import Habit from '../../SQL/models/habit.model.js';
 import { sendSuccess, sendError } from '../../utils/response.js';
 import { calculateAdherence, calculateDailyCompletion } from '../../utils/metrics.js';

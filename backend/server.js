@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
     const { default: sequelize } = await import('./SQL/config/db.mysql.js');
-    await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
+    await sequelize.sync();
     console.log('✅ Database models synchronized (MySQL).');
 
     // Seed admin users

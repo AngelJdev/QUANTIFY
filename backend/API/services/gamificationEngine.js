@@ -2,7 +2,7 @@ import User from '../../SQL/models/user.model.js';
 import Achievement from '../../SQL/models/achievement.model.js';
 import UserMetric from '../../SQL/models/userMetric.model.js';
 import Habit from '../../SQL/models/habit.model.js';
-import Log from '../../SQL/models/log.model.js';
+import Log from '../../NoSQL/models/log.nosql.js';
 import { Op } from 'sequelize';
 import moment from 'moment';
 
