@@ -1,4 +1,4 @@
-import Log from '../../SQL/models/log.model.js';
+import Log from '../../NoSQL/models/log.nosql.js';
 import Achievement from '../../SQL/models/achievement.model.js';
 import Habit from '../../SQL/models/habit.model.js';
 

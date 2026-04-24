@@ -4,6 +4,8 @@ import UserMetric from '../../SQL/models/userMetric.model.js';
 import sequelize from '../../SQL/config/db.mysql.js';
 import { jwtConfig } from '../../config/jwt.config.js';
 import { sendSuccess, sendError } from '../../utils/response.js';
+import { processUserGamification } from '../services/gamificationEngine.js';
+import { sendPasswordResetEmail } from '../services/mailer.service.js';
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -53,7 +55,7 @@ export const register = async (req, res, next) => {
     }
 };
 
-import { processUserGamification } from '../services/gamificationEngine.js';
+
 
 export const login = async (req, res, next) => {
     try {
@@ -101,7 +103,7 @@ export const getProfile = async (req, res, next) => {
     }
 };
 
-import { sendPasswordResetEmail } from '../services/mailer.service.js';
+
 
 // In-memory OTP store: { email → { code, expiresAt } }
 const otpStore = new Map();
