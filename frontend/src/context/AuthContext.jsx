@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
         setToken(res.data.token);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
+        return res.data.user;
     };
 
     const register = async (userData) => {

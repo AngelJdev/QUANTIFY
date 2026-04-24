@@ -14,7 +14,7 @@ const ProtectedRoute = ({ requireAdmin = false }) => {
         return <Navigate to="/onboarding" replace />;
     }
 
-    if (requireAdmin && user?.rol !== 'ADMIN') {
+    if (requireAdmin && user?.rol !== 0 && user?.rol !== 2) {
         return <Navigate to="/dashboard" replace />;
     }
 

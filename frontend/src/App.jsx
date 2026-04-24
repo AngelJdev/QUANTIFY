@@ -14,6 +14,7 @@ import OnboardingWizard from './pages/OnboardingWizard';
 import NotFound from './pages/NotFound';
 import Sitemap from './pages/Sitemap';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminPanel from './pages/AdminPanel';
 import ProfilePage from './pages/ProfilePage';
 
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -21,9 +22,12 @@ import ForgotPassword from './pages/ForgotPassword';
 import Footer from './components/Footer';
 
 const PublicRoute = () => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, user, loading } = useAuth();
     if (loading) return <div className="h-screen flex items-center justify-center text-primary">Cargando...</div>;
-    return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+    if (isAuthenticated) {
+        return <Navigate to={user?.rol === 0 || user?.rol === 2 ? '/admin-panel' : '/dashboard'} replace />;
+    }
+    return <Outlet />;
 };
 
 const ProtectedLayout = () => {
@@ -64,9 +68,10 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/sitemap" element={<Sitemap />} />
             
-            {/* Solo Administradores */}
+            {/* Solo Administradores y Moderadores */}
             <Route element={<ProtectedRoute requireAdmin={true} />}>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin-panel" element={<AdminPanel />} />
             </Route>
           </Route>
         </Route>

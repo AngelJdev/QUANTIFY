@@ -2,6 +2,8 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.mysql.js';
 import User from './user.model.js';
 
+import MongoHabit from './nosql/habit.nosql.js';
+
 const Habit = sequelize.define('Habit', {
     id: {
         type: DataTypes.INTEGER,
@@ -54,10 +56,54 @@ const Habit = sequelize.define('Habit', {
         defaultValue: true,
     }
 }, {
-    tableName: 'habits',
+    tableName: 'Habits',
     timestamps: true,
     createdAt: 'fecha_creacion',
     updatedAt: false,
+    hooks: {
+        afterCreate: async (habit) => {
+            try {
+                await MongoHabit.create({
+                    sql_id: habit.id,
+                    usuario_id: habit.usuario_id,
+                    nombre: habit.nombre,
+                    descripcion: habit.descripcion,
+                    tipo_medicion: habit.tipo_medicion,
+                    meta_diaria: habit.meta_diaria,
+                    unidad: habit.unidad,
+                    frecuencia: habit.frecuencia,
+                    fecha_fin: habit.fecha_fin,
+                    duracion_tipo: habit.duracion_tipo,
+                    activo: habit.activo,
+                    fecha_creacion: habit.fecha_creacion
+                });
+            } catch (err) { console.error('Error syncing Habit to Mongo:', err); }
+        },
+        afterUpdate: async (habit) => {
+            try {
+                await MongoHabit.findOneAndUpdate(
+                    { sql_id: habit.id },
+                    {
+                        nombre: habit.nombre,
+                        descripcion: habit.descripcion,
+                        tipo_medicion: habit.tipo_medicion,
+                        meta_diaria: habit.meta_diaria,
+                        unidad: habit.unidad,
+                        frecuencia: habit.frecuencia,
+                        fecha_fin: habit.fecha_fin,
+                        duracion_tipo: habit.duracion_tipo,
+                        activo: habit.activo
+                    },
+                    { upsert: true }
+                );
+            } catch (err) { console.error('Error syncing Habit update to Mongo:', err); }
+        },
+        afterDestroy: async (habit) => {
+            try {
+                await MongoHabit.findOneAndDelete({ sql_id: habit.id });
+            } catch (err) { console.error('Error syncing Habit delete to Mongo:', err); }
+        }
+    }
 });
 
 // Relationships

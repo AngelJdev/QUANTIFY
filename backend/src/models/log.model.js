@@ -31,7 +31,7 @@ const LogSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
+}, { collection: 'Logs' });
 
 // Indexes to speed up queries for adherence and general lookup
 LogSchema.index({ habito_id: 1, fecha_registro: -1 });

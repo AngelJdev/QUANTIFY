@@ -2,6 +2,8 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.mysql.js';
 import bcrypt from 'bcryptjs';
 
+import MongoUser from './nosql/user.nosql.js';
+
 const User = sequelize.define('User', {
     id: {
         type: DataTypes.INTEGER,
@@ -25,8 +27,9 @@ const User = sequelize.define('User', {
         allowNull: false,
     },
     rol: {
-        type: DataTypes.ENUM('USER', 'ADMIN'),
-        defaultValue: 'USER',
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+        comment: '0=ADMIN, 1=USER, 2=MODERADOR',
     },
     preferencias: {
         type: DataTypes.JSON,
@@ -53,11 +56,50 @@ const User = sequelize.define('User', {
         allowNull: true,
     }
 }, {
-    tableName: 'users',
+    tableName: 'Users',
     timestamps: true,
     createdAt: 'fecha_creacion',
     updatedAt: false,
     hooks: {
+        afterCreate: async (user) => {
+            try {
+                await MongoUser.create({
+                    sql_id: user.id,
+                    nombre: user.nombre,
+                    email: user.email,
+                    rol: user.rol,
+                    preferencias: user.preferencias,
+                    avatar_url: user.avatar_url,
+                    current_streak: user.current_streak,
+                    max_streak: user.max_streak,
+                    last_login_date: user.last_login_date,
+                    fecha_creacion: user.fecha_creacion
+                });
+            } catch (err) { console.error('Error syncing User to Mongo:', err); }
+        },
+        afterUpdate: async (user) => {
+            try {
+                await MongoUser.findOneAndUpdate(
+                    { sql_id: user.id },
+                    {
+                        nombre: user.nombre,
+                        email: user.email,
+                        rol: user.rol,
+                        preferencias: user.preferencias,
+                        avatar_url: user.avatar_url,
+                        current_streak: user.current_streak,
+                        max_streak: user.max_streak,
+                        last_login_date: user.last_login_date
+                    },
+                    { upsert: true }
+                );
+            } catch (err) { console.error('Error syncing User update to Mongo:', err); }
+        },
+        afterDestroy: async (user) => {
+            try {
+                await MongoUser.findOneAndDelete({ sql_id: user.id });
+            } catch (err) { console.error('Error syncing User delete to Mongo:', err); }
+        },
         beforeCreate: async (user) => {
             if (user.password_hash) {
                 const salt = await bcrypt.genSalt(10);
