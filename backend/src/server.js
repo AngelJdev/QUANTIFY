@@ -1,4 +1,6 @@
 import express from 'express';
+import { createServer } from 'http';
+import { Server as SocketServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -6,6 +8,7 @@ import dotenv from 'dotenv';
 import { connectMySQL } from './config/db.mysql.js';
 import { connectMongo } from './config/db.mongo.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
+import { setIO } from './utils/socket.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -66,6 +69,19 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const httpServer = createServer(app);
+const io = new SocketServer(httpServer, {
+    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE'] }
+});
+setIO(io);
+
+io.on('connection', (socket) => {
+    console.log(`🔌 Admin socket connected: ${socket.id}`);
+    socket.on('disconnect', () => {
+        console.log(`🔌 Admin socket disconnected: ${socket.id}`);
+    });
+});
+
+httpServer.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });

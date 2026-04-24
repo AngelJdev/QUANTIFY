@@ -63,6 +63,9 @@ const User = sequelize.define('User', {
     hooks: {
         afterCreate: async (user) => {
             try {
+                const UserEvent = (await import('./nosql/userEvent.nosql.js')).default;
+                const { getIO } = await import('../utils/socket.js');
+
                 await MongoUser.create({
                     sql_id: user.id,
                     nombre: user.nombre,
@@ -75,6 +78,13 @@ const User = sequelize.define('User', {
                     last_login_date: user.last_login_date,
                     fecha_creacion: user.fecha_creacion
                 });
+
+                // Log creation event for the chart
+                await UserEvent.create({ type: 'CREATED', userId: user.id });
+
+                // Emit real-time event
+                const io = getIO();
+                if (io) io.emit('admin:data-changed', { type: 'USER_CREATED', userId: user.id });
             } catch (err) { console.error('Error syncing User to Mongo:', err); }
         },
         afterUpdate: async (user) => {
