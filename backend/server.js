@@ -15,6 +15,7 @@ import adminRoutes from './API/routes/admin.routes.js';
 import onboardingRoutes from './API/routes/onboarding.routes.js';
 import achievementRoutes from './API/routes/achievement.routes.js';
 import profileRoutes from './API/routes/profile.routes.js';
+import supportRoutes from './API/routes/support.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
@@ -55,6 +56,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/support', supportRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });
