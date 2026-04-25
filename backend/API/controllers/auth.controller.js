@@ -18,7 +18,7 @@ const generateToken = (user) => {
 export const register = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const { nombre, email, password, metrics, securityPhrase, pais } = req.body;
+        const { nombre, username, email, password, metrics, securityPhrase, pais } = req.body;
 
         const emailExists = await User.findOne({ where: { email } });
         if (emailExists) {
@@ -26,8 +26,15 @@ export const register = async (req, res, next) => {
             return sendError(res, 400, 'El correo electrónico ya está en uso');
         }
 
+        const usernameExists = await User.findOne({ where: { username } });
+        if (usernameExists) {
+            await transaction.rollback();
+            return sendError(res, 400, 'El nombre de usuario ya está en uso');
+        }
+
         const newUser = await User.create({
             nombre,
+            username,
             email,
             password_hash: password,
             security_phrase_hash: securityPhrase,

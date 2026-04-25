@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
     sql_id: { type: Number, required: true, index: true, unique: true },
     nombre: { type: String, required: true },
+    username: { type: String, required: true, unique: true, index: true },
     email: { type: String, required: true },
     rol: { type: Number, default: 1 },
     preferencias: { type: Object, default: null },

@@ -28,11 +28,30 @@ router.get('/users/:id/habits', isAdminOrMod, async (req, res, next) => {
     }
 });
 
-// ─── GET /api/admin/users ─── (ADMIN + MOD)
+// ─── GET /api/admin/users ─── (ADMIN + MOD) — Paginated with search
 router.get('/users', isAdminOrMod, async (req, res, next) => {
     try {
-        const users = await User.findAll({
-            attributes: ['id', 'nombre', 'email', 'rol', 'fecha_creacion', 'current_streak', 'max_streak']
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const search = (req.query.search || '').trim();
+        const offset = (page - 1) * limit;
+
+        // Build WHERE clause for search
+        const { Op } = await import('sequelize');
+        const whereClause = search ? {
+            [Op.or]: [
+                { nombre: { [Op.like]: `%${search}%` } },
+                { username: { [Op.like]: `%${search}%` } },
+                { email: { [Op.like]: `%${search}%` } }
+            ]
+        } : {};
+
+        const { count: totalUsers, rows: users } = await User.findAndCountAll({
+            attributes: ['id', 'nombre', 'username', 'email', 'rol', 'fecha_creacion', 'current_streak', 'max_streak'],
+            where: whereClause,
+            order: [['id', 'ASC']],
+            limit,
+            offset
         });
 
         const usersWithHabits = await Promise.all(users.map(async (u) => {
@@ -40,7 +59,15 @@ router.get('/users', isAdminOrMod, async (req, res, next) => {
             return { ...u.toJSON(), habitCount };
         }));
 
-        return sendSuccess(res, 200, 'Lista de usuarios', usersWithHabits);
+        return sendSuccess(res, 200, 'Lista de usuarios', {
+            users: usersWithHabits,
+            pagination: {
+                page,
+                limit,
+                totalUsers,
+                totalPages: Math.ceil(totalUsers / limit)
+            }
+        });
     } catch (error) {
         next(error);
     }

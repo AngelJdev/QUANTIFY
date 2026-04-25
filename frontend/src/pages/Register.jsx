@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft, FiAtSign } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
@@ -30,6 +30,10 @@ export default function Register() {
         nombre: Yup.string().when([], {
             is: () => currentStep === 1,
             then: (sch) => sch.min(3, 'Mínimo 3 caracteres').required('Requerido')
+        }),
+        username: Yup.string().when([], {
+            is: () => currentStep === 1,
+            then: (sch) => sch.min(3, 'Mínimo 3 caracteres').max(30, 'Máximo 30 caracteres').matches(/^[a-zA-Z0-9]+$/, 'Solo letras y números').required('Requerido')
         }),
         email: Yup.string().when([], {
             is: () => currentStep === 1,
@@ -66,6 +70,7 @@ export default function Register() {
         initialValues: {
             lfpdppp_agreed: false,
             nombre: '',
+            username: '',
             email: '',
             password: '',
             confirmPassword: '',
@@ -84,6 +89,7 @@ export default function Register() {
             try {
                 const payload = {
                     nombre: values.nombre,
+                    username: values.username,
                     email: values.email,
                     password: values.password,
                     securityPhrase: values.securityPhrase,
@@ -112,7 +118,7 @@ export default function Register() {
         const fields = currentStep === 0
             ? ['lfpdppp_agreed']
             : currentStep === 1
-                ? ['nombre', 'email', 'password', 'confirmPassword', 'securityPhrase']
+                ? ['nombre', 'username', 'email', 'password', 'confirmPassword', 'securityPhrase']
                 : ['edad', 'peso', 'estatura'];
 
         const errors = await formik.validateForm();
@@ -201,13 +207,22 @@ export default function Register() {
                                                 {formik.touched.nombre && formik.errors.nombre && <p className="error-text">{formik.errors.nombre}</p>}
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="label-style">Email de Registro</label>
+                                                <label className="label-style">Username</label>
                                                 <div className="relative">
-                                                    <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
-                                                    <input {...formik.getFieldProps('email')} className="input-field pl-12" type="email" placeholder="usuario@quantify.ai" />
+                                                    <FiAtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
+                                                    <input {...formik.getFieldProps('username')} className="input-field pl-12" placeholder="miusuario123" />
                                                 </div>
-                                                {formik.touched.email && formik.errors.email && <p className="error-text">{formik.errors.email}</p>}
+                                                <p className="text-[9px] text-textMuted italic mt-0.5 font-bold">Solo letras y números, sin espacios ni caracteres especiales.</p>
+                                                {formik.touched.username && formik.errors.username && <p className="error-text">{formik.errors.username}</p>}
                                             </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="label-style">Email de Registro</label>
+                                            <div className="relative">
+                                                <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" />
+                                                <input {...formik.getFieldProps('email')} className="input-field pl-12" type="email" placeholder="usuario@quantify.ai" />
+                                            </div>
+                                            {formik.touched.email && formik.errors.email && <p className="error-text">{formik.errors.email}</p>}
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1">
