@@ -175,25 +175,52 @@ export const awardAchievement = async (userId, titulo, descripcion, icono) => {
  * Función que se ejecuta al login (heredada de v1)
  */
 export const processUserGamification = async (user) => {
-    const today = moment().format('YYYY-MM-DD');
-    const lastLogin = user.last_login_date;
-    let updatedFields = {};
+    try {
+        const todayStr = moment().format('YYYY-MM-DD');
+        const todayStart = moment().startOf('day').toDate();
+        const todayEnd = moment().endOf('day').toDate();
+        const yesterdayStart = moment().subtract(1, 'days').startOf('day').toDate();
+        const yesterdayEnd = moment().subtract(1, 'days').endOf('day').toDate();
 
-    if (!lastLogin) {
-        updatedFields = { current_streak: 1, max_streak: 1, last_login_date: today };
-    } else {
-        const diffDays = moment(today).diff(moment(lastLogin), 'days');
-        if (diffDays === 1) {
-            const newStreak = user.current_streak + 1;
-            updatedFields = { current_streak: newStreak, max_streak: Math.max(user.max_streak, newStreak), last_login_date: today };
-        } else if (diffDays > 1) {
-            updatedFields = { current_streak: 1, last_login_date: today };
-        } else {
-            return user;
+        // 1. Verificar actividad de HOY
+        const hadActivityToday = await Log.findOne({
+            usuario_id: user.id,
+            completado: true,
+            fecha_registro: { $gte: todayStart, $lte: todayEnd }
+        });
+
+        // 2. Verificar actividad de AYER
+        const hadActivityYesterday = await Log.findOne({
+            usuario_id: user.id,
+            completado: true,
+            fecha_registro: { $gte: yesterdayStart, $lte: yesterdayEnd }
+        });
+
+        const lastLogin = user.last_login_date;
+        let updatedFields = { last_login_date: todayStr };
+
+        if (!hadActivityToday && !hadActivityYesterday) {
+            // Caso 0: Sin actividad reciente
+            updatedFields.current_streak = 0;
+        } else if (hadActivityToday && !hadActivityYesterday) {
+            // Caso 1: Empezando racha hoy
+            updatedFields.current_streak = 1;
+        } else if (hadActivityToday && hadActivityYesterday) {
+            // Caso 2: Continuando racha (solo si es el primer login del día o primer completado)
+            if (lastLogin !== todayStr || user.current_streak === 0) {
+                const newStreak = (user.current_streak || 0) + 1;
+                updatedFields.current_streak = newStreak;
+                updatedFields.max_streak = Math.max(user.max_streak || 0, newStreak);
+            }
         }
-    }
+        // Nota: Si hay actividad ayer pero hoy no, mantenemos la racha de ayer (en espera)
 
-    await user.update(updatedFields);
-    await checkStreakMilestones(user);
-    return user;
+        await user.update(updatedFields);
+        await checkStreakMilestones(user);
+        
+        return user;
+    } catch (error) {
+        console.error('Error in processUserGamification:', error);
+        return user;
+    }
 };

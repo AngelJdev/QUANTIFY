@@ -17,8 +17,8 @@ const User = sequelize.define('User', {
     },
     username: {
         type: DataTypes.STRING(30),
-        allowNull: false,
-        unique: true,
+        allowNull: true,
+        unique: false,
         validate: {
             is: /^[a-zA-Z0-9]+$/
         }
