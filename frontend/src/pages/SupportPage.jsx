@@ -113,7 +113,7 @@ const SupportPage = () => {
                     <FiHelpCircle className="text-primary w-8 h-8" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Soporte Técnico</h1>
+                    <h1 className="text-3xl font-black text-textPrimary uppercase tracking-tighter">Soporte Técnico</h1>
                     <p className="text-textMuted font-medium">¿Tienes problemas con tus métricas? Cuéntanos.</p>
                 </div>
             </div>
