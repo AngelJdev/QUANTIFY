@@ -128,7 +128,7 @@ const SupportPage = () => {
                         onBlur={handleBlur}
                         onChange={handleChange}
                         placeholder="Ej: Error al sincronizar pasos"
-                        className={`w-full bg-white/5 border ${errors.asunto && touched.asunto ? 'border-danger' : 'border-white/10'} rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all`}
+                        className={`input-field ${errors.asunto && touched.asunto ? 'border-danger' : ''}`}
                     />
                     <AnimatePresence>
                         {errors.asunto && touched.asunto && (
@@ -154,7 +154,7 @@ const SupportPage = () => {
                         onBlur={handleBlur}
                         onChange={handleChange}
                         placeholder="usuario@quantify.app"
-                        className={`w-full bg-white/5 border ${errors.email && touched.email ? 'border-danger' : 'border-white/10'} rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all`}
+                        className={`input-field ${errors.email && touched.email ? 'border-danger' : ''}`}
                     />
                     <AnimatePresence>
                         {errors.email && touched.email && (
@@ -177,7 +177,7 @@ const SupportPage = () => {
                         name="prioridad"
                         value={formData.prioridad}
                         onChange={handleChange}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all appearance-none"
+                        className="input-field appearance-none"
                     >
                         <option value="Baja">Baja - Consulta general</option>
                         <option value="Media">Media - Fallo funcional</option>
@@ -195,7 +195,7 @@ const SupportPage = () => {
                         onBlur={handleBlur}
                         onChange={handleChange}
                         placeholder="Describe detalladamente qué sucedió..."
-                        className={`w-full bg-white/5 border ${errors.mensaje && touched.mensaje ? 'border-danger' : 'border-white/10'} rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all resize-none`}
+                        className={`input-field ${errors.mensaje && touched.mensaje ? 'border-danger' : ''} resize-none`}
                     />
                     <AnimatePresence>
                         {errors.mensaje && touched.mensaje && (
@@ -214,7 +214,7 @@ const SupportPage = () => {
                 {/* Botón de Envío */}
                 <button 
                     disabled={isSubmitting}
-                    className="w-full bg-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 group"
+                    className="btn-primary flex items-center justify-center gap-3 group !rounded-2xl"
                 >
                     {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
