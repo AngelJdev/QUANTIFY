@@ -23,14 +23,14 @@ const sequelize = new Sequelize(
 );
 
 async function checkDatabaseHealth() {
-    console.log('🔍 Iniciando monitoreo de salud de la base de datos...\n');
+    console.log('Iniciando monitoreo de salud de la base de datos...\n');
 
     try {
         // 1. Prueba de Latencia de Conexión
         const start = Date.now();
         await sequelize.authenticate();
         const latency = Date.now() - start;
-        console.log(`✅ Conexión: ESTABLE (Latencia: ${latency}ms)`);
+        console.log(`Conexión: ESTABLE (Latencia: ${latency}ms)`);
 
         // 2. Monitoreo de Tamaño de Tablas (Indicadores de Carga)
         const [tableSizes] = await sequelize.query(`
@@ -40,25 +40,25 @@ async function checkDatabaseHealth() {
             FROM information_schema.TABLES 
             WHERE table_schema = '${process.env.MYSQL_DATABASE}'
         `);
-        console.log('\n📊 Indicadores de Carga:');
+        console.log('\nIndicadores de Carga:');
         console.table(tableSizes);
 
         // 3. Monitoreo de Seguridad (Trazabilidad de Auditoría)
         const [[auditCount]] = await sequelize.query('SELECT COUNT(*) as total FROM SecurityAuditLogs');
-        console.log(`\n🛡️ Monitoreo de Seguridad:`);
+        console.log(`\nMonitoreo de Seguridad:`);
         console.log(`- Registros en Bitácora de Auditoría: ${auditCount.total}`);
 
         // 4. Verificación de Integridad de Rachas (Data Quality)
         const [[rachaAnomala]] = await sequelize.query('SELECT COUNT(*) as total FROM Users WHERE current_streak > max_streak');
         if (rachaAnomala.total > 0) {
-            console.warn(`\n⚠️ ALERTA DE CALIDAD: Se detectaron ${rachaAnomala.total} usuarios con inconsistencia en rachas.`);
+            console.warn(`\nALERTA DE CALIDAD: Se detectaron ${rachaAnomala.total} usuarios con inconsistencia en rachas.`);
         } else {
-            console.log(`\n✅ Calidad de Datos: SIN ANOMALÍAS DETECTADAS.`);
+            console.log(`\nCalidad de Datos: SIN ANOMALÍAS DETECTADAS.`);
         }
 
         process.exit(0);
     } catch (error) {
-        console.error('\n❌ ERROR CRÍTICO EN MONITOREO:', error.message);
+        console.error('\nERROR CRÍTICO EN MONITOREO:', error.message);
         process.exit(1);
     }
 }

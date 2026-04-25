@@ -60,18 +60,18 @@ const runBackup = (type = 'auto', scope = 'full') => {
 
     command += ` > "${outputPath}"`;
 
-    console.log(`🚀 Iniciando respaldo ${scope.toUpperCase()} (${type})...`);
+    console.log(`Iniciando respaldo ${scope.toUpperCase()} (${type})...`);
 
     exec(command, (error, stdout, stderr) => {
         if (error) {
-            console.error(`❌ Error en respaldo: ${error.message}`);
+            console.error(`Error en respaldo: ${error.message}`);
             return;
         }
         
         const logEntry = `[${moment().format('YYYY-MM-DD HH:mm:ss')}] TYPE: ${type.toUpperCase()} | SCOPE: ${scope.toUpperCase()} | FILE: ${filename} | STATUS: SUCCESS | REASON: Routine maintenance and data integrity checkpoint.\n`;
         fs.appendFileSync(LOG_FILE, logEntry);
         
-        console.log(`✅ Respaldo completado: ${outputPath}`);
+        console.log(`Respaldo completado: ${outputPath}`);
     });
 };
 
