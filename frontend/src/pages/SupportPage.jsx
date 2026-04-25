@@ -214,7 +214,7 @@ const SupportPage = () => {
                 {/* Botón de Envío */}
                 <button 
                     disabled={isSubmitting}
-                    className="btn-primary flex items-center justify-center gap-3 group !rounded-2xl"
+                    className="w-full bg-secondary dark:bg-white text-white dark:text-black font-black py-4 rounded-2xl shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-3 group"
                 >
                     {isSubmitting ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
