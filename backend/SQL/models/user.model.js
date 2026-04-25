@@ -15,6 +15,14 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    username: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        unique: false,
+        validate: {
+            is: /^[a-zA-Z0-9]+$/
+        }
+    },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -71,6 +79,7 @@ const User = sequelize.define('User', {
                 await MongoUser.create({
                     sql_id: user.id,
                     nombre: user.nombre,
+                    username: user.username,
                     email: user.email,
                     rol: user.rol,
                     preferencias: user.preferencias,
@@ -91,6 +100,7 @@ const User = sequelize.define('User', {
                     { sql_id: user.id },
                     {
                         nombre: user.nombre,
+                        username: user.username,
                         email: user.email,
                         rol: user.rol,
                         preferencias: user.preferencias,

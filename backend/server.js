@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectMySQL } from './SQL/config/db.mysql.js';
 import { connectMongo } from './NoSQL/config/db.mongo.js';
 import { errorHandler, notFound } from './API/middleware/error.middleware.js';
+import { swaggerSpec, swaggerUi } from './API/docs/swagger.config.js';
 
 // Routes
 import authRoutes from './API/routes/auth.routes.js';
@@ -16,19 +17,27 @@ import onboardingRoutes from './API/routes/onboarding.routes.js';
 import achievementRoutes from './API/routes/achievement.routes.js';
 import profileRoutes from './API/routes/profile.routes.js';
 import supportRoutes from './API/routes/support.routes.js';
+import populateRoutes from './API/routes/populate.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
 import './SQL/models/habit.model.js';
 import './SQL/models/userMetric.model.js';
 import './SQL/models/achievement.model.js';
+import './SQL/models/bitacora.model.js';
 
 dotenv.config();
 
 const app = express();
 
+// Trust proxy for real client IP detection (used by Bitacora)
+app.set('trust proxy', true);
+
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -38,7 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
     const { default: sequelize } = await import('./SQL/config/db.mysql.js');
-    await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
+    await sequelize.sync({ alter: true });
     console.log('✅ Database models synchronized (MySQL).');
 
     // Seed admin users
@@ -57,6 +66,13 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/populate', populateRoutes);
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Quantify API — Población de Datos'
+}));
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });

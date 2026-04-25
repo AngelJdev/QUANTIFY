@@ -7,10 +7,10 @@ import User from '../models/user.model.js';
 import UserMetric from '../models/userMetric.model.js';
 
 const ADMIN_USERS = [
-    { nombre: 'Farias',  email: 'farias@quantify.ai',  password: 'Admin@2025Farias',  securityPhrase: 'frase_segura_admin_farias_2025' },
-    { nombre: 'Artiaga', email: 'artiaga@quantify.ai', password: 'Admin@2025Artiaga', securityPhrase: 'frase_segura_admin_artiaga_2025' },
-    { nombre: 'Angel',   email: 'angel@quantify.ai',   password: 'Admin@2025Angel',   securityPhrase: 'frase_segura_admin_angel_2025' },
-    { nombre: 'Paco',    email: 'paco@quantify.ai',    password: 'Admin@2025Paco',    securityPhrase: 'frase_segura_admin_paco_2025' }
+    { nombre: 'Farias',  username: 'farias',  email: 'farias@quantify.ai',  password: 'Admin@2025Farias',  securityPhrase: 'frase_segura_admin_farias_2025' },
+    { nombre: 'Artiaga', username: 'artiaga', email: 'artiaga@quantify.ai', password: 'Admin@2025Artiaga', securityPhrase: 'frase_segura_admin_artiaga_2025' },
+    { nombre: 'Angel',   username: 'angel',   email: 'angel@quantify.ai',   password: 'Admin@2025Angel',   securityPhrase: 'frase_segura_admin_angel_2025' },
+    { nombre: 'Paco',    username: 'paco',    email: 'paco@quantify.ai',    password: 'Admin@2025Paco',    securityPhrase: 'frase_segura_admin_paco_2025' }
 ];
 
 export const seedAdmins = async () => {
@@ -20,10 +20,12 @@ export const seedAdmins = async () => {
                 where: { email: admin.email },
                 defaults: {
                     nombre: admin.nombre,
+                    username: admin.username,
                     email: admin.email,
                     password_hash: admin.password,
                     security_phrase_hash: admin.securityPhrase,
-                    rol: 0 // ADMIN
+                    rol: 0,
+                    pais: 'México'
                 }
             });
 

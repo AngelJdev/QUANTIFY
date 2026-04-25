@@ -8,6 +8,7 @@ import HabitInsights from '../components/HabitInsights';
 import AddHabitModal from '../components/AddHabitModal';
 import AchievementToast from '../components/AchievementToast';
 import TrophyGallery from '../components/TrophyGallery';
+import DeleteHabitModal from '../components/DeleteHabitModal';
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true);
@@ -25,6 +26,9 @@ const Dashboard = () => {
     const [unlockedAchievement, setUnlockedAchievement] = useState(null);
     const [achievementRefreshKey, setAchievementRefreshKey] = useState(0);
     const [currentStreak, setCurrentStreak] = useState(0);
+    const [user, setUser] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [habitToDelete, setHabitToDelete] = useState(null);
 
     useEffect(() => {
         loadHabits();
@@ -40,8 +44,11 @@ const Dashboard = () => {
             setHabits(habitsRes.data);
             setGlobalStats(globalRes.data);
 
-            // Mocked streak to 66 as requested for UI verification
-            setCurrentStreak(66);
+            // Fetch user profile for real streak
+            const profileRes = await api.get('/auth/profile');
+            const userData = profileRes.data.data.user;
+            setUser(userData);
+            setCurrentStreak(userData.current_streak || 0);
 
             // By default, show global view on first load
             if (isGlobalView) {
@@ -99,17 +106,21 @@ const Dashboard = () => {
         }
     };
 
-    const handleDeleteHabit = async (e, habitId) => {
+    const handleDeleteHabit = async (e, habit) => {
         e.stopPropagation();
-        const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este hábito y todos sus historiales de forma permanente?');
-        if (!confirmed) return;
+        setHabitToDelete(habit);
+        setIsDeleteModalOpen(true);
+    };
 
+    const confirmDeleteHabit = async () => {
+        if (!habitToDelete) return;
+        
         try {
-            await deleteHabit(habitId);
-            const remainingHabits = habits.filter(h => h.id !== habitId);
+            await deleteHabit(habitToDelete.id);
+            const remainingHabits = habits.filter(h => h.id !== habitToDelete.id);
             setHabits(remainingHabits);
 
-            if (selectedHabitId === habitId) {
+            if (selectedHabitId === habitToDelete.id) {
                 switchToGlobalView();
             } else {
                 // Refresh global stats after deletion
@@ -117,6 +128,8 @@ const Dashboard = () => {
                 setGlobalStats(globalRes.data);
                 if (isGlobalView) switchToGlobalView(globalRes.data);
             }
+            setIsDeleteModalOpen(false);
+            setHabitToDelete(null);
         } catch (error) {
             console.error(error);
         }
@@ -249,8 +262,7 @@ const Dashboard = () => {
                                         </h3>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <button
-                                                className="text-gray-300 dark:text-gray-600 hover:text-danger transition-colors p-1"
-                                                onClick={(e) => handleDeleteHabit(e, habit.id)}
+                                                onClick={(e) => handleDeleteHabit(e, habit)}
                                                 title="Eliminar permanentemente"
                                             >
                                                 <FiTrash2 size={22} />
@@ -356,6 +368,12 @@ const Dashboard = () => {
             <AchievementToast
                 achievement={unlockedAchievement}
                 onClose={() => setUnlockedAchievement(null)}
+            />
+            <DeleteHabitModal 
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDeleteHabit}
+                habitName={habitToDelete?.nombre || ''}
             />
         </div>
     );
