@@ -1,4 +1,4 @@
-# 🗺️ MODELO RELACIONAL (MR) — QUANTIFY
+# MODELO RELACIONAL (MR) - QUANTIFY
 
 ```mermaid
 erDiagram

@@ -1,4 +1,4 @@
--- 🛡️ QUANTIFY SECURITY AUDIT SYSTEM (Senior DBA Implementation)
+-- QUANTIFY SECURITY AUDIT SYSTEM (Senior DBA Implementation)
 -- Este script crea la infraestructura necesaria para la auditoría de integridad referencial y seguridad.
 
 USE quantify_db;

@@ -1,4 +1,4 @@
-# 📖 DICCIONARIO DE DATOS — QUANTIFY (MySQL)
+# DICCIONARIO DE DATOS - QUANTIFY (MySQL)
 **Versión**: 1.1 | **Fecha**: 25 de abril, 2026
 
 ## 1. Introducción
