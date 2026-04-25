@@ -20,6 +20,7 @@
     "mongoose": "^8.3.1",
     "morgan": "^1.10.0",
     "mysql2": "^3.9.7",
+    "node-cron": "^4.2.1",
     "nodemailer": "^8.0.5",
     "sequelize": "^6.37.3",
     "socket.io": "^4.8.3",

@@ -7,7 +7,13 @@ import Log from '../../NoSQL/models/log.nosql.js';
 import UserMetric from '../../SQL/models/userMetric.model.js';
 import Achievement from '../../SQL/models/achievement.model.js';
 import UserEvent from '../../NoSQL/models/userEvent.nosql.js';
+import BitacoraAdmin from '../../NoSQL/models/bitacoraAdmin.nosql.js';
 import { sendSuccess, sendError } from '../../utils/response.js';
+
+const ROL_LABELS = { 0: 'ADMIN', 1: 'USUARIO', 2: 'MODERADOR' };
+
+// Helper to get client IP
+const getClientIp = (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || '0.0.0.0';
 
 const router = Router();
 
@@ -175,6 +181,20 @@ router.delete('/habits/:id', isAdminOrMod, async (req, res, next) => {
         await Log.deleteMany({ habito_id: habit.id });
         await habit.destroy(); // hooks sync to Mongo
 
+        // Log to bitacora_Admins
+        const adminUser = await User.findByPk(req.user.id);
+        await BitacoraAdmin.create({
+            admin_id: req.user.id,
+            admin_nombre: adminUser?.nombre || 'Desconocido',
+            admin_username: adminUser?.username || 'unknown',
+            admin_rol: ROL_LABELS[req.user.rol] || 'MODERADOR',
+            accion: 'DELETE_HABIT',
+            descripcion: `Eliminó el hábito "${habit.nombre}" (ID: ${habitId}) del usuario ID: ${habit.usuario_id}`,
+            target_user_id: habit.usuario_id,
+            target_user_nombre: null,
+            ip: getClientIp(req)
+        });
+
         return sendSuccess(res, 200, `Hábito "${habit.nombre}" eliminado.`);
     } catch (error) {
         next(error);
@@ -194,7 +214,22 @@ router.delete('/users/:id/habits', isAdminOrMod, async (req, res, next) => {
         }
 
         await Log.deleteMany({ usuario_id: userId });
+        const habitCount = await Habit.count({ where: { usuario_id: userId } });
         await Habit.destroy({ where: { usuario_id: userId }, individualHooks: true });
+
+        // Log to bitacora_Admins
+        const adminUser = await User.findByPk(req.user.id);
+        await BitacoraAdmin.create({
+            admin_id: req.user.id,
+            admin_nombre: adminUser?.nombre || 'Desconocido',
+            admin_username: adminUser?.username || 'unknown',
+            admin_rol: ROL_LABELS[req.user.rol] || 'MODERADOR',
+            accion: 'DELETE_ALL_HABITS',
+            descripcion: `Eliminó TODOS los hábitos (${habitCount}) y registros del usuario "${user.nombre}" (ID: ${userId})`,
+            target_user_id: userId,
+            target_user_nombre: user.nombre,
+            ip: getClientIp(req)
+        });
 
         return sendSuccess(res, 200, `Hábitos y registros del usuario ${user.nombre} eliminados.`);
     } catch (error) {
@@ -219,6 +254,10 @@ router.delete('/users/:id', isAdminOrMod, async (req, res, next) => {
             return sendError(res, 403, 'Un moderador no puede eliminar a un administrador.');
         }
 
+        // Save user info before deletion
+        const userName = user.nombre;
+        const userEmail = user.email;
+
         // Delete all related data
         await Log.deleteMany({ usuario_id: userId });
         await Achievement.destroy({ where: { usuario_id: userId }, individualHooks: true });
@@ -229,7 +268,21 @@ router.delete('/users/:id', isAdminOrMod, async (req, res, next) => {
         // Log deletion event for the chart
         await UserEvent.create({ type: 'DELETED', userId });
 
-        return sendSuccess(res, 200, `Cuenta de ${user.nombre} eliminada permanentemente.`);
+        // Log to bitacora_Admins
+        const adminUser = await User.findByPk(req.user.id);
+        await BitacoraAdmin.create({
+            admin_id: req.user.id,
+            admin_nombre: adminUser?.nombre || 'Desconocido',
+            admin_username: adminUser?.username || 'unknown',
+            admin_rol: ROL_LABELS[req.user.rol] || 'MODERADOR',
+            accion: 'DELETE_USER',
+            descripcion: `Eliminó permanentemente la cuenta de "${userName}" (ID: ${userId}, Email: ${userEmail})`,
+            target_user_id: userId,
+            target_user_nombre: userName,
+            ip: getClientIp(req)
+        });
+
+        return sendSuccess(res, 200, `Cuenta de ${userName} eliminada permanentemente.`);
     } catch (error) {
         next(error);
     }
@@ -252,7 +305,22 @@ router.patch('/users/:id/role', isAdmin, async (req, res, next) => {
             return sendError(res, 403, 'No puedes cambiar tu propio rol.');
         }
 
+        const oldRol = user.rol;
         await user.update({ rol });
+
+        // Log to bitacora_Admins
+        const adminUser = await User.findByPk(req.user.id);
+        await BitacoraAdmin.create({
+            admin_id: req.user.id,
+            admin_nombre: adminUser?.nombre || 'Desconocido',
+            admin_username: adminUser?.username || 'unknown',
+            admin_rol: ROL_LABELS[req.user.rol] || 'ADMIN',
+            accion: 'ROLE_CHANGE',
+            descripcion: `Cambió el rol de "${user.nombre}" (ID: ${userId}) de ${ROL_LABELS[oldRol]} a ${ROL_LABELS[rol]}`,
+            target_user_id: userId,
+            target_user_nombre: user.nombre,
+            ip: getClientIp(req)
+        });
 
         return sendSuccess(res, 200, `Rol de ${user.nombre} actualizado.`, { id: user.id, rol: user.rol });
     } catch (error) {
