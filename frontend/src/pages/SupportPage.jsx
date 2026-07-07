@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiAlertCircle, FiCheckCircle, FiHelpCircle } from 'react-icons/fi';
 import axios from 'axios';
@@ -15,6 +16,15 @@ const SupportPage = () => {
     const [touched, setTouched] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
+    const [searchParams] = useSearchParams();
+
+    // Capturar estado desde la URL
+    useEffect(() => {
+        const status = searchParams.get('status');
+        if (status === 'success' || status === 'error') {
+            setSubmitStatus(status);
+        }
+    }, [searchParams]);
 
     // Validaciones en tiempo real
     const validate = (name, value) => {

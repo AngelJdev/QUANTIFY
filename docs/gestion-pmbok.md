@@ -1,10 +1,4 @@
-# QUANTIFY SYSTEM
-
-<div align="center">
-  <img src="https://img.shields.io/badge/Status-Stable-success?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Architecture-Hybrid_SQL_NoSQL-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Version-1.1.0-orange?style=for-the-badge" />
-</div>
+# Gestión de Proyecto (PMBOK) - QUANTIFY SYSTEM
 
 > **Plataforma de Ingeniería Aplicada al Bienestar Personal (Advanced Habit Tracker)**  
 > *Diseño UX/UI bajo el principio de "Engineering Aesthetic" (Estética oscura, precisa, minimalista e industrial).*
@@ -195,7 +189,7 @@ Estimación mensual básica para el despliegue del entorno en producción (Infra
 | **Instancia Computacional** | AWS EC2 (t3.medium) / DigitalOcean | Hosting del servidor Node.js y Frontend estático | $15.00 - $20.00 |
 | **Base de Datos SQL** | AWS RDS / DigitalOcean Managed | Instancia MySQL administrada, alta disponibilidad | $15.00 - $25.00 |
 | **Base de Datos NoSQL** | MongoDB Atlas (M10) | Cluster para escalabilidad y logs de gamificación | $9.00 - $15.00 |
-| **Dominio y SSL** | Cloudflare / Namecheap | Enrutamiento, seguridad y caché (CDN) | $1.50 |
+| **Dominio y SSL** | Cloudflare / Name custom | Enrutamiento, seguridad y caché (CDN) | $1.50 |
 | **Total Estimado** | | | **~$40.50 - $61.50** |
 
 ---

@@ -17,6 +17,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import ProfilePage from './pages/ProfilePage';
 import SupportPage from './pages/SupportPage';
+import Error500 from './pages/Error500';
 
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ForgotPassword from './pages/ForgotPassword';
@@ -69,6 +70,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/mapa-del-sitio" element={<Sitemap />} />
             <Route path="/soporte" element={<SupportPage />} />
+            <Route path="/error-servidor" element={<Error500 />} />
             
             {/* Solo Administradores y Moderadores */}
             <Route element={<ProtectedRoute requireAdmin={true} />}>
@@ -78,7 +80,7 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );
