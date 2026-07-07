@@ -5,6 +5,26 @@
 
 ---
 
+## Índice
+
+- [1. Inicio del Proyecto](#1-inicio-del-proyecto)
+- [2. Gestión de Alcance](#2-gestión-de-alcance)
+- [3. Tecnologías Utilizadas](#3-tecnologías-utilizadas)
+- [4. Descripción del Proyecto](#4-descripción-del-proyecto)
+- [5. Documentación](#5-documentación)
+- [6. Estructura del Proyecto](#6-estructura-del-proyecto)
+- [7. Gestión de Recursos Humanos](#7-gestión-de-recursos-humanos)
+- [8. Gestión de Interesados](#8-gestión-de-interesados)
+- [9. Gestión del Tiempo](#9-gestión-del-tiempo)
+- [10. Gestión de Costos](#10-gestión-de-costos)
+- [11. Gestión de Adquisiciones](#11-gestión-de-adquisiciones)
+- [12. Gestión de la Comunicación](#12-gestión-de-la-comunicación)
+- [13. Gestión de la Calidad](#13-gestión-de-la-calidad)
+- [14. Gestión de Riesgos](#14-gestión-de-riesgos)
+- [15. Plan de Pruebas](#15-plan-de-pruebas)
+
+---
+
 ## 1. Inicio del Proyecto
 
 ### Contexto y Justificación
