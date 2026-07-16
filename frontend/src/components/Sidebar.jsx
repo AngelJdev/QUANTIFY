@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiLogOut, FiActivity, FiBookOpen, FiHelpCircle } from 'react-icons/fi';
+import { FiLogOut, FiActivity, FiBookOpen } from 'react-icons/fi';
 import { LuShield, LuUser } from 'react-icons/lu';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
@@ -45,30 +45,10 @@ const Sidebar = () => {
                     }`}>
                     <LuUser size={16} /> Mi Perfil
                 </Link>
-                <Link to="/mapa-del-sitio" 
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                        location.pathname === '/mapa-del-sitio'
-                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
-                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
-                    }`}>
-                    <FiBookOpen size={16} /> Mapa del Sitio
-                </Link>
-                <Link to="/soporte" 
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                        location.pathname === '/soporte'
-                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
-                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
-                    }`}>
-                    <FiHelpCircle size={16} /> Soporte
-                </Link>
-                <Link to="/" 
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-transparent text-gray-300 hover:text-white hover:bg-black/10 transition-colors font-bold text-sm">
-                    <FiActivity size={16} className="rotate-180" /> Página Informativa
-                </Link>
-                {(user.rol === 0 || user.rol === 2 || user.rol === 'ADMIN') && (
+                {(user.rol === 0 || user.rol === 2) && (
                     <Link to="/admin-panel"
                         className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                            location.pathname === '/admin-panel' || location.pathname === '/admin'
+                            location.pathname === '/admin-panel'
                             ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
                             : 'border-transparent text-amber-300 hover:bg-amber-500/10 hover:text-amber-200'
                         }`}>

@@ -1,23 +1,43 @@
+import Ticket from '../../NoSQL/models/ticket.model.js';
+import { sendSupportConfirmation } from '../services/email.service.js';
+
 /**
  * Controlador para la gestión de tickets de soporte
  */
 export const createTicket = async (req, res) => {
     try {
-        // En un entorno real, aquí guardaríamos el ticket en la base de datos (MongoDB/Sequelize)
         const { asunto, email, mensaje, prioridad } = req.body;
 
-        // Simulamos procesamiento asíncrono
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 1. Generar ID único para el ticket
+        const ticketId = `QTY-${Math.floor(100000 + Math.random() * 900000)}`;
 
-        console.log(`[Support] Nuevo ticket recibido de ${email}: ${asunto}`);
+        // 2. Guardar en MongoDB para persistencia histórica
+        const newTicket = new Ticket({
+            ticketId,
+            asunto,
+            email,
+            mensaje,
+            prioridad
+        });
+        await newTicket.save();
+
+        // 3. Enviar correo de confirmación vía Mailtrap (asíncrono)
+        sendSupportConfirmation({
+            email,
+            asunto,
+            ticketId,
+            prioridad
+        }).catch(err => console.error('Error al enviar correo de soporte:', err));
+
+        console.log(`[Support] Ticket ${ticketId} creado exitosamente para ${email}`);
 
         return res.status(201).json({
             status: 'success',
-            message: 'Ticket creado exitosamente. Nuestro equipo se pondrá en contacto pronto.',
+            message: 'Ticket creado exitosamente. Se ha enviado un correo de confirmación.',
             data: {
-                ticketId: Math.floor(Math.random() * 1000000),
+                ticketId,
                 asunto,
-                prioridad
+                status: 'Abierto'
             }
         });
     } catch (error) {

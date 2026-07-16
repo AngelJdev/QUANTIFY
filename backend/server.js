@@ -3,10 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import https from 'https';
+import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectMySQL } from './SQL/config/db.mysql.js';
 import { connectMongo } from './NoSQL/config/db.mongo.js';
 import { errorHandler, notFound } from './API/middleware/error.middleware.js';
 import { swaggerSpec, swaggerUi } from './API/docs/swagger.config.js';
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Routes
 import authRoutes from './API/routes/auth.routes.js';
@@ -18,6 +27,7 @@ import achievementRoutes from './API/routes/achievement.routes.js';
 import profileRoutes from './API/routes/profile.routes.js';
 import supportRoutes from './API/routes/support.routes.js';
 import populateRoutes from './API/routes/populate.routes.js';
+import externalRoutes from './API/routes/external.routes.js'; // Servicio Web Externo
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
@@ -57,7 +67,7 @@ Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     console.error('Failed to initialize databases:', err);
 });
 
-// API Routes
+// API Routes (Endpoints base)
 app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/logs', logRoutes);
@@ -67,6 +77,13 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/populate', populateRoutes);
+
+// Web Service Propio (Motor Analítico de Rachas)
+import analyticsRoutes from './API/routes/analytics.routes.js';
+app.use('/api/analytics', analyticsRoutes);
+
+// Web Services Externos (Ejemplo: GitHub API & IP Geolocation)
+app.use('/api/external', externalRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -84,6 +101,24 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// Setup SSL/HTTPS Server
+const privateKeyPath = path.join(__dirname, 'ssl', 'server.key');
+const certificatePath = path.join(__dirname, 'ssl', 'server.cert');
+
+let server;
+
+if (fs.existsSync(privateKeyPath) && fs.existsSync(certificatePath)) {
+    const credentials = {
+        key: fs.readFileSync(privateKeyPath, 'utf8'),
+        cert: fs.readFileSync(certificatePath, 'utf8')
+    };
+    server = https.createServer(credentials, app);
+    server.listen(PORT, () => {
+        console.log(`🚀 HTTPS Server running securely on port ${PORT}`);
+    });
+} else {
+    server = http.createServer(app);
+    server.listen(PORT, () => {
+        console.warn('⚠️ SSL certificates not found. Running HTTP Server on port', PORT);
+    });
+}

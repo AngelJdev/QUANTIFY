@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiAlertCircle, FiCheckCircle, FiHelpCircle } from 'react-icons/fi';
 import axios from 'axios';
@@ -15,6 +16,15 @@ const SupportPage = () => {
     const [touched, setTouched] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
+    const [searchParams] = useSearchParams();
+
+    // Capturar estado desde la URL
+    useEffect(() => {
+        const status = searchParams.get('status');
+        if (status === 'success' || status === 'error') {
+            setSubmitStatus(status);
+        }
+    }, [searchParams]);
 
     // Validaciones en tiempo real
     const validate = (name, value) => {
@@ -113,7 +123,7 @@ const SupportPage = () => {
                     <FiHelpCircle className="text-primary w-8 h-8" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Soporte Técnico</h1>
+                    <h1 className="text-3xl font-black text-textPrimary uppercase tracking-tighter">Soporte Técnico</h1>
                     <p className="text-textMuted font-medium">¿Tienes problemas con tus métricas? Cuéntanos.</p>
                 </div>
             </div>

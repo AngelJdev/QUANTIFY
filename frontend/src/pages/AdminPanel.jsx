@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiTrash2, FiUserX, FiShield, FiActivity, FiTrendingUp, FiEye, FiX, FiAlertTriangle, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiUsers, FiTrash2, FiUserX, FiShield, FiActivity, FiTrendingUp, FiEye, FiX, FiAlertTriangle } from 'react-icons/fi';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
+import { io as socketIO } from 'socket.io-client';
 
 const ROL_LABELS = { 0: 'Admin', 1: 'Usuario', 2: 'Moderador' };
 const ROL_BADGES = { 0: 'bg-amber-500/10 border-amber-500/20 text-amber-400', 1: 'bg-blue-500/10 border-blue-500/20 text-blue-400', 2: 'bg-purple-500/10 border-purple-500/20 text-purple-400' };
@@ -15,26 +16,35 @@ const AdminPanel = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [stats, setStats] = useState({ totalUsers: 0, totalHabits: 0 });
-
-    // Pagination & Search state
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [search, setSearch] = useState('');
-    const [searchInput, setSearchInput] = useState('');
-    const [pagination, setPagination] = useState({ totalUsers: 0, totalPages: 1 });
+    const socketRef = useRef(null);
 
     // Habits modal state
     const [habitsModal, setHabitsModal] = useState({ open: false, user: null, habits: [], loading: false });
 
-    const loadData = useCallback(async () => {
+    useEffect(() => {
+        loadData();
+
+        // Connect to Socket.IO for real-time updates
+        const socket = socketIO('http://localhost:5000');
+        socketRef.current = socket;
+
+        socket.on('admin:data-changed', () => {
+            loadData();
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
+
+    const loadData = async () => {
         try {
             const [usersRes, regRes, statsRes] = await Promise.all([
-                api.get(`/admin/users?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`),
+                api.get('/admin/users'),
                 api.get('/admin/registration-stats'),
                 api.get('/admin/stats')
             ]);
-            setUsers(usersRes.data.data.users);
-            setPagination(usersRes.data.data.pagination);
+            setUsers(usersRes.data.data);
             setRegistrationStats(regRes.data.data);
             setStats(statsRes.data.data);
         } catch (error) {
@@ -42,20 +52,7 @@ const AdminPanel = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, limit, search]);
-
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
-
-    // Debounced search
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setSearch(searchInput);
-            setPage(1);
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [searchInput]);
+    };
 
     // ─── Habits Modal ───
     const openHabitsModal = async (user) => {
@@ -107,7 +104,6 @@ const AdminPanel = () => {
         setActionLoading(`user-${userId}`);
         try {
             await api.delete(`/admin/users/${userId}`);
-            loadData();
         } catch (error) {
             alert(error.response?.data?.message || 'Error al eliminar cuenta.');
         } finally {
@@ -119,7 +115,6 @@ const AdminPanel = () => {
         setActionLoading(`role-${userId}`);
         try {
             await api.patch(`/admin/users/${userId}/role`, { rol: newRole });
-            loadData();
         } catch (error) {
             alert(error.response?.data?.message || 'Error al cambiar rol.');
         } finally {
@@ -218,41 +213,12 @@ const AdminPanel = () => {
 
             {/* Users Table */}
             <div className="glass-card dark:border-white/5 dark:bg-surface overflow-hidden">
-                <div className="flex flex-col gap-4 mb-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-textPrimary flex items-center gap-2">
-                            <span className="w-2 h-6 rounded bg-primary dark:bg-white"></span>
-                            Gestión de Usuarios
-                        </h2>
-                        <span className="text-xs font-bold text-textMuted uppercase tracking-widest">{pagination.totalUsers} registros</span>
-                    </div>
-                    {/* Search + Page Size */}
-                    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                        <div className="relative flex-1">
-                            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nombre, username o email..."
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-textPrimary dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                            />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-textMuted whitespace-nowrap">Mostrar:</span>
-                            <select
-                                value={limit}
-                                onChange={(e) => { setLimit(parseInt(e.target.value)); setPage(1); }}
-                                className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm font-bold text-textPrimary dark:text-white cursor-pointer focus:ring-2 focus:ring-primary/30"
-                            >
-                                <option value={10}>10</option>
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={75}>75</option>
-                                <option value={100}>100</option>
-                            </select>
-                        </div>
-                    </div>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-textPrimary flex items-center gap-2">
+                        <span className="w-2 h-6 rounded bg-primary dark:bg-white"></span>
+                        Gestión de Usuarios
+                    </h2>
+                    <span className="text-xs font-bold text-textMuted uppercase tracking-widest">{users.length} registros</span>
                 </div>
 
                 {loading ? (
@@ -262,13 +228,11 @@ const AdminPanel = () => {
                         ))}
                     </div>
                 ) : (
-                    <>
                     <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10">
                         <table className="w-full text-sm" style={{ minWidth: '800px' }}>
                             <thead>
                                 <tr className="border-b border-gray-100 dark:border-white/10">
                                     <th className="text-left py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Usuario</th>
-                                    <th className="text-left py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Username</th>
                                     <th className="text-left py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Email</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Rol</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Hábitos</th>
@@ -301,7 +265,6 @@ const AdminPanel = () => {
                                                         {u.id === currentUser?.id && <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">TÚ</span>}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4 text-textMuted font-mono text-xs whitespace-nowrap">@{u.username}</td>
                                                 <td className="py-3 px-4 text-textMuted font-medium whitespace-nowrap">{u.email}</td>
                                                 <td className="py-3 px-4 text-center whitespace-nowrap">
                                                     {isAdmin && u.id !== currentUser?.id ? (
@@ -360,65 +323,6 @@ const AdminPanel = () => {
                             </tbody>
                         </table>
                     </div>
-                    {/* Pagination Controls */}
-                    {pagination.totalPages > 1 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
-                            <span className="text-xs font-bold text-textMuted">
-                                Página {pagination.page} de {pagination.totalPages}
-                            </span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => setPage(1)}
-                                    disabled={page === 1}
-                                    className="px-3 py-2 rounded-lg text-xs font-bold text-textMuted hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 transition-all"
-                                >
-                                    Primera
-                                </button>
-                                <button
-                                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                                    disabled={page === 1}
-                                    className="p-2 rounded-lg text-textMuted hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 transition-all"
-                                >
-                                    <FiChevronLeft size={16} />
-                                </button>
-                                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                                    let pageNum;
-                                    if (pagination.totalPages <= 5) { pageNum = i + 1; }
-                                    else if (page <= 3) { pageNum = i + 1; }
-                                    else if (page >= pagination.totalPages - 2) { pageNum = pagination.totalPages - 4 + i; }
-                                    else { pageNum = page - 2 + i; }
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => setPage(pageNum)}
-                                            className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${
-                                                pageNum === page
-                                                    ? 'bg-primary text-white shadow-lg'
-                                                    : 'text-textMuted hover:bg-gray-100 dark:hover:bg-white/5'
-                                            }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                                    disabled={page === pagination.totalPages}
-                                    className="p-2 rounded-lg text-textMuted hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 transition-all"
-                                >
-                                    <FiChevronRight size={16} />
-                                </button>
-                                <button
-                                    onClick={() => setPage(pagination.totalPages)}
-                                    disabled={page === pagination.totalPages}
-                                    className="px-3 py-2 rounded-lg text-xs font-bold text-textMuted hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 transition-all"
-                                >
-                                    Última
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    </>
                 )}
             </div>
 
