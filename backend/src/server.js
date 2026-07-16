@@ -39,6 +39,10 @@ Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     const { default: sequelize } = await import('./config/db.mysql.js');
     await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
     console.log('✅ Database models synchronized (MySQL).');
+
+    // Seed admin users
+    const { seedAdmins } = await import('./seeds/adminSeed.js');
+    await seedAdmins();
 }).catch(err => {
     console.error('Failed to initialize databases:', err);
 });

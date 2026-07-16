@@ -134,8 +134,10 @@ const Login = () => {
         onSubmit: async (values, { setSubmitting }) => {
             try {
                 setAuthError('');
-                await login(values);
-                navigate('/dashboard');
+                const userData = await login(values);
+                // Redirect based on role: 0=ADMIN, 2=MOD → admin panel, 1=USER → dashboard
+                const userRole = userData?.rol;
+                navigate(userRole === 0 || userRole === 2 ? '/admin-panel' : '/dashboard');
             } catch (error) {
                 setAuthError(error.response?.data?.message || 'Error al iniciar sesión');
             } finally {

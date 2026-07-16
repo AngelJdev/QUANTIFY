@@ -45,14 +45,14 @@ const Sidebar = () => {
                     }`}>
                     <LuUser size={16} /> Mi Perfil
                 </Link>
-                {user.rol === 'ADMIN' && (
-                    <Link to="/admin"
+                {(user.rol === 0 || user.rol === 2) && (
+                    <Link to="/admin-panel"
                         className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                            location.pathname === '/admin'
+                            location.pathname === '/admin-panel'
                             ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
                             : 'border-transparent text-amber-300 hover:bg-amber-500/10 hover:text-amber-200'
                         }`}>
-                        <LuShield size={16} /> Panel Admin
+                        <LuShield size={16} /> Panel de Administrador
                     </Link>
                 )}
             </div>

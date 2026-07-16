@@ -1,8 +1,15 @@
 import { sendError } from '../utils/response.js';
 
 export const isAdmin = (req, res, next) => {
-    if (!req.user || req.user.rol !== 'ADMIN') {
+    if (!req.user || req.user.rol !== 0) {
         return sendError(res, 403, 'Require Admin Role.');
+    }
+    next();
+};
+
+export const isAdminOrMod = (req, res, next) => {
+    if (!req.user || (req.user.rol !== 0 && req.user.rol !== 2)) {
+        return sendError(res, 403, 'Require Admin or Moderator Role.');
     }
     next();
 };
