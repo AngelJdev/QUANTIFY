@@ -13,6 +13,12 @@ const sequelize = new Sequelize(
     port: process.env.MYSQL_PORT || 3306,
     dialect: 'mysql',
     logging: false, // Set to console.log to see SQL queries
+    dialectOptions: process.env.NODE_ENV === 'production' ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    } : {},
     pool: {
       max: 5,
       min: 0,
@@ -28,7 +34,7 @@ export const connectMySQL = async () => {
     console.log('✅ MySQL Database connected successfully.');
   } catch (error) {
     console.error('❌ Unable to connect to the MySQL database:', error);
-    process.exit(1);
+    // process.exit(1); -> Removed to prevent silent Vercel crashes
   }
 };
 
