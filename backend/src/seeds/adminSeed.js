@@ -10,7 +10,8 @@ const ADMIN_USERS = [
     { nombre: 'Farias',  email: 'farias@quantify.ai',  password: 'Admin@2025Farias',  securityPhrase: 'frase_segura_admin_farias_2025' },
     { nombre: 'Artiaga', email: 'artiaga@quantify.ai', password: 'Admin@2025Artiaga', securityPhrase: 'frase_segura_admin_artiaga_2025' },
     { nombre: 'Angel',   email: 'angel@quantify.ai',   password: 'Admin@2025Angel',   securityPhrase: 'frase_segura_admin_angel_2025' },
-    { nombre: 'Paco',    email: 'paco@quantify.ai',    password: 'Admin@2025Paco',    securityPhrase: 'frase_segura_admin_paco_2025' }
+    { nombre: 'Paco',    email: 'paco@quantify.ai',    password: 'Admin@2025Paco',    securityPhrase: 'frase_segura_admin_paco_2025' },
+    { nombre: 'Brian',   email: 'brian@quantify.ai',   password: 'Admin@2025Brian',   securityPhrase: 'frase_segura_admin_brian_2025' }
 ];
 
 export const seedAdmins = async () => {
