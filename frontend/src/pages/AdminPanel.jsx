@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +26,7 @@ const AdminPanel = () => {
         loadData();
 
         // Connect to Socket.IO for real-time updates
-        const socket = socketIO('http://localhost:5000');
+        const socket = socketIO('/');
         socketRef.current = socket;
 
         socket.on('admin:data-changed', () => {

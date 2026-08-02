@@ -139,3 +139,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 backend/admin_credentials.txt
+backend/users_dataset.json
