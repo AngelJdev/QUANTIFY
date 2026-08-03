@@ -15,7 +15,12 @@ export const fetchProfile = async () => {
     return response.data;
 };
 
-export const googleLoginService = async (credential) => {
-    const response = await api.post('/auth/google', { credential });
+export const googleLoginService = async (credential, action = 'login', otp = '') => {
+    const response = await api.post('/auth/google', { credential, action, otp });
+    return response.data;
+};
+
+export const sendVerificationService = async (email, nombre) => {
+    const response = await api.post('/auth/send-verification', { email, nombre });
     return response.data;
 };

@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
         return res.data.user;
     };
 
-    const loginWithGoogle = async (credential) => {
-        const res = await googleLoginService(credential);
+    const loginWithGoogle = async (credential, action = 'login', otp = '') => {
+        const res = await googleLoginService(credential, action, otp);
         setToken(res.data.token);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
