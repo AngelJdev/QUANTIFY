@@ -8,8 +8,10 @@ import HabitInsights from '../components/HabitInsights';
 import AddHabitModal from '../components/AddHabitModal';
 import AchievementToast from '../components/AchievementToast';
 import TrophyGallery from '../components/TrophyGallery';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [habits, setHabits] = useState([]);
     const [globalStats, setGlobalStats] = useState({ globalScore: 0, dailyCompletion: 0, totalHabits: 0, dailyPerformance: [] });
@@ -40,8 +42,8 @@ const Dashboard = () => {
             setHabits(habitsRes.data);
             setGlobalStats(globalRes.data);
 
-            // Mocked streak to 66 as requested for UI verification
-            setCurrentStreak(66);
+            // Use actual user streak from database
+            setCurrentStreak(user?.current_streak || 0);
 
             // By default, show global view on first load
             if (isGlobalView) {

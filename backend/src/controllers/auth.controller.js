@@ -134,7 +134,8 @@ export const sendVerification = async (req, res, next) => {
 
         return sendSuccess(res, 200, 'Código de verificación enviado. Revisa tu bandeja de entrada.');
     } catch (error) {
-        next(error);
+        console.error("SMTP Error:", error);
+        return sendError(res, 500, error.message || 'Error al enviar código de verificación');
     }
 };
 

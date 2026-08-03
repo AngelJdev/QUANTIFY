@@ -28,13 +28,19 @@ export default function Register() {
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             setErrorMsg('');
+            formik.setSubmitting(true);
             const decoded = jwtDecode(credentialResponse.credential);
             setGoogleCredential(credentialResponse.credential);
             formik.setFieldValue('email', decoded.email);
             formik.setFieldValue('nombre', decoded.name);
-            setCurrentStep(2); // Skip straight to metrics
+            
+            // Enviar correo OTP automáticamente y saltar directo al Paso 3
+            await sendVerificationService(decoded.email, decoded.name);
+            setCurrentStep(3); 
         } catch (error) {
-            setErrorMsg('Error al decodificar cuenta de Google');
+            setErrorMsg(error.response?.data?.message || 'Error al enviar código de verificación');
+        } finally {
+            formik.setSubmitting(false);
         }
     };
 
@@ -167,7 +173,15 @@ export default function Register() {
         }
     };
 
-    const prevStep = () => setCurrentStep(prev => prev - 1);
+    const prevStep = () => {
+        if (currentStep === 3 && googleCredential) {
+            // Si está en OTP con Google, al dar atrás le borramos la credencial y lo mandamos al Paso 1
+            setGoogleCredential(null);
+            setCurrentStep(1);
+        } else {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
