@@ -169,7 +169,7 @@ export default function OnboardingWizard() {
 
                                 {currentStep === 1 && (
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 shadow-sm block">Edad</label>
                                                 <input 
@@ -195,7 +195,7 @@ export default function OnboardingWizard() {
                                                 placeholder="70.5" type="number" step="0.1"
                                             />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 block">Género</label>
                                                 <select {...formik.getFieldProps('genero')} className="input-field">

@@ -45,40 +45,44 @@ const ProtectedLayout = () => {
     );
 };
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 function App() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
 
-        {/* Rutas de Autenticación */}
-        <Route element={<PublicRoute />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-        </Route>
+          {/* Rutas de Autenticación */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+          </Route>
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/onboarding" element={<OnboardingWizard />} />
-          <Route element={<ProtectedLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/sitemap" element={<Sitemap />} />
-            
-            {/* Solo Administradores y Moderadores */}
-            <Route element={<ProtectedRoute requireAdmin={true} />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin-panel" element={<AdminPanel />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/onboarding" element={<OnboardingWizard />} />
+            <Route element={<ProtectedLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/sitemap" element={<Sitemap />} />
+              
+              {/* Solo Administradores y Moderadores */}
+              <Route element={<ProtectedRoute requireAdmin={true} />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin-panel" element={<AdminPanel />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AnimatePresence>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
+    </GoogleOAuthProvider>
   );
 }
 

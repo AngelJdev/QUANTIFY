@@ -4,6 +4,9 @@ import UserMetric from '../models/userMetric.model.js';
 import sequelize from '../config/db.mysql.js';
 import { jwtConfig } from '../config/jwt.config.js';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -16,7 +19,18 @@ const generateToken = (user) => {
 export const register = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const { nombre, email, password, metrics, securityPhrase } = req.body;
+        const { nombre, email, password, metrics, securityPhrase, otp } = req.body;
+
+        if (!otp) {
+            await transaction.rollback();
+            return sendError(res, 400, 'El código de verificación (OTP) es requerido');
+        }
+
+        const record = otpStore.get(email);
+        if (!record || Date.now() > record.expiresAt || record.code !== otp.trim()) {
+            await transaction.rollback();
+            return sendError(res, 400, 'El código de verificación es inválido o ha expirado');
+        }
 
         const emailExists = await User.findOne({ where: { email } });
         if (emailExists) {
@@ -39,6 +53,7 @@ export const register = async (req, res, next) => {
         }
 
         await transaction.commit();
+        otpStore.delete(email);
 
         const token = generateToken(newUser);
 
@@ -100,12 +115,29 @@ export const getProfile = async (req, res, next) => {
     }
 };
 
-import { sendPasswordResetEmail } from '../services/mailer.service.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../services/mailer.service.js';
 
 // In-memory OTP store: { email → { code, expiresAt } }
 const otpStore = new Map();
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+export const sendVerification = async (req, res, next) => {
+    try {
+        const { email, nombre } = req.body;
+        if (!email) return sendError(res, 400, 'El correo es requerido.');
+
+        const otp = generateOTP();
+        otpStore.set(email, { code: otp, expiresAt: Date.now() + 15 * 60 * 1000 });
+
+        await sendVerificationEmail(email, nombre || 'Usuario', otp);
+
+        return sendSuccess(res, 200, 'Código de verificación enviado. Revisa tu bandeja de entrada.');
+    } catch (error) {
+        console.error("SMTP Error:", error);
+        return sendError(res, 500, error.message || 'Error al enviar código de verificación');
+    }
+};
 
 // POST /auth/forgot-password  — sends OTP via Mailtrap
 export const forgotPassword = async (req, res, next) => {
@@ -164,3 +196,50 @@ export const resetPassword = async (req, res, next) => {
         next(error);
     }
 };
+  
+export const googleLogin = async (req, res, next) => {  
+    try {  
+        const { credential, action, otp } = req.body;  
+        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });  
+        const payload = ticket.getPayload();  
+        const { sub: google_id, email, name: nombre, picture: avatar_url } = payload;  
+
+        let user = await User.findOne({ where: { email } });  
+
+        if (action === 'login') {
+            if (!user) {
+                return sendError(res, 404, 'No existe una cuenta vinculada a este correo. Regístrate primero.');
+            }
+        } else if (action === 'register') {
+            if (!otp) {
+                return sendError(res, 400, 'El código de verificación (OTP) es requerido');
+            }
+            const record = otpStore.get(email);
+            if (!record || Date.now() > record.expiresAt || record.code !== otp.trim()) {
+                return sendError(res, 400, 'El código de verificación es inválido o ha expirado');
+            }
+        }
+
+        const transaction = await sequelize.transaction();  
+        try {  
+            if (!user) { 
+                user = await User.create({ nombre, email, google_id, avatar_url }, { transaction }); 
+            } else if (!user.google_id) { 
+                user.google_id = google_id; 
+                if (!user.avatar_url) user.avatar_url = avatar_url; 
+                await user.save({ transaction }); 
+            }  
+            await transaction.commit();  
+            if (action === 'register') otpStore.delete(email);
+        } catch(error) { 
+            await transaction.rollback(); 
+            throw error; 
+        }  
+
+        const updatedUser = await processUserGamification(user);  
+        const token = generateToken(updatedUser);  
+        const metrics = await UserMetric.findOne({ where: { usuario_id: updatedUser.id } });  
+        const needsOnboarding = !metrics;  
+        return sendSuccess(res, 200, 'Login con Google exitoso', { user: { ...updatedUser.toJSON(), needsOnboarding }, token });  
+    } catch (error) { next(error); }  
+}; 

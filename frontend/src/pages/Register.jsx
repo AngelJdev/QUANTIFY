@@ -3,22 +3,46 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
+import { sendVerificationService } from '../services/authService';
 
 const steps = [
     { id: 'privacy', title: 'Legalidad LFPDPPP', icon: FiShield },
     { id: 'credentials', title: 'Identidad Digital', icon: FiUser },
-    { id: 'metrics', title: 'Perímetro Biométrico', icon: FiActivity }
+    { id: 'metrics', title: 'Perímetro Biométrico', icon: FiActivity },
+    { id: 'verify', title: 'Verificación de Enlace', icon: FiCheckCircle }
 ];
 
 export default function Register() {
-    const { register } = useAuth();
+    const { register, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [errorMsg, setErrorMsg] = useState('');
+    const [googleCredential, setGoogleCredential] = useState(null);
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setErrorMsg('');
+            formik.setSubmitting(true);
+            const decoded = jwtDecode(credentialResponse.credential);
+            setGoogleCredential(credentialResponse.credential);
+            formik.setFieldValue('email', decoded.email);
+            formik.setFieldValue('nombre', decoded.name);
+            
+            // Enviar correo OTP automáticamente y saltar directo al Paso 3
+            await sendVerificationService(decoded.email, decoded.name);
+            setCurrentStep(3); 
+        } catch (error) {
+            setErrorMsg(error.response?.data?.message || 'Error al enviar código de verificación');
+        } finally {
+            formik.setSubmitting(false);
+        }
+    };
 
     const validationSchema = Yup.object().shape({
         // Step 0: Privacy
@@ -26,25 +50,25 @@ export default function Register() {
             is: () => currentStep === 0,
             then: (sch) => sch.oneOf([true], 'Debes aceptar los términos para continuar.')
         }),
-        // Step 1: Account & Security
+        // Step 1: Account & Security (If not Google)
         nombre: Yup.string().when([], {
-            is: () => currentStep === 1,
+            is: () => currentStep === 1 && !googleCredential,
             then: (sch) => sch.min(3, 'Mínimo 3 caracteres').required('Requerido')
         }),
         email: Yup.string().when([], {
-            is: () => currentStep === 1,
+            is: () => currentStep === 1 && !googleCredential,
             then: (sch) => sch.email('Email inválido').required('Requerido')
         }),
         password: Yup.string().when([], {
-            is: () => currentStep === 1,
+            is: () => currentStep === 1 && !googleCredential,
             then: (sch) => sch.min(6, 'Mínimo 6 caracteres').required('Requerido')
         }),
         confirmPassword: Yup.string().when([], {
-            is: () => currentStep === 1,
+            is: () => currentStep === 1 && !googleCredential,
             then: (sch) => sch.oneOf([Yup.ref('password'), null], 'No coinciden').required('Requerido')
         }),
         securityPhrase: Yup.string().when([], {
-            is: () => currentStep === 1,
+            is: () => currentStep === 1 && !googleCredential,
             then: (sch) => sch.min(10, 'Frase demasiado corta (mín 10 carc)').required('Requerido')
         }),
         // Step 2: Metrics
@@ -59,6 +83,11 @@ export default function Register() {
         estatura: Yup.number().when([], {
             is: () => currentStep === 2,
             then: (sch) => sch.min(100).max(250).required('Requerido')
+        }),
+        // Step 3: OTP
+        otp: Yup.string().when([], {
+            is: () => currentStep === 3,
+            then: (sch) => sch.length(6, 'Debe tener 6 dígitos').required('Requerido')
         })
     });
 
@@ -74,25 +103,31 @@ export default function Register() {
             peso: '',
             estatura: '',
             genero: 'OTRO',
-            nivel_actividad: 'MODERADO'
+            nivel_actividad: 'MODERADO',
+            otp: ''
         },
         validationSchema,
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                const payload = {
-                    nombre: values.nombre,
-                    email: values.email,
-                    password: values.password,
-                    securityPhrase: values.securityPhrase,
-                    metrics: {
-                        edad: parseInt(values.edad),
-                        peso: parseFloat(values.peso),
-                        estatura: parseInt(values.estatura),
-                        genero: values.genero,
-                        nivel_actividad: values.nivel_actividad
-                    }
-                };
-                await register(payload);
+                if (googleCredential) {
+                    await loginWithGoogle(googleCredential, 'register', values.otp);
+                } else {
+                    const payload = {
+                        nombre: values.nombre,
+                        email: values.email,
+                        password: values.password,
+                        securityPhrase: values.securityPhrase,
+                        otp: values.otp,
+                        metrics: {
+                            edad: parseInt(values.edad),
+                            peso: parseFloat(values.peso),
+                            estatura: parseInt(values.estatura),
+                            genero: values.genero,
+                            nivel_actividad: values.nivel_actividad
+                        }
+                    };
+                    await register(payload);
+                }
                 navigate('/dashboard');
             } catch (error) {
                 setErrorMsg(error.response?.data?.message || 'Error al procesar la vinculación.');
@@ -107,20 +142,46 @@ export default function Register() {
             ? ['lfpdppp_agreed']
             : currentStep === 1
                 ? ['nombre', 'email', 'password', 'confirmPassword', 'securityPhrase']
-                : ['edad', 'peso', 'estatura'];
+                : currentStep === 2
+                    ? ['edad', 'peso', 'estatura']
+                    : ['otp'];
 
         const errors = await formik.validateForm();
         const stepErrors = fields.filter(f => !!errors[f]);
 
         if (stepErrors.length === 0) {
-            if (currentStep < 2) setCurrentStep(prev => prev + 1);
-            else formik.handleSubmit();
+            if (currentStep < 3) {
+                if (currentStep === 2) {
+                    try {
+                        formik.setSubmitting(true);
+                        await sendVerificationService(formik.values.email, formik.values.nombre);
+                        setErrorMsg('');
+                        setCurrentStep(3);
+                    } catch (error) {
+                        setErrorMsg(error.response?.data?.message || 'Error al enviar código de verificación');
+                    } finally {
+                        formik.setSubmitting(false);
+                    }
+                } else {
+                    setCurrentStep(prev => prev + 1);
+                }
+            } else {
+                formik.handleSubmit();
+            }
         } else {
             fields.forEach(f => formik.setFieldTouched(f, true));
         }
     };
 
-    const prevStep = () => setCurrentStep(prev => prev - 1);
+    const prevStep = () => {
+        if (currentStep === 3 && googleCredential) {
+            // Si está en OTP con Google, al dar atrás le borramos la credencial y lo mandamos al Paso 1
+            setGoogleCredential(null);
+            setCurrentStep(1);
+        } else {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent">
@@ -184,6 +245,22 @@ export default function Register() {
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-6 uppercase tracking-tight">Identificación y Cifrado</h2>
+                                    
+                                    <div className="mb-6 flex justify-center">
+                                        <GoogleLogin
+                                            onSuccess={handleGoogleSuccess}
+                                            onError={() => setErrorMsg('Error al conectar con Google.')}
+                                            theme="outline"
+                                            shape="circle"
+                                            text="signup_with"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                                        <span className="text-[10px] text-textMuted font-bold tracking-widest uppercase">O registra manual</span>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1">
@@ -240,7 +317,7 @@ export default function Register() {
                             {currentStep === 2 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white uppercase tracking-tight">Variables Antropométricas</h2>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="space-y-1">
                                             <label className="label-style">Edad</label>
                                             <input {...formik.getFieldProps('edad')} className="input-field" type="number" placeholder="25" />
@@ -254,7 +331,7 @@ export default function Register() {
                                             <input {...formik.getFieldProps('estatura')} className="input-field" type="number" placeholder="175" />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="label-style">Género</label>
                                             <select {...formik.getFieldProps('genero')} className="input-field">
@@ -271,6 +348,32 @@ export default function Register() {
                                                 <option value="ACTIVO">Activo</option>
                                             </select>
                                         </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* STEP 3: OTP VERIFICATION */}
+                            {currentStep === 3 && (
+                                <div className="space-y-6">
+                                    <div className="text-center mb-8">
+                                        <div className="inline-flex bg-primary/10 p-4 rounded-full mb-4">
+                                            <FiMail className="text-4xl text-primary" />
+                                        </div>
+                                        <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-2 uppercase tracking-tight">Verificación Requerida</h2>
+                                        <p className="text-sm text-textMuted max-w-sm mx-auto leading-relaxed">
+                                            Hemos enviado un código de seguridad de 6 dígitos a <strong className="text-primary">{formik.values.email}</strong>. 
+                                            Revisa tu bandeja de entrada o spam.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1 text-center">
+                                        <label className="label-style">Código de 6 dígitos</label>
+                                        <input 
+                                            {...formik.getFieldProps('otp')} 
+                                            className="input-field text-center text-3xl tracking-[1em] font-black w-full" 
+                                            maxLength={6}
+                                            placeholder="------" 
+                                        />
+                                        {formik.touched.otp && formik.errors.otp && <p className="error-text">{formik.errors.otp}</p>}
                                     </div>
                                 </div>
                             )}
@@ -298,8 +401,8 @@ export default function Register() {
                             disabled={formik.isSubmitting}
                             className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all"
                         >
-                            {formik.isSubmitting ? 'Procesando Enlace...' : currentStep === 2 ? 'Sellado de Datos' : 'Siguiente'}
-                            {currentStep < 2 && <FiArrowRight />}
+                            {formik.isSubmitting ? 'Procesando...' : currentStep === 3 ? 'Finalizar Vinculación' : currentStep === 2 ? 'Sellado de Datos' : 'Siguiente'}
+                            {currentStep < 3 && <FiArrowRight />}
                         </button>
                     </footer>
                 </div>

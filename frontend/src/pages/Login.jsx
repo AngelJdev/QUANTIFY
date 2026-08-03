@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FiArrowRight } from 'react-icons/fi';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
+import { GoogleLogin } from '@react-oauth/google';
 
 // ─── Starfield Canvas Component ───────────────────────────────────────────────
 function StarfieldCanvas() {
@@ -121,9 +122,26 @@ function StarfieldCanvas() {
 
 // ─── Login Page ───────────────────────────────────────────────────────────────
 const Login = () => {
-    const { login } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
     const [authError, setAuthError] = useState('');
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setAuthError('');
+            const userData = await loginWithGoogle(credentialResponse.credential, 'login');
+            const userRole = userData?.rol;
+            navigate(userRole === 0 || userRole === 2 ? '/admin-panel' : '/dashboard');
+        } catch (error) {
+            const status = error.response?.status;
+            if (status === 404) {
+                // Not found -> redirect to register
+                navigate('/register');
+            } else {
+                setAuthError(error.response?.data?.message || 'Error al iniciar sesión con Google');
+            }
+        }
+    };
 
     const formik = useFormik({
         initialValues: { email: '', password: '' },
@@ -285,6 +303,24 @@ const Login = () => {
                             {!formik.isSubmitting && <FiArrowRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />}
                         </button>
                     </form>
+
+                    <div className="flex items-center gap-3 my-8">
+                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                        <span className="text-xs text-textMuted font-bold tracking-widest uppercase">O</span>
+                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => {
+                                setAuthError('Ocurrió un error al intentar conectarse con Google.');
+                            }}
+                            theme="outline"
+                            shape="circle"
+                            text="continue_with"
+                        />
+                    </div>
 
                     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/5 text-center">
                         <p className="text-sm text-textMuted font-medium">
