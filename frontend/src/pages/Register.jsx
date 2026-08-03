@@ -7,6 +7,7 @@ import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiAr
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
+import { GoogleLogin } from '@react-oauth/google';
 
 const steps = [
     { id: 'privacy', title: 'Legalidad LFPDPPP', icon: FiShield },
@@ -15,10 +16,21 @@ const steps = [
 ];
 
 export default function Register() {
-    const { register } = useAuth();
+    const { register, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [errorMsg, setErrorMsg] = useState('');
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setErrorMsg('');
+            const userData = await loginWithGoogle(credentialResponse.credential);
+            const userRole = userData?.rol;
+            navigate(userRole === 0 || userRole === 2 ? '/admin-panel' : '/dashboard');
+        } catch (error) {
+            setErrorMsg(error.response?.data?.message || 'Error al enlazar cuenta de Google');
+        }
+    };
 
     const validationSchema = Yup.object().shape({
         // Step 0: Privacy
@@ -184,6 +196,22 @@ export default function Register() {
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-6 uppercase tracking-tight">Identificación y Cifrado</h2>
+                                    
+                                    <div className="mb-6 flex justify-center">
+                                        <GoogleLogin
+                                            onSuccess={handleGoogleSuccess}
+                                            onError={() => setErrorMsg('Error al conectar con Google.')}
+                                            theme="outline"
+                                            shape="circle"
+                                            text="signup_with"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                                        <span className="text-[10px] text-textMuted font-bold tracking-widest uppercase">O registra manual</span>
+                                        <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
+                                    </div>
+
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1">

@@ -4,6 +4,9 @@ import UserMetric from '../models/userMetric.model.js';
 import sequelize from '../config/db.mysql.js';
 import { jwtConfig } from '../config/jwt.config.js';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -164,3 +167,24 @@ export const resetPassword = async (req, res, next) => {
         next(error);
     }
 };
+  
+export const googleLogin = async (req, res, next) => {  
+    try {  
+        const { credential } = req.body;  
+        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });  
+        const payload = ticket.getPayload();  
+        const { sub: google_id, email, name: nombre, picture: avatar_url } = payload;  
+        let user = await User.findOne({ where: { email } });  
+        const transaction = await sequelize.transaction();  
+        try {  
+            if (!user) { user = await User.create({ nombre, email, google_id, avatar_url }, { transaction }); }  
+            else if (!user.google_id) { user.google_id = google_id; if (!user.avatar_url) user.avatar_url = avatar_url; await user.save({ transaction }); }  
+            await transaction.commit();  
+        } catch(error) { await transaction.rollback(); throw error; }  
+        const updatedUser = await processUserGamification(user);  
+        const token = generateToken(updatedUser);  
+        const metrics = await UserMetric.findOne({ where: { usuario_id: updatedUser.id } });  
+        const needsOnboarding = !metrics;  
+        return sendSuccess(res, 200, 'Login con Google exitoso', { user: { ...updatedUser.toJSON(), needsOnboarding }, token });  
+    } catch (error) { next(error); }  
+}; 

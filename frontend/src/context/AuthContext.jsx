@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { loginUser, registerUser, fetchProfile } from '../services/authService';
+import { loginUser, registerUser, fetchProfile, googleLoginService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -26,6 +26,14 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         const res = await loginUser(credentials);
+        setToken(res.data.token);
+        localStorage.setItem('token', res.data.token);
+        setUser(res.data.user);
+        return res.data.user;
+    };
+
+    const loginWithGoogle = async (credential) => {
+        const res = await googleLoginService(credential);
         setToken(res.data.token);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
@@ -60,7 +68,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ 
-            user, token, loading, login, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user 
+            user, token, loading, login, loginWithGoogle, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user 
         }}>
             {!loading && children}
         </AuthContext.Provider>

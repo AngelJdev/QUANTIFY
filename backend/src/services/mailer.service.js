@@ -1,11 +1,12 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_HOST,
-    port: parseInt(process.env.MAILTRAP_PORT),
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
-        user: process.env.MAILTRAP_USER,
-        pass: process.env.MAILTRAP_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
     },
 });
 
@@ -127,7 +128,7 @@ const buildResetEmailHTML = (userName, otp) => `
  */
 export const sendPasswordResetEmail = async (toEmail, userName, otp) => {
     await transporter.sendMail({
-        from: process.env.MAILTRAP_FROM || 'Quantify <no-reply@quantify.app>',
+        from: process.env.SMTP_FROM || process.env.SMTP_USER || 'Quantify <no-reply@quantify.app>',
         to: toEmail,
         subject: `${otp} — Tu código de recuperación Quantify`,
         text: `Hola ${userName},\n\nTu código de recuperación es: ${otp}\nEste código expira en 15 minutos.\n\nSi no lo solicitaste, ignora este mensaje.`,
