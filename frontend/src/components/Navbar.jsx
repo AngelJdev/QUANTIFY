@@ -45,10 +45,9 @@ const Navbar = () => {
                 
                 {isAuthenticated && user ? (
                     <div className="flex items-center gap-4 border-l border-gray-200 dark:border-white/10 pl-4 ml-2">
-                        {/* Streak Counter */}
                         <div className="flex items-center gap-1.5 bg-orange-100 dark:bg-orange-500/10 px-3 py-1.5 rounded-full border border-orange-200 dark:border-orange-500/20 shadow-sm shadow-orange-500/5">
                             <FiZap className="text-orange-500 text-lg" />
-                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">66</span>
+                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">{user.current_streak || 0}</span>
                         </div>
 
                         <div className="hidden md:block text-right">

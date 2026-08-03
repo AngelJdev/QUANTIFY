@@ -317,7 +317,7 @@ export default function Register() {
                             {currentStep === 2 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white uppercase tracking-tight">Variables Antropométricas</h2>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="space-y-1">
                                             <label className="label-style">Edad</label>
                                             <input {...formik.getFieldProps('edad')} className="input-field" type="number" placeholder="25" />
@@ -331,7 +331,7 @@ export default function Register() {
                                             <input {...formik.getFieldProps('estatura')} className="input-field" type="number" placeholder="175" />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="label-style">Género</label>
                                             <select {...formik.getFieldProps('genero')} className="input-field">
