@@ -246,15 +246,21 @@ export default function Register() {
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-6 uppercase tracking-tight">Identificación y Cifrado</h2>
                                     
-                                    <div className="mb-6 flex justify-center">
-                                        <GoogleLogin
-                                            onSuccess={handleGoogleSuccess}
-                                            onError={() => setErrorMsg('Error al conectar con Google.')}
-                                            theme="outline"
-                                            shape="circle"
-                                            text="signup_with"
-                                        />
-                                    </div>
+                                    {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+                                        <div className="mb-6 flex justify-center">
+                                            <GoogleLogin
+                                                onSuccess={handleGoogleSuccess}
+                                                onError={() => setErrorMsg('Error al conectar con Google.')}
+                                                theme="outline"
+                                                shape="circle"
+                                                text="signup_with"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="mb-6 flex justify-center text-center p-3 bg-danger/10 border border-danger/30 text-danger text-xs rounded-xl font-medium">
+                                            ⚠️ Google Auth no está configurado. (Falta VITE_GOOGLE_CLIENT_ID)
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
                                         <span className="text-[10px] text-textMuted font-bold tracking-widest uppercase">O registra manual</span>

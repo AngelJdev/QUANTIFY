@@ -175,8 +175,8 @@ const Login = () => {
                 <StarfieldCanvas />
 
                 {/* Ambient blobs */}
-                <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[400px] bg-blue-800/10 rounded-full blur-[140px] pointer-events-none" />
-                <div className="absolute bottom-[10%] right-[-15%] w-[400px] h-[400px] bg-indigo-700/8 rounded-full blur-[120px] pointer-events-none" />
+                <div className="hidden md:block absolute top-[-15%] left-[-10%] w-[600px] h-[400px] bg-blue-800/10 rounded-full blur-[140px] pointer-events-none" />
+                <div className="hidden md:block absolute bottom-[10%] right-[-15%] w-[400px] h-[400px] bg-indigo-700/8 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
 
                 {/* Logo */}
@@ -233,7 +233,7 @@ const Login = () => {
 
             {/* ── RIGHT: Form ── */}
             <div className="w-full lg:w-[52%] flex flex-col items-center justify-center relative z-20 bg-background">
-                <div className="absolute top-[-10%] right-[10%] w-[600px] h-[300px] bg-cyan-400/5 dark:bg-accent/5 rounded-full blur-[150px] pointer-events-none" />
+                <div className="hidden md:block absolute top-[-10%] right-[10%] w-[600px] h-[300px] bg-cyan-400/5 dark:bg-accent/5 rounded-full blur-[150px] pointer-events-none" />
 
                 <div className="absolute top-4 right-6 lg:top-6 lg:right-10 flex justify-end w-full z-50">
                     <ThemeToggle className="bg-surface shadow-sm border border-gray-200 dark:border-white/5" />
@@ -310,17 +310,23 @@ const Login = () => {
                         <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
                     </div>
 
-                    <div className="flex justify-center">
-                        <GoogleLogin
-                            onSuccess={handleGoogleSuccess}
-                            onError={() => {
-                                setAuthError('Ocurrió un error al intentar conectarse con Google.');
-                            }}
-                            theme="outline"
-                            shape="circle"
-                            text="continue_with"
-                        />
-                    </div>
+                    {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+                        <div className="flex justify-center">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => {
+                                    setAuthError('Ocurrió un error al intentar conectarse con Google.');
+                                }}
+                                theme="outline"
+                                shape="circle"
+                                text="continue_with"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex justify-center text-center p-3 bg-danger/10 border border-danger/30 text-danger text-xs rounded-xl font-medium">
+                            ⚠️ Google Login no está configurado en este entorno. (Falta VITE_GOOGLE_CLIENT_ID)
+                        </div>
+                    )}
 
                     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/5 text-center">
                         <p className="text-sm text-textMuted font-medium">
