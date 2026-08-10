@@ -15,7 +15,7 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Backend API URL — change for production
+        // Backend API URL — uses localhost with adb reverse tcp:5000 tcp:5000
         buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5000/api\"")
     }
 

@@ -91,8 +91,8 @@ fun HabitNumericInputScreen(
                     valueRange = 0f..maxValue,
                     steps = ((maxValue / step) - 1).toInt().coerceAtLeast(0),
                     segmented = false,
-                    increaseIcon = { InlineSliderDefaults.Increase },
-                    decreaseIcon = { InlineSliderDefaults.Decrease },
+                    increaseIcon = { Text("+", color = typeColor, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+                    decreaseIcon = { Text("-", color = typeColor, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                     colors = InlineSliderDefaults.colors(
                         selectedBarColor = typeColor
                     ),

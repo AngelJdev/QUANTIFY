@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Log from '../../NoSQL/models/log.nosql.js';
 import Habit from '../../SQL/models/habit.model.js';
 import { sendSuccess, sendError } from '../../utils/response.js';
@@ -5,6 +6,15 @@ import { calculateAdherence, calculateDailyCompletion } from '../../utils/metric
 import { achievementEngine } from '../services/achievementEngine.js';
 import { analyzeAchievements } from '../services/gamificationEngine.js';
 import moment from 'moment';
+
+const safeMongo = async (fn, fallback = []) => {
+    if (mongoose.connection.readyState !== 1) return fallback;
+    try {
+        return await fn();
+    } catch (err) {
+        return fallback;
+    }
+};
 
 export const createLog = async (req, res, next) => {
     try {
@@ -16,36 +26,31 @@ export const createLog = async (req, res, next) => {
             return sendError(res, 404, 'Hábito no encontrado');
         }
 
-        // Buscar si ya existe un log para esa fecha y ese hábito
-        // Usamos moment para asilar solo YYYY-MM-DD o manejar formato ISO si es necesario
-        // En una app más robusta se puede usar timezone, aquí asumiremos exact match
         const startOfDay = new Date(fecha_registro);
         startOfDay.setUTCHours(0,0,0,0);
         const endOfDay = new Date(fecha_registro);
         endOfDay.setUTCHours(23,59,59,999);
 
-        let log = await Log.findOne({
+        let log = await safeMongo(() => Log.findOne({
             habito_id,
             usuario_id: req.user.id,
             fecha_registro: { $gte: startOfDay, $lt: endOfDay }
-        });
+        }), null);
 
         if (log) {
-            // Actualizar el existente (upsert-like behavior)
             log.completado = completado !== undefined ? completado : log.completado;
             log.valor_registrado = valor_registrado !== undefined ? valor_registrado : log.valor_registrado;
             log.notas = notas || log.notas;
-            await log.save();
+            await safeMongo(() => log.save(), null);
         } else {
-            // Crear nuevo
-            log = await Log.create({
+            log = await safeMongo(() => Log.create({
                 habito_id,
                 usuario_id: req.user.id,
                 fecha_registro: startOfDay,
                 completado,
                 valor_registrado,
                 notas
-            });
+            }), { habito_id, completado, valor_registrado });
         }
 
         // Motor de Inteligencia Quantify: Analizar rachas, biometría y logros específicos
@@ -67,9 +72,9 @@ export const createLog = async (req, res, next) => {
 export const getLogsByHabit = async (req, res, next) => {
     try {
         const habito_id = req.params.habitId;
-        const logs = await Log.find({ habito_id, usuario_id: req.user.id })
+        const logs = await safeMongo(() => Log.find({ habito_id, usuario_id: req.user.id })
             .sort({ fecha_registro: -1 })
-            .limit(30); // Últimos 30 logs
+            .limit(30), []);
             
         return sendSuccess(res, 200, 'Registros recuperados', logs);
     } catch (error) {
@@ -84,15 +89,14 @@ export const getAdherenceStats = async (req, res, next) => {
         const habit = await Habit.findOne({ where: { id: habito_id, usuario_id: req.user.id } });
         if (!habit) return sendError(res, 404, 'Hábito no encontrado');
 
-        // Para simplificar MVP, calculamos sobre los últimos 30 días
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const logs = await Log.find({
+        const logs = await safeMongo(() => Log.find({
             habito_id,
             usuario_id: req.user.id,
             fecha_registro: { $gte: thirtyDaysAgo }
-        }).sort({ fecha_registro: 1 }); // Cronológico
+        }).sort({ fecha_registro: 1 }), []);
 
         // Calcular días programados reales desde la creación del hábito
         const originDate = new Date(habit.fecha_creacion);
@@ -171,10 +175,10 @@ export const getGlobalStats = async (req, res, next) => {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         // Obtener todos los logs de todos los hábitos en el rango
-        const allLogs = await Log.find({
+        const allLogs = await safeMongo(() => Log.find({
             usuario_id,
             fecha_registro: { $gte: thirtyDaysAgo }
-        }).sort({ fecha_registro: 1 });
+        }).sort({ fecha_registro: 1 }), []);
 
         let totalAdherenceSum = 0;
 

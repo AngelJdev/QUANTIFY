@@ -28,9 +28,11 @@ object RetrofitClient {
         baseUrl = url
     }
 
+    var onUnauthorized: (() -> Unit)? = null
+
     /**
      * Auth interceptor — attaches "Bearer <token>" header.
-     * Mirrors the frontend's axios interceptor in services/api.js
+     * Intercepts 401 Unauthorized responses when unlinked.
      */
     private val authInterceptor = Interceptor { chain ->
         val request = chain.request().newBuilder().apply {
@@ -39,7 +41,12 @@ object RetrofitClient {
             }
             addHeader("Content-Type", "application/json")
         }.build()
-        chain.proceed(request)
+        val response = chain.proceed(request)
+        if (response.code == 401 && token != null) {
+            token = null
+            onUnauthorized?.invoke()
+        }
+        response
     }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

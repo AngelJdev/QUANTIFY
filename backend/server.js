@@ -18,6 +18,7 @@ import achievementRoutes from './API/routes/achievement.routes.js';
 import profileRoutes from './API/routes/profile.routes.js';
 import supportRoutes from './API/routes/support.routes.js';
 import populateRoutes from './API/routes/populate.routes.js';
+import smartwatchRoutes from './API/routes/smartwatch.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
@@ -67,6 +68,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/populate', populateRoutes);
+app.use('/api/smartwatch', smartwatchRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

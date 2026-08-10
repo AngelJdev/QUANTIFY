@@ -9,8 +9,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.ui.theme.*
 import kotlinx.coroutines.delay
@@ -44,20 +44,21 @@ fun AuthResultScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(14.dp)
         ) {
             if (isSuccess) {
                 // Success state
                 Text(
                     text = "✔",
-                    fontSize = 48.sp,
+                    fontSize = 44.sp,
                     color = Success
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "¡Vinculado!",
                     color = TextPrimary,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -71,29 +72,32 @@ fun AuthResultScreen(
                 // Error state
                 Text(
                     text = "✖",
-                    fontSize = 48.sp,
+                    fontSize = 44.sp,
                     color = Error
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = errorMessage.ifEmpty { "Error de conexión" },
                     color = TextPrimary,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
+                Spacer(modifier = Modifier.height(10.dp))
+                Chip(
                     onClick = onRetry,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
-                    modifier = Modifier.height(36.dp)
-                ) {
-                    Text(
-                        text = "Reintentar",
-                        color = BackgroundPrimary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                    label = {
+                        Text(
+                            text = "Reintentar",
+                            color = BackgroundPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(0.85f)
+                )
             }
         }
     }

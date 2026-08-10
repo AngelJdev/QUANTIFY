@@ -9,8 +9,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.ui.theme.*
 
@@ -29,33 +29,37 @@ fun NotConfiguredScreen(onConfigure: () -> Unit) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = "⚙",
                 fontSize = 32.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Dispositivo\nno configurado",
                 color = TextPrimary,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
+            Spacer(modifier = Modifier.height(14.dp))
+            Chip(
                 onClick = onConfigure,
-                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
-                modifier = Modifier.height(40.dp)
-            ) {
-                Text(
-                    text = "Configurar",
-                    color = BackgroundPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                label = {
+                    Text(
+                        text = "Configurar",
+                        color = BackgroundPrimary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(0.85f)
+            )
         }
     }
 }

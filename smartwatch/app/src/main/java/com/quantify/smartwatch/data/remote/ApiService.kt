@@ -67,4 +67,7 @@ interface ApiService {
 
     @POST("smartwatch/sync")
     suspend fun syncData(@Body body: SyncRequest): Response<ApiResponse<SyncResponse>>
+
+    @GET("smartwatch/dashboard")
+    suspend fun getDashboard(): Response<ApiResponse<WatchDashboardDto>>
 }

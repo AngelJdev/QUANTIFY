@@ -12,8 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.ui.theme.*
 
@@ -35,44 +35,60 @@ fun WifiCheckScreen(onRetry: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 12.dp)
         ) {
-            Text(text = "📡", fontSize = 28.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "📡", fontSize = 26.sp)
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Conecta tu reloj a\nuna red WiFi",
+                text = "Sin conexión a internet",
                 color = TextPrimary,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "Conecta el reloj a WiFi",
+                color = TextSecondary,
+                fontSize = 10.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Chip(
                 onClick = {
                     context.startActivity(Intent(Settings.ACTION_WIFI_SETTINGS).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     })
                 },
-                colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated)
-            ) {
-                Text(
-                    text = "Abrir Ajustes WiFi",
-                    color = CyanPrimary,
-                    fontSize = 12.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
+                colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                label = {
+                    Text(
+                        text = "Ajustes WiFi",
+                        color = CyanPrimary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(0.85f)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Chip(
                 onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
-                modifier = Modifier.height(36.dp)
-            ) {
-                Text(
-                    text = "Reintentar",
-                    color = BackgroundPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                label = {
+                    Text(
+                        text = "Reintentar",
+                        color = BackgroundPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(0.85f)
+            )
         }
     }
 }

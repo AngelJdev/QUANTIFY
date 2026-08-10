@@ -54,6 +54,16 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         loadDashboardData()
+        startPeriodicCheck()
+    }
+
+    private fun startPeriodicCheck() {
+        viewModelScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(5000) // Check every 5s for real-time sync / unlinking
+                fetchRemoteDashboard()
+            }
+        }
     }
 
     fun loadDashboardData() {
@@ -68,16 +78,27 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
             // Pending sync count
             _pendingActions.value = db.actionQueueDao().getPendingCount()
 
-            // Try remote stats
-            try {
-                val response = RetrofitClient.apiService.getGlobalStats()
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _globalStats.value = response.body()!!.data
-                    _isOnline.value = true
+            fetchRemoteDashboard()
+        }
+    }
+
+    private suspend fun fetchRemoteDashboard() {
+        try {
+            val response = RetrofitClient.apiService.getDashboard()
+            if (response.isSuccessful && response.body()?.success == true) {
+                val data = response.body()!!.data
+                if (data != null) {
+                    _totalHabits.value = data.stats.totalHabits
+                    _completedToday.value = data.stats.completedToday
+                    _completionPercent.value = data.stats.completionPercent
+                    prefs.updateStreaks(data.user.current_streak, data.user.max_streak)
                 }
-            } catch (e: Exception) {
-                _isOnline.value = false
+                _isOnline.value = true
+            } else if (response.code() == 401) {
+                RetrofitClient.onUnauthorized?.invoke()
             }
+        } catch (e: Exception) {
+            _isOnline.value = false
         }
     }
 

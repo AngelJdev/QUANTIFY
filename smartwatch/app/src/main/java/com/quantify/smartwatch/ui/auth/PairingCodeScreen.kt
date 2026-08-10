@@ -12,8 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.ui.theme.*
 
@@ -37,55 +37,75 @@ fun PairingCodeScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(10.dp)
         ) {
             Text(
-                text = "Ingresa este código\nen tu cuenta web",
+                text = "Código de vinculación",
                 color = TextSecondary,
                 fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Large code display
             Box(
                 modifier = Modifier
-                    .border(1.dp, CyanPrimary, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .border(1.5.dp, CyanPrimary, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = code,
                     color = CyanPrimary,
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
-                    letterSpacing = 4.sp
+                    letterSpacing = 3.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "quantify.com/vincular",
+                text = "Ingresa en la web",
                 color = TextDisabled,
                 fontSize = 9.sp
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                Chip(
                     onClick = onRegenerate,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Text("↻", fontSize = 16.sp, color = TextSecondary)
-                }
-                Button(
+                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    label = {
+                        Text(
+                            text = "↻",
+                            fontSize = 16.sp,
+                            color = TextSecondary,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    modifier = Modifier.weight(0.35f)
+                )
+                Chip(
                     onClick = onConfirm,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
-                    modifier = Modifier.height(40.dp)
-                ) {
-                    Text("Listo", color = BackgroundPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                }
+                    colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                    label = {
+                        Text(
+                            text = "Continuar",
+                            color = BackgroundPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    modifier = Modifier.weight(0.65f)
+                )
             }
         }
     }

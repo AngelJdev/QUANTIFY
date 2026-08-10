@@ -21,6 +21,19 @@ data class PollAuthDto(
     val user: UserDto? = null
 )
 
+/** Response from GET /api/smartwatch/dashboard */
+data class WatchDashboardDto(
+    val user: UserDto,
+    val habits: List<HabitDto> = emptyList(),
+    val stats: DashboardStatsDto
+)
+
+data class DashboardStatsDto(
+    val totalHabits: Int = 0,
+    val completedToday: Int = 0,
+    val completionPercent: Int = 0
+)
+
 /** Request body for POST /api/smartwatch/sync (batch of offline actions) */
 data class SyncRequest(
     val actions: List<SyncAction>,

@@ -12,8 +12,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.ToggleChip
-import androidx.wear.compose.material.ToggleChipDefaults
 import com.quantify.smartwatch.ui.theme.*
 import com.quantify.smartwatch.ui.viewmodel.SettingsViewModel
 
@@ -87,19 +85,18 @@ fun SettingsMenuScreen(
 
             // Vibration toggle
             item {
-                ToggleChip(
-                    checked = vibration,
-                    onCheckedChange = { viewModel.setVibration(it) },
+                Chip(
+                    onClick = { viewModel.setVibration(!vibration) },
                     label = { Text("Vibración", color = TextPrimary, fontSize = 13.sp) },
-                    toggleControl = {
-                        ToggleChipDefaults.SwitchIcon(checked = vibration)
+                    secondaryLabel = {
+                        Text(
+                            if (vibration) "Activada" else "Desactivada",
+                            color = if (vibration) Success else TextDisabled,
+                            fontSize = 10.sp
+                        )
                     },
-                    colors = ToggleChipDefaults.toggleChipColors(
-                        checkedStartBackgroundColor = BackgroundElevated,
-                        checkedEndBackgroundColor = BackgroundElevated,
-                        uncheckedStartBackgroundColor = BackgroundElevated,
-                        uncheckedEndBackgroundColor = BackgroundElevated
-                    ),
+                    icon = { Text(if (vibration) "📳" else "🔇", fontSize = 16.sp) },
+                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                 )
             }

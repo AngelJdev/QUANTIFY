@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import com.quantify.smartwatch.data.remote.RetrofitClient
 import com.quantify.smartwatch.ui.auth.*
 import com.quantify.smartwatch.ui.habits.*
 import com.quantify.smartwatch.ui.progress.*
@@ -67,6 +68,15 @@ fun WatchNavigation() {
     // Observe auth state to determine start destination
     val authState by authVm.uiState.collectAsState()
     val pairingCode by authVm.pairingCode.collectAsState()
+
+    LaunchedEffect(Unit) {
+        RetrofitClient.onUnauthorized = {
+            authVm.unlinkLocal()
+            navController.navigate(Routes.NOT_CONFIGURED) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     SwipeDismissableNavHost(
         navController = navController,
@@ -185,7 +195,9 @@ fun WatchNavigation() {
                 currentStreak = streak,
                 completedToday = completed,
                 totalHabits = total,
-                onTapRing = { navController.navigate(Routes.HABIT_LIST) }
+                onNavigateToHabits = { navController.navigate(Routes.HABIT_LIST) },
+                onNavigateToProgress = { navController.navigate(Routes.WEEKLY_SUMMARY) },
+                onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
 

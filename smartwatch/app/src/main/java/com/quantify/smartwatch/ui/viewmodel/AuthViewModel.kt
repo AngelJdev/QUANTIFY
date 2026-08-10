@@ -102,6 +102,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun retryConnection() {
         startPairing()
     }
+
+    fun unlinkLocal() {
+        viewModelScope.launch {
+            authRepo.unlink()
+            _uiState.value = AuthUiState.NotConfigured
+        }
+    }
 }
 
 sealed class AuthUiState {
