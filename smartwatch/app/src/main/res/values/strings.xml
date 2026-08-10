@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quantify</string>
+
+    <!-- Module 1: Auth Flow -->
+    <string name="not_configured">Dispositivo no configurado</string>
+    <string name="btn_configure">Configurar</string>
+    <string name="wifi_required">Conecta tu reloj a una red WiFi desde los ajustes del sistema</string>
+    <string name="btn_open_wifi">Abrir Ajustes WiFi</string>
+    <string name="pairing_instruction">Ingresa este código en tu cuenta web</string>
+    <string name="pairing_url">quantify.com/vincular-dispositivo</string>
+    <string name="btn_new_code">Generar nuevo código</string>
+    <string name="waiting_auth">Esperando autorización desde la web…</string>
+    <string name="code_expired">Código expirado</string>
+    <string name="auth_success">¡Vinculado como %1$s!</string>
+    <string name="auth_error">No se pudo conectar al servidor</string>
+    <string name="btn_retry">Reintentar</string>
+
+    <!-- Module 2: Watchface -->
+    <string name="streak_label">%1$d días</string>
+    <string name="last_sync">Última sync: hace %1$s</string>
+    <string name="btn_sync_now">Sincronizar ahora</string>
+
+    <!-- Module 3: Habits -->
+    <string name="habits_title">Mis Hábitos</string>
+    <string name="btn_complete">Completar</string>
+    <string name="btn_register">Registrar</string>
+    <string name="day_completed">Día completado.\nTelemetría registrada.</string>
+    <string name="btn_view_summary">Ver resumen</string>
+    <string name="habit_progress">%1$s / %2$s %3$s</string>
+
+    <!-- Module 4: Progress -->
+    <string name="weekly_summary">Resumen Semanal</string>
+    <string name="live_telemetry">Telemetría en Vivo</string>
+    <string name="bpm_label">%1$d BPM</string>
+    <string name="stress_label">Estrés: %1$d%%</string>
+    <string name="sensor_unavailable">Sensor no disponible en este dispositivo</string>
+    <string name="current_streak">Racha actual: %1$d</string>
+    <string name="best_streak">Mejor racha: %1$d</string>
+    <string name="monthly_adherence">Adherencia mensual: %1$d%%</string>
+
+    <!-- Module 5: Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="appearance">Apariencia</string>
+    <string name="alerts">Alertas</string>
+    <string name="sync_frequency">Frecuencia de sync</string>
+    <string name="linked_account">Cuenta vinculada</string>
+    <string name="btn_unlink">Desvincular Cuenta</string>
+    <string name="unlink_confirm">¿Borrar datos locales y desvincular tu cuenta?</string>
+    <string name="btn_yes">Sí</string>
+    <string name="btn_no">No</string>
+    <string name="about_title">Acerca de</string>
+
+    <!-- Global -->
+    <string name="offline_banner">Sin conexión — Datos guardados localmente</string>
+    <string name="pending_actions">%1$d acciones pendientes</string>
+    <string name="sync_error">Error al sincronizar. Reintentando…</string>
+</resources>

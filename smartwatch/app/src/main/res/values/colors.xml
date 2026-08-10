@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        QUANTIFY Engineering Aesthetic — Color Palette
+        Designed for OLED watch displays: true black background with high-contrast cyan accents.
+    -->
+
+    <!-- Primary: Cyan accent (matches web app primary) -->
+    <color name="cyan_primary">#00E5FF</color>
+    <color name="cyan_dark">#00B8D4</color>
+    <color name="cyan_light">#18FFFF</color>
+
+    <!-- Backgrounds: True black for OLED power savings -->
+    <color name="background_primary">#0A0A0F</color>
+    <color name="background_surface">#12121A</color>
+    <color name="background_elevated">#1A1A25</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F0F0F5</color>
+    <color name="text_secondary">#8A8A9A</color>
+    <color name="text_disabled">#4A4A5A</color>
+
+    <!-- Status Colors -->
+    <color name="success">#00E676</color>
+    <color name="warning">#FFB300</color>
+    <color name="error">#FF5252</color>
+    <color name="danger">#D84315</color>
+
+    <!-- Gamification -->
+    <color name="streak_fire">#FF6D00</color>
+    <color name="progress_ring">#00E5FF</color>
+    <color name="progress_ring_bg">#1A1A25</color>
+
+    <!-- Habit type indicators -->
+    <color name="habit_boolean">#00E5FF</color>
+    <color name="habit_numeric">#7C4DFF</color>
+    <color name="habit_time">#FF6D00</color>
+</resources>
