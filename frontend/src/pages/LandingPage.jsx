@@ -27,10 +27,10 @@ const LandingPage = () => {
         <div className="w-full min-h-screen bg-background relative flex flex-col">
             <Navbar />
             
-            {/* Ambient Background Glow (Neon Blue Aesthetic) */}
+            {/* Ambient Background Glow (Optimized for Mobile) */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-                <div className="absolute top-[-5%] right-[5%] w-[40vw] h-[40vw] bg-blue-600/20 dark:bg-blue-600/20 rounded-full blur-[100px] md:blur-[180px] mix-blend-screen dark:mix-blend-screen" />
-                <div className="absolute bottom-[20%] left-[-10%] w-[35vw] h-[35vw] bg-cyan-400/20 dark:bg-cyan-500/20 rounded-full blur-[100px] md:blur-[160px] mix-blend-screen dark:mix-blend-screen" />
+                <div className="absolute top-[-5%] right-[5%] w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] bg-blue-600/10 dark:bg-blue-600/10 rounded-full blur-3xl md:blur-[180px] md:mix-blend-screen" />
+                <div className="absolute bottom-[20%] left-[-10%] w-[50vw] h-[50vw] md:w-[35vw] md:h-[35vw] bg-cyan-400/10 dark:bg-cyan-500/10 rounded-full blur-3xl md:blur-[160px] md:mix-blend-screen" />
             </div>
 
             {/* ======== HERO SECTION ======== */}
@@ -104,7 +104,7 @@ const LandingPage = () => {
                     
                     {/* Big Card - Tasa de Adherencia */}
                     <div className="md:col-span-3 glass-card flex flex-col justify-between p-8 md:p-10 hover:-translate-y-1 transition-transform group bg-gradient-to-br from-surface to-blue-50/50 dark:from-[#111111] dark:to-blue-900/10 overflow-hidden relative min-h-[350px] h-auto border-gray-200 dark:border-white/10 hover:shadow-cyan-500/20 hover:shadow-2xl">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-400/20 dark:bg-cyan-500/30 rounded-full blur-[80px] -mt-10 -mr-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-400/10 dark:bg-cyan-500/10 rounded-full blur-2xl md:blur-[80px] -mt-10 -mr-10 transition-transform md:group-hover:scale-150 duration-700 pointer-events-none" />
                         <div>
                             <div className="w-14 h-14 bg-white dark:bg-black rounded-2xl flex items-center justify-center mb-6 shadow-md border border-gray-100 dark:border-white/10 text-accent">
                                 <FiCheckCircle strokeWidth={3} size={28} />
@@ -122,7 +122,7 @@ const LandingPage = () => {
 
                     {/* Medium Card - Tendencias WoW */}
                     <div className="md:col-span-2 glass-card flex flex-col justify-between p-8 md:p-10 hover:-translate-y-1 transition-transform group bg-gradient-to-br from-surface to-gray-50 dark:from-[#0A0A0A] dark:to-blue-900/5 border-gray-200 dark:border-white/10 relative overflow-hidden min-h-[350px] h-auto hover:shadow-blue-500/20 hover:shadow-2xl">
-                         <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/20 dark:bg-blue-600/30 rounded-full blur-[80px] transition-transform group-hover:scale-125 duration-700 pointer-events-none" />
+                         <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-2xl md:blur-[80px] transition-transform md:group-hover:scale-125 duration-700 pointer-events-none" />
                         <div>
                             <div className="w-14 h-14 bg-white dark:bg-[#111111] rounded-2xl flex items-center justify-center mb-6 shadow-md border border-gray-100 dark:border-white/10 text-primary dark:text-white">
                                 <FiTrendingUp strokeWidth={3} size={28} />
@@ -169,7 +169,7 @@ const LandingPage = () => {
                             
                             {/* Main Content Mockup */}
                             <div className="flex-1 p-8 space-y-6 relative overflow-hidden">
-                                <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/20 dark:bg-cyan-500/30 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000 pointer-events-none"></div>
+                                <div className="hidden md:block absolute -right-20 -top-20 w-64 h-64 bg-blue-500/20 dark:bg-cyan-500/30 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000 pointer-events-none"></div>
                                 
                                 <div className="flex justify-between items-center mb-8">
                                     <div className="w-1/3 h-10 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
@@ -217,8 +217,8 @@ const LandingPage = () => {
                                 <h3 className="text-4xl text-textPrimary dark:text-white font-black mb-4">Registro Frictionless</h3>
                                 <p className="text-textMuted text-lg font-medium">Anota tus hábitos en menos de 2 segundos. La fricción en la UI es el enemigo silencioso de la constancia a largo plazo.</p>
                             </div>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-400/20 dark:bg-cyan-500/20 rounded-full blur-[80px]" />
-                            <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-300 to-cyan-300 dark:from-blue-600 dark:to-cyan-400 opacity-90 z-10 flex items-center justify-center md:translate-x-10 shadow-xl shadow-cyan-500/20">
+                            <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-400/20 dark:bg-cyan-500/20 rounded-full blur-[80px]" />
+                            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-blue-300 to-cyan-300 dark:from-blue-600 dark:to-cyan-400 opacity-90 z-10 flex items-center justify-center md:translate-x-10 shadow-xl shadow-cyan-500/20 mx-auto md:mx-0">
                                 <FiCheckCircle size={80} className="text-white" />
                             </div>
                         </div>
@@ -232,8 +232,8 @@ const LandingPage = () => {
                                 <h3 className="text-4xl text-textPrimary dark:text-white font-black mb-4">Analítica Predictiva</h3>
                                 <p className="text-textMuted text-lg font-medium">No recabamos tu pasado; calculamos tu trayectoria matemática con Scanner WoW para prevenir recaídas.</p>
                             </div>
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-purple-400/20 dark:bg-purple-500/20 rounded-full blur-[80px]" />
-                            <div className="w-48 h-48 rounded-full bg-gradient-to-br from-purple-300 to-pink-300 dark:from-purple-500 dark:to-pink-500 opacity-90 z-10 flex items-center justify-center md:translate-x-10 shadow-xl shadow-purple-500/20">
+                            <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-purple-400/20 dark:bg-purple-500/20 rounded-full blur-[80px]" />
+                            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-purple-300 to-pink-300 dark:from-purple-500 dark:to-pink-500 opacity-90 z-10 flex items-center justify-center md:translate-x-10 shadow-xl shadow-purple-500/20 mx-auto md:mx-0">
                                 <FiActivity size={80} className="text-white" />
                             </div>
                         </div>

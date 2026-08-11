@@ -119,7 +119,7 @@ export default function ForgotPassword() {
         <div className="h-screen w-full flex overflow-hidden bg-background fade-in">
             {/* Left Side — Brand */}
             <div className="hidden lg:flex w-[45%] flex-col justify-between p-10 relative bg-primary dark:bg-background overflow-hidden border-r dark:border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.5)] dark:shadow-none z-10">
-                <div className="absolute top-[-20%] left-[10%] w-[800px] h-[300px] bg-white/20 dark:bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="hidden md:block absolute top-[-20%] left-[10%] w-[800px] h-[300px] bg-white/20 dark:bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/40 dark:via-cyan-900/50 to-transparent" />
                 <div className="relative z-10 flex items-center gap-3">
                     <div className="bg-surface p-2.5 rounded-2xl shadow-lg border border-gray-200 dark:border-white/5">
@@ -146,7 +146,7 @@ export default function ForgotPassword() {
 
             {/* Right Side — Form */}
             <div className="w-full lg:w-[55%] flex flex-col items-center justify-center relative z-20 bg-background">
-                <div className="absolute top-[-10%] right-[10%] w-[600px] h-[300px] bg-cyan-400/5 dark:bg-accent/5 rounded-full blur-[150px] pointer-events-none" />
+                <div className="hidden md:block absolute top-[-10%] right-[10%] w-[600px] h-[300px] bg-cyan-400/5 dark:bg-accent/5 rounded-full blur-[150px] pointer-events-none" />
                 <div className="absolute top-4 right-6 lg:top-6 lg:right-10 flex justify-end w-full z-50">
                     <ThemeToggle className="bg-surface shadow-sm border border-gray-200 dark:border-white/5" />
                 </div>
