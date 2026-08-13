@@ -12,7 +12,6 @@ import { jwtDecode } from 'jwt-decode';
 import { sendVerificationService } from '../services/authService';
 
 const steps = [
-    { id: 'privacy', title: 'Legalidad LFPDPPP', icon: FiShield },
     { id: 'credentials', title: 'Identidad Digital', icon: FiUser },
     { id: 'metrics', title: 'Perímetro Biométrico', icon: FiActivity },
     { id: 'verify', title: 'Verificación de Enlace', icon: FiCheckCircle }
@@ -24,76 +23,71 @@ export default function Register() {
     const [currentStep, setCurrentStep] = useState(0);
     const [errorMsg, setErrorMsg] = useState('');
     const [googleCredential, setGoogleCredential] = useState(null);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             setErrorMsg('');
-            formik.setSubmitting(true);
+            setIsGoogleLoading(true);
             const decoded = jwtDecode(credentialResponse.credential);
             setGoogleCredential(credentialResponse.credential);
             formik.setFieldValue('email', decoded.email);
             formik.setFieldValue('nombre', decoded.name);
             
-            // Enviar correo OTP automáticamente y saltar directo al Paso 3
+            // Enviar correo OTP automáticamente y saltar directo al Paso 2 (OTP)
             await sendVerificationService(decoded.email, decoded.name);
-            setCurrentStep(3); 
+            setCurrentStep(2); 
         } catch (error) {
             setErrorMsg(error.response?.data?.message || 'Error al enviar código de verificación');
         } finally {
-            formik.setSubmitting(false);
+            setIsGoogleLoading(false);
         }
     };
 
     const validationSchema = Yup.object().shape({
-        // Step 0: Privacy
-        lfpdppp_agreed: Yup.boolean().when([], {
-            is: () => currentStep === 0,
-            then: (sch) => sch.oneOf([true], 'Debes aceptar los términos para continuar.')
-        }),
-        // Step 1: Account & Security (If not Google)
+        // Step 0: Account & Security (If not Google)
         nombre: Yup.string().when([], {
-            is: () => currentStep === 1 && !googleCredential,
+            is: () => currentStep === 0 && !googleCredential,
             then: (sch) => sch.min(3, 'Mínimo 3 caracteres').required('Requerido')
         }),
         email: Yup.string().when([], {
-            is: () => currentStep === 1 && !googleCredential,
+            is: () => currentStep === 0 && !googleCredential,
             then: (sch) => sch.email('Email inválido').required('Requerido')
         }),
         password: Yup.string().when([], {
-            is: () => currentStep === 1 && !googleCredential,
+            is: () => currentStep === 0 && !googleCredential,
             then: (sch) => sch.min(6, 'Mínimo 6 caracteres').required('Requerido')
         }),
         confirmPassword: Yup.string().when([], {
-            is: () => currentStep === 1 && !googleCredential,
+            is: () => currentStep === 0 && !googleCredential,
             then: (sch) => sch.oneOf([Yup.ref('password'), null], 'No coinciden').required('Requerido')
         }),
         securityPhrase: Yup.string().when([], {
-            is: () => currentStep === 1 && !googleCredential,
+            is: () => currentStep === 0 && !googleCredential,
             then: (sch) => sch.min(10, 'Frase demasiado corta (mín 10 carc)').required('Requerido')
         }),
-        // Step 2: Metrics
+        // Step 1: Metrics
         edad: Yup.number().when([], {
-            is: () => currentStep === 2,
+            is: () => currentStep === 1,
             then: (sch) => sch.min(13).max(100).required('Requerido')
         }),
         peso: Yup.number().when([], {
-            is: () => currentStep === 2,
+            is: () => currentStep === 1,
             then: (sch) => sch.min(30).max(300).required('Requerido')
         }),
         estatura: Yup.number().when([], {
-            is: () => currentStep === 2,
+            is: () => currentStep === 1,
             then: (sch) => sch.min(100).max(250).required('Requerido')
         }),
-        // Step 3: OTP
+        // Step 2: OTP
         otp: Yup.string().when([], {
-            is: () => currentStep === 3,
+            is: () => currentStep === 2,
             then: (sch) => sch.length(6, 'Debe tener 6 dígitos').required('Requerido')
         })
     });
 
     const formik = useFormik({
         initialValues: {
-            lfpdppp_agreed: false,
             nombre: '',
             email: '',
             password: '',
@@ -139,10 +133,8 @@ export default function Register() {
 
     const nextStep = async () => {
         const fields = currentStep === 0
-            ? ['lfpdppp_agreed']
-            : currentStep === 1
                 ? ['nombre', 'email', 'password', 'confirmPassword', 'securityPhrase']
-                : currentStep === 2
+                : currentStep === 1
                     ? ['edad', 'peso', 'estatura']
                     : ['otp'];
 
@@ -150,13 +142,13 @@ export default function Register() {
         const stepErrors = fields.filter(f => !!errors[f]);
 
         if (stepErrors.length === 0) {
-            if (currentStep < 3) {
-                if (currentStep === 2) {
+            if (currentStep < 2) {
+                if (currentStep === 1) {
                     try {
                         formik.setSubmitting(true);
                         await sendVerificationService(formik.values.email, formik.values.nombre);
                         setErrorMsg('');
-                        setCurrentStep(3);
+                        setCurrentStep(2);
                     } catch (error) {
                         setErrorMsg(error.response?.data?.message || 'Error al enviar código de verificación');
                     } finally {
@@ -174,10 +166,10 @@ export default function Register() {
     };
 
     const prevStep = () => {
-        if (currentStep === 3 && googleCredential) {
-            // Si está en OTP con Google, al dar atrás le borramos la credencial y lo mandamos al Paso 1
+        if (currentStep === 2 && googleCredential) {
+            // Si está en OTP con Google, al dar atrás le borramos la credencial y lo mandamos al Paso 0
             setGoogleCredential(null);
-            setCurrentStep(1);
+            setCurrentStep(0);
         } else {
             setCurrentStep(prev => prev - 1);
         }
@@ -217,44 +209,27 @@ export default function Register() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
                         >
-                            {/* STEP 0: PRIVACY */}
+                            {/* STEP 0: ACCOUNT & SECURITY */}
                             {currentStep === 0 && (
-                                <div className="space-y-8 py-4">
-                                    <div className="flex gap-4 p-6 bg-primary/5 border border-primary/20 rounded-3xl">
-                                        <FiShield className="text-3xl text-primary shrink-0" />
-                                        <div>
-                                            <h3 className="font-bold text-textPrimary dark:text-white mb-2 uppercase tracking-wide text-sm">Protección de Datos (LFPDPPP)</h3>
-                                            <p className="text-xs text-textMuted leading-relaxed">
-                                                Para iniciar el protocolo, necesitamos su consentimiento. Sus datos serán cifrados y procesados bajo la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (México).
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <label className="flex items-center gap-4 cursor-pointer p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors border border-transparent hover:border-textMuted/10">
-                                        <input
-                                            type="checkbox"
-                                            {...formik.getFieldProps('lfpdppp_agreed')}
-                                            className="w-6 h-6 rounded-lg text-primary focus:ring-primary border-gray-300 dark:border-white/20 dark:bg-black"
-                                        />
-                                        <span className="text-sm font-bold text-textPrimary dark:text-white">He leído y acepto el Aviso de Privacidad Simplificado.</span>
-                                    </label>
-                                    {formik.touched.lfpdppp_agreed && formik.errors.lfpdppp_agreed && <p className="text-danger text-[10px] font-black uppercase pl-2">{formik.errors.lfpdppp_agreed}</p>}
-                                </div>
-                            )}
-
-                            {/* STEP 1: ACCOUNT & SECURITY */}
-                            {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white mb-6 uppercase tracking-tight">Identificación y Cifrado</h2>
                                     
                                     {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-                                        <div className="mb-6 flex justify-center">
-                                            <GoogleLogin
-                                                onSuccess={handleGoogleSuccess}
-                                                onError={() => setErrorMsg('Error al conectar con Google.')}
-                                                theme="outline"
-                                                shape="circle"
-                                                text="signup_with"
-                                            />
+                                        <div className="mb-6 relative flex justify-center min-h-[40px]">
+                                            {isGoogleLoading ? (
+                                                <div className="flex flex-col items-center justify-center py-2 animate-in fade-in duration-300">
+                                                    <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                                                    <span className="text-[10px] font-black text-primary animate-pulse tracking-widest uppercase">Vinculando y enviando código...</span>
+                                                </div>
+                                            ) : (
+                                                <GoogleLogin
+                                                    onSuccess={handleGoogleSuccess}
+                                                    onError={() => setErrorMsg('Error al conectar con Google.')}
+                                                    theme="outline"
+                                                    shape="circle"
+                                                    text="signup_with"
+                                                />
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="mb-6 flex justify-center text-center p-3 bg-danger/10 border border-danger/30 text-danger text-xs rounded-xl font-medium">
@@ -267,7 +242,7 @@ export default function Register() {
                                         <div className="flex-1 h-px bg-gray-200 dark:bg-white/10"></div>
                                     </div>
 
-                                    <div className="space-y-4">
+                                    <div className={`space-y-4 transition-opacity duration-300 ${isGoogleLoading ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-1">
                                                 <label className="label-style">Nombre de Enlace</label>
@@ -319,8 +294,8 @@ export default function Register() {
                                 </div>
                             )}
 
-                            {/* STEP 2: METRICS */}
-                            {currentStep === 2 && (
+                            {/* STEP 1: METRICS */}
+                            {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <h2 className="text-2xl font-black text-textPrimary dark:text-white uppercase tracking-tight">Variables Antropométricas</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -358,8 +333,8 @@ export default function Register() {
                                 </div>
                             )}
 
-                            {/* STEP 3: OTP VERIFICATION */}
-                            {currentStep === 3 && (
+                            {/* STEP 2: OTP VERIFICATION */}
+                            {currentStep === 2 && (
                                 <div className="space-y-6">
                                     <div className="text-center mb-8">
                                         <div className="inline-flex bg-primary/10 p-4 rounded-full mb-4">
@@ -396,7 +371,7 @@ export default function Register() {
                         <button
                             type="button"
                             onClick={prevStep}
-                            disabled={currentStep === 0}
+                            disabled={currentStep === 0 || isGoogleLoading}
                             className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-textMuted hover:text-textPrimary dark:hover:text-white transition-opacity ${currentStep === 0 ? 'opacity-0' : 'opacity-100'}`}
                         >
                             <FiArrowLeft /> Retornar
@@ -404,11 +379,11 @@ export default function Register() {
                         <button
                             type="button"
                             onClick={nextStep}
-                            disabled={formik.isSubmitting}
-                            className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all"
+                            disabled={formik.isSubmitting || isGoogleLoading}
+                            className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
                         >
-                            {formik.isSubmitting ? 'Procesando...' : currentStep === 3 ? 'Finalizar Vinculación' : currentStep === 2 ? 'Sellado de Datos' : 'Siguiente'}
-                            {currentStep < 3 && <FiArrowRight />}
+                            {formik.isSubmitting ? 'Procesando...' : currentStep === 2 ? 'Finalizar Vinculación' : currentStep === 1 ? 'Sellado de Datos' : 'Siguiente'}
+                            {currentStep < 2 && <FiArrowRight />}
                         </button>
                     </footer>
                 </div>
