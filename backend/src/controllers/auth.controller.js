@@ -5,6 +5,7 @@ import sequelize from '../config/db.mysql.js';
 import { jwtConfig } from '../config/jwt.config.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { OAuth2Client } from 'google-auth-library';
+import { getIO } from '../utils/socket.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -56,6 +57,12 @@ export const register = async (req, res, next) => {
         otpStore.delete(email);
 
         const token = generateToken(newUser);
+
+        // Notify admins of new registration
+        const io = getIO();
+        if (io) {
+            io.emit('admin:data-changed');
+        }
 
         return sendSuccess(res, 201, 'Usuario registrado exitosamente', {
             user: { ...newUser.toJSON(), needsOnboarding: false },
@@ -220,10 +227,12 @@ export const googleLogin = async (req, res, next) => {
             }
         }
 
+        let isNewUser = false;
         const transaction = await sequelize.transaction();  
         try {  
             if (!user) { 
                 user = await User.create({ nombre, email, google_id, avatar_url }, { transaction }); 
+                isNewUser = true;
             } else if (!user.google_id) { 
                 user.google_id = google_id; 
                 if (!user.avatar_url) user.avatar_url = avatar_url; 
@@ -231,6 +240,11 @@ export const googleLogin = async (req, res, next) => {
             }  
             await transaction.commit();  
             if (action === 'register') otpStore.delete(email);
+            
+            if (isNewUser) {
+                const io = getIO();
+                if (io) io.emit('admin:data-changed');
+            }
         } catch(error) { 
             await transaction.rollback(); 
             throw error; 
