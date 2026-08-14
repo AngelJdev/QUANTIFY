@@ -24,7 +24,7 @@ const Sidebar = () => {
                 <Link to="/dashboard" className="flex flex-col gap-2 items-start justify-center">
                     <div className="flex items-center gap-3">
                         <div className="bg-surface p-1.5 rounded-xl shadow-sm border border-gray-200 dark:border-white/5">
-                            <Logo className="w-8 h-8" />
+                            <Logo className="w-8 h-8 text-primary dark:text-white" />
                         </div>
                         <span className="text-2xl font-extrabold tracking-tight dark:text-white">QUANTIFY</span>
                     </div>
