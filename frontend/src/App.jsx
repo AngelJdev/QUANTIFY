@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Breadcrumbs from './components/Breadcrumbs';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AnimatePresence } from 'framer-motion';
+import GoogleTransition from './components/GoogleTransition';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -49,9 +50,15 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function App() {
   const location = useLocation();
+  const { globalGoogleTransition, setGlobalGoogleTransition } = useAuth();
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <AnimatePresence>
+        {globalGoogleTransition && (
+          <GoogleTransition onComplete={() => setGlobalGoogleTransition(false)} />
+        )}
+      </AnimatePresence>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<LandingPage />} />

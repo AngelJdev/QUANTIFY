@@ -7,7 +7,7 @@ import { FiArrowRight } from 'react-icons/fi';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 import { GoogleLogin } from '@react-oauth/google';
-
+import { motion, AnimatePresence } from 'framer-motion';
 // ─── Starfield Canvas Component ───────────────────────────────────────────────
 function StarfieldCanvas() {
     const canvasRef = useRef(null);
@@ -122,16 +122,15 @@ function StarfieldCanvas() {
 
 // ─── Login Page ───────────────────────────────────────────────────────────────
 const Login = () => {
-    const { login, loginWithGoogle } = useAuth();
+    const { login, loginWithGoogle, setGlobalGoogleTransition } = useAuth();
     const navigate = useNavigate();
     const [authError, setAuthError] = useState('');
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             setAuthError('');
-            const userData = await loginWithGoogle(credentialResponse.credential, 'login');
-            const userRole = userData?.rol;
-            navigate(userRole === 0 || userRole === 2 ? '/admin-panel' : '/dashboard');
+            setGlobalGoogleTransition(true);
+            await loginWithGoogle(credentialResponse.credential, 'login');
         } catch (error) {
             const status = error.response?.status;
             if (status === 404) {
@@ -166,7 +165,6 @@ const Login = () => {
 
     return (
         <div className="h-screen w-full flex overflow-hidden bg-background fade-in">
-
             {/* ── LEFT: Brand Showcase ── */}
             <div className="hidden lg:flex w-[48%] flex-col justify-between p-12 relative overflow-hidden z-10"
                 style={{ background: 'linear-gradient(160deg, #010306 0%, #030a1e 50%, #020510 100%)' }}>
@@ -297,10 +295,22 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={formik.isSubmitting}
-                            className="btn-primary mt-2 flex items-center justify-center gap-2 group text-sm py-3.5"
+                            className="btn-primary mt-2 flex items-center justify-center gap-2 group text-sm py-3.5 min-w-[200px]"
                         >
-                            {formik.isSubmitting ? 'Verificando...' : 'Entrar al Ecosistema'}
-                            {!formik.isSubmitting && <FiArrowRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />}
+                            {formik.isSubmitting ? (
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                    className="flex items-center justify-center"
+                                >
+                                    <Logo className="w-5 h-5 text-surface dark:text-black" />
+                                </motion.div>
+                            ) : (
+                                <>
+                                    Entrar al Ecosistema
+                                    <FiArrowRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+                                </>
+                            )}
                         </button>
                     </form>
 

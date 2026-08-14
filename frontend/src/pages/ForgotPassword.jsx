@@ -186,9 +186,17 @@ export default function ForgotPassword() {
                                             className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
                                             placeholder="usuario@quantify.test" />
                                     </div>
-                                    <button type="submit" disabled={loading} className="btn-primary mt-4 flex items-center justify-center gap-2 group text-sm py-3">
-                                        {loading ? 'Enviando código...' : 'Enviar Código OTP'}
-                                        {!loading && <FiMail className="group-hover:scale-110 transition-transform" size={15} />}
+                                    <button type="submit" disabled={loading} className="btn-primary mt-4 flex items-center justify-center gap-2 group text-sm py-3 min-w-[200px]">
+                                        {loading ? (
+                                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="flex items-center justify-center">
+                                                <Logo className="w-5 h-5 text-surface dark:text-black" />
+                                            </motion.div>
+                                        ) : (
+                                            <>
+                                                Enviar Código OTP
+                                                <FiMail className="group-hover:scale-110 transition-transform" size={15} />
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/5 text-center">
@@ -250,9 +258,17 @@ export default function ForgotPassword() {
                                             className="input-field py-2.5 text-sm dark:bg-[#111111] dark:border-white/10 dark:focus:border-white/30"
                                             placeholder="Repite la nueva contraseña" />
                                     </div>
-                                    <button type="submit" disabled={loading} className="btn-primary mt-4 flex items-center justify-center gap-2 group text-sm py-3">
-                                        {loading ? 'Guardando...' : 'Restablecer Contraseña'}
-                                        {!loading && <FiArrowRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />}
+                                    <button type="submit" disabled={loading} className="btn-primary mt-4 flex items-center justify-center gap-2 group text-sm py-3 min-w-[200px]">
+                                        {loading ? (
+                                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="flex items-center justify-center">
+                                                <Logo className="w-5 h-5 text-surface dark:text-black" />
+                                            </motion.div>
+                                        ) : (
+                                            <>
+                                                Restablecer Contraseña
+                                                <FiArrowRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                             </motion.div>

@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token') || null);
     const [loading, setLoading] = useState(true);
+    const [globalGoogleTransition, setGlobalGoogleTransition] = useState(false);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -68,7 +69,8 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{ 
-            user, token, loading, login, loginWithGoogle, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user 
+            user, token, loading, login, loginWithGoogle, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user,
+            globalGoogleTransition, setGlobalGoogleTransition
         }}>
             {!loading && children}
         </AuthContext.Provider>

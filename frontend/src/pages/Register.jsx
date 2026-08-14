@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiUser, FiMail, FiLock, FiActivity, FiShield, FiKey, FiArrowRight, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
@@ -18,13 +18,12 @@ const steps = [
 ];
 
 export default function Register() {
-    const { register, loginWithGoogle } = useAuth();
+    const { register, loginWithGoogle, setGlobalGoogleTransition } = useAuth();
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [errorMsg, setErrorMsg] = useState('');
     const [googleCredential, setGoogleCredential] = useState(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
             setErrorMsg('');
@@ -104,6 +103,7 @@ export default function Register() {
         onSubmit: async (values, { setSubmitting }) => {
             try {
                 if (googleCredential) {
+                    setGlobalGoogleTransition(true);
                     await loginWithGoogle(googleCredential, 'register', values.otp);
                 } else {
                     const payload = {
@@ -121,8 +121,8 @@ export default function Register() {
                         }
                     };
                     await register(payload);
+                    navigate('/dashboard');
                 }
-                navigate('/dashboard');
             } catch (error) {
                 setErrorMsg(error.response?.data?.message || 'Error al procesar la vinculación.');
             } finally {
@@ -380,10 +380,22 @@ export default function Register() {
                             type="button"
                             onClick={nextStep}
                             disabled={formik.isSubmitting || isGoogleLoading}
-                            className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                            className="bg-primary dark:bg-white text-surface dark:text-black px-10 py-5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 min-w-[220px]"
                         >
-                            {formik.isSubmitting ? 'Procesando...' : currentStep === 2 ? 'Finalizar Vinculación' : currentStep === 1 ? 'Sellado de Datos' : 'Siguiente'}
-                            {currentStep < 2 && <FiArrowRight />}
+                            {formik.isSubmitting ? (
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                    className="flex items-center justify-center"
+                                >
+                                    <Logo className="w-5 h-5" />
+                                </motion.div>
+                            ) : (
+                                <>
+                                    {currentStep === 2 ? 'Finalizar Vinculación' : currentStep === 1 ? 'Sellado de Datos' : 'Siguiente'}
+                                    {currentStep < 2 && <FiArrowRight />}
+                                </>
+                            )}
                         </button>
                     </footer>
                 </div>
