@@ -105,6 +105,7 @@ export default function Register() {
                 if (googleCredential) {
                     setGlobalGoogleTransition(true);
                     await loginWithGoogle(googleCredential, 'register', values.otp);
+                    setGlobalGoogleTransition(false);
                 } else {
                     const payload = {
                         nombre: values.nombre,
@@ -124,6 +125,7 @@ export default function Register() {
                     navigate('/dashboard');
                 }
             } catch (error) {
+                setGlobalGoogleTransition(false);
                 setErrorMsg(error.response?.data?.message || 'Error al procesar la vinculación.');
             } finally {
                 setSubmitting(false);

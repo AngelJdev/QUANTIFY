@@ -131,7 +131,9 @@ const Login = () => {
             setAuthError('');
             setGlobalGoogleTransition(true);
             await loginWithGoogle(credentialResponse.credential, 'login');
+            setGlobalGoogleTransition(false);
         } catch (error) {
+            setGlobalGoogleTransition(false);
             const status = error.response?.status;
             if (status === 404) {
                 // Not found -> redirect to register
