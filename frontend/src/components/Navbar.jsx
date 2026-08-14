@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { FiZap } from 'react-icons/fi';
+import { FiZap, FiLogOut } from 'react-icons/fi';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
     const { scrollY } = useScroll();
     const [hidden, setHidden] = useState(false);
@@ -59,9 +59,19 @@ const Navbar = () => {
                         </div>
                         <button 
                             onClick={() => navigate('/dashboard')}
-                            className="bg-primary dark:bg-white text-surface dark:text-black font-black py-2.5 px-8 rounded-full shadow-lg shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all text-xs uppercase tracking-widest"
+                            className="hidden md:block bg-primary dark:bg-white text-surface dark:text-black font-black py-2.5 px-8 rounded-full shadow-lg shadow-primary/20 dark:shadow-white/5 hover:scale-105 transition-all text-xs uppercase tracking-widest"
                         >
                             Dashboard
+                        </button>
+                        <button 
+                            onClick={() => {
+                                logout();
+                                navigate('/login');
+                            }}
+                            className="md:hidden bg-danger/10 hover:bg-danger/20 text-danger p-2 rounded-full transition-colors border border-danger/20"
+                            title="Cerrar Sesión"
+                        >
+                            <FiLogOut size={20} />
                         </button>
                     </div>
                 ) : (

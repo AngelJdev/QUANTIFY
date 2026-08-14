@@ -140,6 +140,7 @@ const User = sequelize.define('User', {
 
 // Method to verify passwords
 User.prototype.verifyPassword = async function (password) {
+    if (!this.password_hash) return false;
     return await bcrypt.compare(password, this.password_hash);
 };
 
