@@ -6,10 +6,10 @@ dotenv.config();
 const sequelize = new Sequelize(
   process.env.MYSQL_DATABASE || 'quantify_db',
   process.env.MYSQL_USER || 'root',
-  process.env.MYSQL_PASSWORD || '',
+  process.env.MYSQL_PASSWORD || 'JesusIdai20',
   {
     host: process.env.MYSQL_HOST || 'localhost',
-    port: process.env.MYSQL_PORT || 3306,
+    port: process.env.MYSQL_PORT || 3307,
     dialect: 'mysql',
     logging: false, // Set to console.log to see SQL queries
     pool: {
