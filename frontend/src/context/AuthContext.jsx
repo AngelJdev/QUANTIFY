@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { loginUser, registerUser, fetchProfile, googleLoginService } from '../services/authService';
-import { useAuth } from '../context/AuthContext';
+
 
 const AuthContext = createContext(null);
 
