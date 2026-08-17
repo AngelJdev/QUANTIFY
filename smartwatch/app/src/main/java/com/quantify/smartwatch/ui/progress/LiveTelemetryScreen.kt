@@ -65,10 +65,12 @@ fun LiveTelemetryScreen() {
         }
     }
 
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -78,7 +80,7 @@ fun LiveTelemetryScreen() {
         ) {
             Text(
                 text = "TELEMETRÍA CARDÍACA",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -89,12 +91,12 @@ fun LiveTelemetryScreen() {
             if (!sensorAvailable) {
                 Box(
                     modifier = Modifier
-                        .background(BackgroundElevated, RoundedCornerShape(8.dp))
+                        .background(colors.card, RoundedCornerShape(8.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = "Sensor no disponible",
-                        color = TextDisabled,
+                        color = colors.textDisabled,
                         fontSize = 11.sp
                     )
                 }
@@ -102,14 +104,14 @@ fun LiveTelemetryScreen() {
                 // Heart rate display
                 Text(
                     text = if (heartRate > 0) "$heartRate" else "--",
-                    color = Error,
+                    color = colors.error,
                     fontSize = 38.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
                 )
                 Text(
                     text = "LATIDOS POR MINUTO (BPM)",
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -126,12 +128,12 @@ fun LiveTelemetryScreen() {
                     else -> "MÁXIMO"
                 }
                 val zoneColor = when {
-                    heartRate == 0 -> TextDisabled
-                    heartRate < 60 -> CyanPrimary
-                    heartRate < 100 -> Success
-                    heartRate < 140 -> Warning
-                    heartRate < 170 -> StreakFire
-                    else -> Error
+                    heartRate == 0 -> colors.textDisabled
+                    heartRate < 60 -> colors.primary
+                    heartRate < 100 -> colors.success
+                    heartRate < 140 -> colors.warning
+                    heartRate < 170 -> colors.streak
+                    else -> colors.error
                 }
 
                 Box(

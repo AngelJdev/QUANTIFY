@@ -23,6 +23,8 @@ fun AchievementToast(
     icon: String,
     onDismiss: () -> Unit
 ) {
+    val colors = LocalQuantifyColors.current
+
     LaunchedEffect(Unit) {
         delay(3000)
         onDismiss()
@@ -32,7 +34,7 @@ fun AchievementToast(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(BackgroundElevated, RoundedCornerShape(12.dp))
+            .background(colors.card, RoundedCornerShape(12.dp))
             .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -45,12 +47,12 @@ fun AchievementToast(
             Column {
                 Text(
                     text = "¡Logro desbloqueado!",
-                    color = CyanPrimary,
+                    color = colors.primary,
                     fontSize = 10.sp
                 )
                 Text(
                     text = title,
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 12.sp
                 )
             }

@@ -21,10 +21,12 @@ import com.quantify.smartwatch.ui.theme.*
  */
 @Composable
 fun NotConfiguredScreen(onConfigure: () -> Unit) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -34,12 +36,13 @@ fun NotConfiguredScreen(onConfigure: () -> Unit) {
         ) {
             Text(
                 text = "⚙",
-                fontSize = 32.sp
+                fontSize = 32.sp,
+                color = colors.primary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Dispositivo\nno configurado",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
@@ -47,11 +50,11 @@ fun NotConfiguredScreen(onConfigure: () -> Unit) {
             Spacer(modifier = Modifier.height(14.dp))
             Chip(
                 onClick = onConfigure,
-                colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                colors = ChipDefaults.chipColors(backgroundColor = colors.primary),
                 label = {
                     Text(
                         text = "Configurar",
-                        color = BackgroundPrimary,
+                        color = colors.onPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),

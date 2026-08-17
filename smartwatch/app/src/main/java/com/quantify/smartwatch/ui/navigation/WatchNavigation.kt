@@ -126,12 +126,22 @@ fun WatchNavigation() {
         }
 
         composable(Routes.PAIRING_CODE) {
+            LaunchedEffect(authState) {
+                when (authState) {
+                    is AuthUiState.Success -> navController.navigate(
+                        "auth_success/${(authState as AuthUiState.Success).email}"
+                    ) { popUpTo(Routes.PAIRING_CODE) { inclusive = true } }
+                    is AuthUiState.Authenticated -> navController.navigate(Routes.WATCHFACE) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                    is AuthUiState.Error -> navController.navigate(
+                        "auth_error/${(authState as AuthUiState.Error).message}"
+                    )
+                    else -> {}
+                }
+            }
             PairingCodeScreen(
                 code = pairingCode,
-                onConfirm = {
-                    authVm.startPolling()
-                    navController.navigate(Routes.WAITING_AUTH)
-                },
                 onRegenerate = { authVm.regenerateCode() }
             )
         }

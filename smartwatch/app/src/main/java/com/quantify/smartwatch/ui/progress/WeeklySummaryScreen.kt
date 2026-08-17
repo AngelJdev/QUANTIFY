@@ -29,11 +29,12 @@ fun WeeklySummaryScreen(
 ) {
     val weeklyData by viewModel.weeklyData.collectAsState()
     val adherence by viewModel.adherenceScore.collectAsState()
+    val colors = LocalQuantifyColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -43,7 +44,7 @@ fun WeeklySummaryScreen(
         ) {
             Text(
                 text = "Resumen Semanal",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
@@ -55,6 +56,7 @@ fun WeeklySummaryScreen(
             if (weeklyData.isNotEmpty()) {
                 WeeklyBarChart(
                     data = weeklyData,
+                    colors = colors,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(44.dp)
@@ -62,7 +64,7 @@ fun WeeklySummaryScreen(
             } else {
                 Text(
                     text = "Sin datos disponibles",
-                    color = TextDisabled,
+                    color = colors.textDisabled,
                     fontSize = 10.sp
                 )
             }
@@ -72,7 +74,7 @@ fun WeeklySummaryScreen(
             // Adherence score
             Text(
                 text = "Adherencia: $adherence%",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -82,12 +84,12 @@ fun WeeklySummaryScreen(
             // Inicio Button
             Button(
                 onClick = onNavigateToHome,
-                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                colors = ButtonDefaults.buttonColors(backgroundColor = colors.primary),
                 modifier = Modifier.height(30.dp)
             ) {
                 Text(
                     text = "INICIO",
-                    color = BackgroundPrimary,
+                    color = colors.onPrimary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -97,9 +99,11 @@ fun WeeklySummaryScreen(
 }
 
 @Composable
-private fun WeeklyBarChart(data: List<DailyPerformanceDto>, modifier: Modifier = Modifier) {
-    val dayLabels = listOf("L", "M", "X", "J", "V", "S", "D")
-
+private fun WeeklyBarChart(
+    data: List<DailyPerformanceDto>,
+    colors: QuantifyColors,
+    modifier: Modifier = Modifier
+) {
     Canvas(modifier = modifier) {
         val barWidth = size.width / (data.size * 2f)
         val maxHeight = size.height - 16.dp.toPx()
@@ -108,10 +112,10 @@ private fun WeeklyBarChart(data: List<DailyPerformanceDto>, modifier: Modifier =
             val barHeight = (day.porcentaje / 100f) * maxHeight
             val x = (index * 2 + 0.5f) * barWidth
             val color = when {
-                day.porcentaje >= 80 -> Success
-                day.porcentaje >= 50 -> Warning
-                day.porcentaje > 0 -> Error
-                else -> ProgressRingBg
+                day.porcentaje >= 80 -> colors.success
+                day.porcentaje >= 50 -> colors.warning
+                day.porcentaje > 0 -> colors.error
+                else -> colors.ringBg
             }
 
             // Bar
@@ -123,7 +127,7 @@ private fun WeeklyBarChart(data: List<DailyPerformanceDto>, modifier: Modifier =
 
             // Background track
             drawRect(
-                color = ProgressRingBg,
+                color = colors.ringBg,
                 topLeft = Offset(x, 0f),
                 size = Size(barWidth, maxHeight - barHeight)
             )

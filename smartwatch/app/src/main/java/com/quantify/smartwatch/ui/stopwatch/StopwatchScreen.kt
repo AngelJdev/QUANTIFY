@@ -39,6 +39,7 @@ enum class TimingMode {
 fun StopwatchScreen(
     onBack: () -> Unit = {}
 ) {
+    val colors = LocalQuantifyColors.current
     var mode by remember { mutableStateOf(TimingMode.STOPWATCH) }
 
     // Stopwatch State
@@ -83,7 +84,7 @@ fun StopwatchScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         if (mode == TimingMode.STOPWATCH) {
@@ -96,8 +97,8 @@ fun StopwatchScreen(
                     .padding(8.dp),
                 startAngle = 270f,
                 endAngle = 270f + 360f,
-                indicatorColor = if (isSwRunning) CyanPrimary else CyanDark,
-                trackColor = ProgressRingBg,
+                indicatorColor = if (isSwRunning) colors.primary else colors.primaryDark,
+                trackColor = colors.ringBg,
                 strokeWidth = 4.dp
             )
 
@@ -119,12 +120,12 @@ fun StopwatchScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(CyanPrimary.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .background(colors.primary.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "CRONÓMETRO",
-                            color = CyanPrimary,
+                            color = colors.primary,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -134,7 +135,7 @@ fun StopwatchScreen(
 
                     Button(
                         onClick = { mode = TimingMode.TIMER },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                         modifier = Modifier.size(22.dp)
                     ) {
                         Text("⏳", fontSize = 9.sp)
@@ -144,7 +145,7 @@ fun StopwatchScreen(
                 // Main Stopwatch Time Display
                 Text(
                     text = String.format(Locale.US, "%02d:%02d", min, sec),
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
@@ -152,7 +153,7 @@ fun StopwatchScreen(
 
                 Text(
                     text = String.format(Locale.US, ".%02d", millisFraction),
-                    color = if (isSwRunning) CyanLight else TextSecondary,
+                    color = if (isSwRunning) colors.primaryLight else colors.textSecondary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = FontFamily.Monospace
@@ -169,12 +170,12 @@ fun StopwatchScreen(
                         // Reset circular icon button
                         Button(
                             onClick = { swElapsedMillis = 0L },
-                            colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                             modifier = Modifier.size(36.dp)
                         ) {
                             Text(
                                 text = "↺",
-                                color = TextPrimary,
+                                color = colors.textPrimary,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -185,13 +186,13 @@ fun StopwatchScreen(
                     Button(
                         onClick = { isSwRunning = !isSwRunning },
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = if (isSwRunning) Warning else CyanPrimary
+                            backgroundColor = if (isSwRunning) colors.warning else colors.primary
                         ),
                         modifier = Modifier.size(38.dp)
                     ) {
                         Text(
                             text = if (isSwRunning) "⏸" else "▶",
-                            color = BackgroundPrimary,
+                            color = colors.onPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -210,8 +211,8 @@ fun StopwatchScreen(
                     .padding(8.dp),
                 startAngle = 270f,
                 endAngle = 270f + 360f,
-                indicatorColor = if (timerRemainingMillis <= 10000L && isTimerRunning) Error else CyanPrimary,
-                trackColor = ProgressRingBg,
+                indicatorColor = if (timerRemainingMillis <= 10000L && isTimerRunning) colors.error else colors.primary,
+                trackColor = colors.ringBg,
                 strokeWidth = 4.dp
             )
 
@@ -232,7 +233,7 @@ fun StopwatchScreen(
                 ) {
                     Button(
                         onClick = { mode = TimingMode.STOPWATCH },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                         modifier = Modifier.size(22.dp)
                     ) {
                         Text("⏱", fontSize = 9.sp)
@@ -242,12 +243,12 @@ fun StopwatchScreen(
 
                     Box(
                         modifier = Modifier
-                            .background(CyanPrimary.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .background(colors.primary.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "TEMPORIZADOR",
-                            color = CyanPrimary,
+                            color = colors.primary,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
@@ -265,14 +266,14 @@ fun StopwatchScreen(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        if (timerDurationSeconds == mins * 60) CyanPrimary else BackgroundElevated,
+                                        if (timerDurationSeconds == mins * 60) colors.primary else colors.card,
                                         RoundedCornerShape(6.dp)
                                     )
                                     .padding(horizontal = 5.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = "${mins}m",
-                                    color = if (timerDurationSeconds == mins * 60) BackgroundPrimary else TextSecondary,
+                                    color = if (timerDurationSeconds == mins * 60) colors.onPrimary else colors.textSecondary,
                                     fontSize = 8.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.clickable {
@@ -288,7 +289,7 @@ fun StopwatchScreen(
                 // Countdown Time Display
                 Text(
                     text = String.format(Locale.US, "%02d:%02d", tMin, tRemainingSec),
-                    color = if (timerRemainingMillis == 0L) Success else TextPrimary,
+                    color = if (timerRemainingMillis == 0L) colors.success else colors.textPrimary,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
@@ -307,10 +308,10 @@ fun StopwatchScreen(
                                 isTimerRunning = false
                                 timerRemainingMillis = timerDurationSeconds * 1000L
                             },
-                            colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                             modifier = Modifier.size(36.dp)
                         ) {
-                            Text("↺", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("↺", color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -322,13 +323,13 @@ fun StopwatchScreen(
                             isTimerRunning = !isTimerRunning
                         },
                         colors = ButtonDefaults.buttonColors(
-                            backgroundColor = if (isTimerRunning) Warning else CyanPrimary
+                            backgroundColor = if (isTimerRunning) colors.warning else colors.primary
                         ),
                         modifier = Modifier.size(38.dp)
                     ) {
                         Text(
                             text = if (isTimerRunning) "⏸" else "▶",
-                            color = BackgroundPrimary,
+                            color = colors.onPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )

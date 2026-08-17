@@ -28,6 +28,8 @@ fun AuthResultScreen(
     onRetry: () -> Unit = {},
     onContinue: () -> Unit = {}
 ) {
+    val colors = LocalQuantifyColors.current
+
     // Auto-redirect on success
     if (isSuccess) {
         LaunchedEffect(Unit) {
@@ -39,7 +41,7 @@ fun AuthResultScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -52,19 +54,19 @@ fun AuthResultScreen(
                 Text(
                     text = "✔",
                     fontSize = 44.sp,
-                    color = Success
+                    color = colors.success
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "¡Vinculado!",
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = email,
-                    color = CyanPrimary,
+                    color = colors.primary,
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center
                 )
@@ -73,23 +75,23 @@ fun AuthResultScreen(
                 Text(
                     text = "✖",
                     fontSize = 44.sp,
-                    color = Error
+                    color = colors.error
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = errorMessage.ifEmpty { "Error de conexión" },
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Chip(
                     onClick = onRetry,
-                    colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.primary),
                     label = {
                         Text(
                             text = "Reintentar",
-                            color = BackgroundPrimary,
+                            color = colors.onPrimary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.fillMaxWidth(),

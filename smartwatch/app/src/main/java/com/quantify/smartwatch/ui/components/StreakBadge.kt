@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
-import com.quantify.smartwatch.ui.theme.StreakFire
+import com.quantify.smartwatch.ui.theme.*
 
 /**
  * StreakBadge — Reusable fire icon + streak count.
@@ -20,6 +20,8 @@ fun StreakBadge(
     modifier: Modifier = Modifier,
     fontSize: Int = 13
 ) {
+    val colors = LocalQuantifyColors.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -28,9 +30,10 @@ fun StreakBadge(
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "$streak",
-            color = StreakFire,
+            color = colors.streak,
             fontSize = fontSize.sp,
             fontWeight = FontWeight.Bold
         )
     }
 }
+

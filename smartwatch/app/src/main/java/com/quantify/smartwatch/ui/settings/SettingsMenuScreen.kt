@@ -30,11 +30,12 @@ fun SettingsMenuScreen(
     val email by viewModel.userEmail.collectAsState()
     val syncInterval by viewModel.syncInterval.collectAsState()
     val vibration by viewModel.vibrationEnabled.collectAsState()
+    val colors = LocalQuantifyColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(colors.background)
     ) {
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -43,7 +44,7 @@ fun SettingsMenuScreen(
             item {
                 Text(
                     text = "AJUSTES",
-                    color = CyanPrimary,
+                    color = colors.primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -55,21 +56,21 @@ fun SettingsMenuScreen(
             item {
                 Chip(
                     onClick = {},
-                    label = { Text("Cuenta", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    label = { Text("Cuenta", color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
                     secondaryLabel = {
-                        Text(email ?: "No vinculado", color = TextSecondary, fontSize = 9.sp)
+                        Text(email ?: "No vinculado", color = colors.textSecondary, fontSize = 9.sp)
                     },
                     icon = {
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(CyanDark.copy(alpha = 0.3f), CircleShape),
+                                .background(colors.primaryDark.copy(alpha = 0.3f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("ID", color = CyanPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                            Text("ID", color = colors.primary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }
@@ -85,21 +86,21 @@ fun SettingsMenuScreen(
                         }
                         viewModel.setSyncInterval(next)
                     },
-                    label = { Text("Sincronización", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    label = { Text("Sincronización", color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
                     secondaryLabel = {
-                        Text("Cada ${syncInterval} min", color = CyanPrimary, fontSize = 9.sp)
+                        Text("Cada ${syncInterval} min", color = colors.primary, fontSize = 9.sp)
                     },
                     icon = {
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(CyanPrimary.copy(alpha = 0.2f), CircleShape),
+                                .background(colors.primary.copy(alpha = 0.2f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("SYNC", color = CyanPrimary, fontSize = 6.sp, fontWeight = FontWeight.Bold)
+                            Text("SYNC", color = colors.primary, fontSize = 6.sp, fontWeight = FontWeight.Bold)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }
@@ -115,21 +116,21 @@ fun SettingsMenuScreen(
                 }
                 Chip(
                     onClick = { viewModel.cycleTheme() },
-                    label = { Text("Tema", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    label = { Text("Tema", color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
                     secondaryLabel = {
-                        Text(themeLabel, color = CyanPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(themeLabel, color = colors.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     },
                     icon = {
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(CyanPrimary.copy(alpha = 0.2f), CircleShape),
+                                .background(colors.primary.copy(alpha = 0.2f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("🎨", fontSize = 9.sp)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }
@@ -138,11 +139,11 @@ fun SettingsMenuScreen(
             item {
                 Chip(
                     onClick = { viewModel.setVibration(!vibration) },
-                    label = { Text("Vibración", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    label = { Text("Vibración", color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
                     secondaryLabel = {
                         Text(
                             if (vibration) "Activada" else "Silenciado",
-                            color = if (vibration) Success else TextDisabled,
+                            color = if (vibration) colors.success else colors.textDisabled,
                             fontSize = 9.sp
                         )
                     },
@@ -150,13 +151,13 @@ fun SettingsMenuScreen(
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(if (vibration) Success.copy(alpha = 0.2f) else TextDisabled.copy(alpha = 0.2f), CircleShape),
+                                .background(if (vibration) colors.success.copy(alpha = 0.2f) else colors.textDisabled.copy(alpha = 0.2f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(if (vibration) "ON" else "OFF", color = if (vibration) Success else TextDisabled, fontSize = 7.sp, fontWeight = FontWeight.Bold)
+                            Text(if (vibration) "ON" else "OFF", color = if (vibration) colors.success else colors.textDisabled, fontSize = 7.sp, fontWeight = FontWeight.Bold)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }
@@ -165,19 +166,19 @@ fun SettingsMenuScreen(
             item {
                 Chip(
                     onClick = onUnlink,
-                    label = { Text("Desvincular", color = Error, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-                    secondaryLabel = { Text("Cerrar sesión", color = TextDisabled, fontSize = 9.sp) },
+                    label = { Text("Desvincular", color = colors.error, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    secondaryLabel = { Text("Cerrar sesión", color = colors.textDisabled, fontSize = 9.sp) },
                     icon = {
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(Error.copy(alpha = 0.2f), CircleShape),
+                                .background(colors.error.copy(alpha = 0.2f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("X", color = Error, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text("X", color = colors.error, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }
@@ -186,19 +187,19 @@ fun SettingsMenuScreen(
             item {
                 Chip(
                     onClick = onAbout,
-                    label = { Text("Acerca de", color = TextSecondary, fontSize = 12.sp) },
-                    secondaryLabel = { Text("QUANTIFY v1.0", color = TextDisabled, fontSize = 9.sp) },
+                    label = { Text("Acerca de", color = colors.textSecondary, fontSize = 12.sp) },
+                    secondaryLabel = { Text("QUANTIFY v1.0", color = colors.textDisabled, fontSize = 9.sp) },
                     icon = {
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(BackgroundSurface, CircleShape),
+                                .background(colors.surface, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("i", color = TextSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text("i", color = colors.textSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
                     },
-                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
                 )
             }

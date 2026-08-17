@@ -28,11 +28,12 @@ fun HabitDetailScreen(
 ) {
     LaunchedEffect(habitId) { viewModel.loadHabit(habitId) }
     val habit by viewModel.selectedHabit.collectAsState()
+    val colors = LocalQuantifyColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         habit?.let { h ->
@@ -43,7 +44,7 @@ fun HabitDetailScreen(
             ) {
                 Text(
                     text = h.nombre,
-                    color = TextPrimary,
+                    color = colors.textPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -53,7 +54,7 @@ fun HabitDetailScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = desc,
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         fontSize = 11.sp,
                         textAlign = TextAlign.Center,
                         maxLines = 2
@@ -65,7 +66,7 @@ fun HabitDetailScreen(
                 if (h.completado_hoy) {
                     Text(
                         text = "COMPLETADO HOY",
-                        color = Success,
+                        color = colors.success,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp
@@ -76,14 +77,14 @@ fun HabitDetailScreen(
                             viewModel.completeHabit(habitId)
                             onCompleted()
                         },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = colors.primary),
                         modifier = Modifier
                             .fillMaxWidth(0.7f)
                             .height(44.dp)
                     ) {
                         Text(
                             text = "Completar",
-                            color = BackgroundPrimary,
+                            color = colors.onPrimary,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )

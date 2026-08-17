@@ -22,11 +22,12 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
     val currentStreak by viewModel.currentStreak.collectAsState()
     val maxStreak by viewModel.maxStreak.collectAsState()
     val adherence by viewModel.adherenceScore.collectAsState()
+    val colors = LocalQuantifyColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -36,7 +37,7 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
         ) {
             Text(
                 text = "ESTADÍSTICAS DE RACHA",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -47,20 +48,20 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
             // Current streak prominent display
             Box(
                 modifier = Modifier
-                    .background(BackgroundElevated, RoundedCornerShape(12.dp))
+                    .background(colors.card, RoundedCornerShape(12.dp))
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "$currentStreak",
-                        color = StreakFire,
+                        color = colors.streak,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
                         text = "DÍAS SEGUIDOS",
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -78,13 +79,13 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "$maxStreak D",
-                        color = CyanPrimary,
+                        color = colors.primary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "RÉCORD",
-                        color = TextDisabled,
+                        color = colors.textDisabled,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -94,13 +95,13 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "$adherence%",
-                        color = Success,
+                        color = colors.success,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "ADHERENCIA",
-                        color = TextDisabled,
+                        color = colors.textDisabled,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold
                     )

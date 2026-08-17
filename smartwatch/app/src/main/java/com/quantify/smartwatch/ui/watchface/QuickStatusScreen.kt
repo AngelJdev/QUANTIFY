@@ -26,10 +26,12 @@ fun QuickStatusScreen(
     pendingActions: Int,
     onSyncNow: () -> Unit
 ) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -39,7 +41,7 @@ fun QuickStatusScreen(
         ) {
             Text(
                 text = "ESTADO DEL SISTEMA",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -52,18 +54,18 @@ fun QuickStatusScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .background(BackgroundElevated, RoundedCornerShape(12.dp))
+                    .background(colors.card, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .size(8.dp)
-                        .background(if (isOnline) Success else Warning, CircleShape)
+                        .background(if (isOnline) colors.success else colors.warning, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = if (isOnline) "CONECTADO" else "OFFLINE",
-                    color = if (isOnline) Success else Warning,
+                    color = if (isOnline) colors.success else colors.warning,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -74,12 +76,12 @@ fun QuickStatusScreen(
             // Last sync info
             Text(
                 text = "Última sincronización:",
-                color = TextDisabled,
+                color = colors.textDisabled,
                 fontSize = 10.sp
             )
             Text(
                 text = lastSyncText,
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -89,7 +91,7 @@ fun QuickStatusScreen(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "$pendingActions acción(es) en cola",
-                    color = Warning,
+                    color = colors.warning,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -100,13 +102,13 @@ fun QuickStatusScreen(
             // Sync now button
             Button(
                 onClick = onSyncNow,
-                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                colors = ButtonDefaults.buttonColors(backgroundColor = colors.primary),
                 modifier = Modifier.height(34.dp),
                 enabled = isOnline
             ) {
                 Text(
                     text = "SINCRONIZAR AHORA",
-                    color = BackgroundPrimary,
+                    color = colors.onPrimary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.ExtraBold
                 )

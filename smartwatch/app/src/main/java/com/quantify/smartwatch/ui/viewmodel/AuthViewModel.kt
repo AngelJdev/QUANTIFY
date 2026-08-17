@@ -27,6 +27,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val pairingCode: StateFlow<String> = _pairingCode.asStateFlow()
 
     private var deviceId: String = ""
+    private var pollingJob: kotlinx.coroutines.Job? = null
 
     init {
         checkExistingSession()
@@ -46,6 +47,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startPairing() {
+        pollingJob?.cancel()
         viewModelScope.launch {
             _uiState.value = AuthUiState.CheckingWifi
 
@@ -64,6 +66,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             result.onSuccess { code ->
                 _pairingCode.value = code
                 _uiState.value = AuthUiState.ShowingCode
+                // Automatically start active background polling
+                startPolling()
             }.onFailure {
                 _uiState.value = AuthUiState.Error(it.message ?: "Error de conexión")
             }
@@ -71,27 +75,27 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startPolling() {
-        viewModelScope.launch {
-            _uiState.value = AuthUiState.WaitingAuth
+        pollingJob?.cancel()
+        pollingJob = viewModelScope.launch {
             var attempts = 0
-            val maxAttempts = 24 // 2 minutes at 5-second intervals
+            val maxAttempts = 60 // 2.5 minutes at 2.5-second intervals
 
             while (attempts < maxAttempts) {
                 val result = authRepo.pollAuth(deviceId)
                 result.onSuccess { poll ->
                     if (poll.authorized) {
                         _uiState.value = AuthUiState.Success(poll.user?.email ?: "")
-                        delay(2000)
+                        delay(1500)
                         _uiState.value = AuthUiState.Authenticated
                         return@launch
                     }
                 }
                 attempts++
-                delay(5000) // Poll every 5 seconds
+                delay(2500) // Fast 2.5s interval for instant response
             }
 
-            // Code expired
-            _uiState.value = AuthUiState.CodeExpired
+            // Code expired — regenerate automatically
+            regenerateCode()
         }
     }
 
@@ -104,6 +108,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun unlinkLocal() {
+        pollingJob?.cancel()
         viewModelScope.launch {
             authRepo.unlink()
             _uiState.value = AuthUiState.NotConfigured

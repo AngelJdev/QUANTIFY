@@ -25,11 +25,12 @@ import com.quantify.smartwatch.ui.theme.*
 @Composable
 fun WifiCheckScreen(onRetry: () -> Unit) {
     val context = LocalContext.current
+    val colors = LocalQuantifyColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -41,7 +42,7 @@ fun WifiCheckScreen(onRetry: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Sin conexión a internet",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -49,7 +50,7 @@ fun WifiCheckScreen(onRetry: () -> Unit) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "Conecta el reloj a WiFi",
-                color = TextSecondary,
+                color = colors.textSecondary,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )
@@ -60,11 +61,11 @@ fun WifiCheckScreen(onRetry: () -> Unit) {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     })
                 },
-                colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                colors = ChipDefaults.chipColors(backgroundColor = colors.card),
                 label = {
                     Text(
                         text = "Ajustes WiFi",
-                        color = CyanPrimary,
+                        color = colors.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.fillMaxWidth(),
@@ -76,11 +77,11 @@ fun WifiCheckScreen(onRetry: () -> Unit) {
             Spacer(modifier = Modifier.height(6.dp))
             Chip(
                 onClick = onRetry,
-                colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                colors = ChipDefaults.chipColors(backgroundColor = colors.primary),
                 label = {
                     Text(
                         text = "Reintentar",
-                        color = BackgroundPrimary,
+                        color = colors.onPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),

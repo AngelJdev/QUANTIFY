@@ -17,23 +17,25 @@ import com.quantify.smartwatch.ui.theme.*
  */
 @Composable
 fun OfflineBanner(pendingActions: Int = 0) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Warning.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+            .background(colors.warning.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "📡 Sin conexión",
-                color = Warning,
+                color = colors.warning,
                 fontSize = 11.sp
             )
             if (pendingActions > 0) {
                 Text(
                     text = "$pendingActions acciones pendientes",
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 9.sp
                 )
             }

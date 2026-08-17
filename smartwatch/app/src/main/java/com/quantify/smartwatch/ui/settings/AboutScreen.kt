@@ -18,10 +18,12 @@ import com.quantify.smartwatch.ui.theme.*
  */
 @Composable
 fun AboutScreen() {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -30,34 +32,34 @@ fun AboutScreen() {
         ) {
             Text(
                 text = "Q",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "QUANTIFY",
-                color = CyanPrimary,
+                color = colors.primary,
                 fontSize = 12.sp,
                 letterSpacing = 3.sp,
                 fontWeight = FontWeight.Light
             )
             Text(
                 text = "SMARTWATCH",
-                color = TextSecondary,
+                color = colors.textSecondary,
                 fontSize = 10.sp,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "v1.0.0",
-                color = TextDisabled,
+                color = colors.textDisabled,
                 fontSize = 11.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Wear OS Companion\nEngineering Aesthetic",
-                color = TextDisabled,
+                color = colors.textDisabled,
                 fontSize = 9.sp,
                 textAlign = TextAlign.Center
             )

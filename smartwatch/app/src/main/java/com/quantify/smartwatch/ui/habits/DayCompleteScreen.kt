@@ -23,10 +23,12 @@ import com.quantify.smartwatch.ui.theme.*
  */
 @Composable
 fun DayCompleteScreen(onContinue: () -> Unit) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -44,20 +46,20 @@ fun DayCompleteScreen(onContinue: () -> Unit) {
                     modifier = Modifier.fillMaxSize(),
                     startAngle = 270f,
                     endAngle = 270f + 360f,
-                    indicatorColor = Success,
-                    trackColor = BackgroundElevated,
+                    indicatorColor = colors.success,
+                    trackColor = colors.card,
                     strokeWidth = 3.5.dp
                 )
 
                 Box(
                     modifier = Modifier
                         .size(30.dp)
-                        .background(Success.copy(alpha = 0.15f), CircleShape),
+                        .background(colors.success.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "100%",
-                        color = Success,
+                        color = colors.success,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -68,7 +70,7 @@ fun DayCompleteScreen(onContinue: () -> Unit) {
 
             Text(
                 text = "DÍA COMPLETADO",
-                color = Success,
+                color = colors.success,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
@@ -78,7 +80,7 @@ fun DayCompleteScreen(onContinue: () -> Unit) {
 
             Text(
                 text = "Hábitos de hoy cumplidos",
-                color = TextSecondary,
+                color = colors.textSecondary,
                 fontSize = 9.sp,
                 textAlign = TextAlign.Center
             )
@@ -88,14 +90,14 @@ fun DayCompleteScreen(onContinue: () -> Unit) {
             // Continuar Button (Prominent, unclipped)
             Button(
                 onClick = onContinue,
-                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                colors = ButtonDefaults.buttonColors(backgroundColor = colors.primary),
                 modifier = Modifier
                     .height(30.dp)
                     .width(110.dp)
             ) {
                 Text(
                     text = "CONTINUAR",
-                    color = BackgroundPrimary,
+                    color = colors.onPrimary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.ExtraBold
                 )

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,7 @@ fun HabitListScreen(
 ) {
     val habits by viewModel.habits.collectAsState()
     val allCompleted by viewModel.allCompleted.collectAsState()
+    val colors = LocalQuantifyColors.current
 
     // Refresh habits from backend when entering the screen
     LaunchedEffect(Unit) {
@@ -42,11 +44,11 @@ fun HabitListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(colors.background)
     ) {
         if (habits.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Sin hábitos activos", color = TextSecondary, fontSize = 13.sp)
+                Text("Sin hábitos activos", color = colors.textSecondary, fontSize = 13.sp)
             }
         } else {
             ScalingLazyColumn(
@@ -56,7 +58,7 @@ fun HabitListScreen(
                 item {
                     Text(
                         text = "Mis Hábitos",
-                        color = CyanPrimary,
+                        color = colors.primary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -72,15 +74,16 @@ fun HabitListScreen(
 
 @Composable
 private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
+    val colors = LocalQuantifyColors.current
     val typeLabel = when (habit.tipo_medicion) {
         "NUMERICO" -> "NUM"
         "TIEMPO" -> "MIN"
         else -> "OK"
     }
     val typeColor = when (habit.tipo_medicion) {
-        "NUMERICO" -> HabitNumeric
-        "TIEMPO" -> HabitTime
-        else -> HabitBoolean
+        "NUMERICO" -> if (colors.isLight) Color(0xFF5E35B1) else Color(0xFFB388FF)
+        "TIEMPO" -> colors.streak
+        else -> colors.primary
     }
 
     Chip(
@@ -88,7 +91,7 @@ private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
         label = {
             Text(
                 text = habit.nombre,
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
@@ -96,12 +99,12 @@ private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
         },
         secondaryLabel = {
             if (habit.completado_hoy) {
-                Text("COMPLETADO", color = Success, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Text("COMPLETADO", color = colors.success, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             } else {
                 habit.meta_diaria?.let { meta ->
                     Text(
                         text = "${habit.valor_hoy?.toInt() ?: 0}/${meta.toInt()} ${habit.unidad ?: ""}",
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         fontSize = 9.sp
                     )
                 }
@@ -122,7 +125,7 @@ private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
                 )
             }
         },
-        colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+        colors = ChipDefaults.chipColors(backgroundColor = colors.card),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 6.dp, vertical = 2.dp)

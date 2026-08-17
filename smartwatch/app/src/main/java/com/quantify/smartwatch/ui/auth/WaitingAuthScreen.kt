@@ -18,17 +18,19 @@ import com.quantify.smartwatch.ui.theme.*
  */
 @Composable
 fun WaitingAuthScreen() {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         // Outer progress ring
         CircularProgressIndicator(
             modifier = Modifier.fillMaxSize().padding(4.dp),
-            indicatorColor = CyanPrimary,
-            trackColor = BackgroundElevated,
+            indicatorColor = colors.ring,
+            trackColor = colors.ringBg,
             strokeWidth = 4.dp
         )
 
@@ -38,14 +40,14 @@ fun WaitingAuthScreen() {
         ) {
             Text(
                 text = "Esperando\nautorización\ndesde la web…",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Ingresa el código en\ntu cuenta de Quantify",
-                color = TextSecondary,
+                color = colors.textSecondary,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )

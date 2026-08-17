@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +25,12 @@ fun UnlinkConfirmScreen(
     onConfirmed: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -36,7 +39,7 @@ fun UnlinkConfirmScreen(
         ) {
             Text(
                 text = "¿Estás seguro?",
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -45,18 +48,18 @@ fun UnlinkConfirmScreen(
                 // Cancel
                 Button(
                     onClick = onCancel,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                     modifier = Modifier.size(52.dp)
                 ) {
-                    Text("No", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("No", color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
                 // Confirm
                 Button(
                     onClick = { viewModel.unlinkDevice(onConfirmed) },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Error),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = colors.error),
                     modifier = Modifier.size(52.dp)
                 ) {
-                    Text("Sí", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Sí", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

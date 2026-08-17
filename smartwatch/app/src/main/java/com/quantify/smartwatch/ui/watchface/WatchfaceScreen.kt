@@ -39,10 +39,12 @@ fun WatchfaceScreen(
     onNavigateToStopwatch: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {}
 ) {
+    val colors = LocalQuantifyColors.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         // Perimeter circular progress ring
@@ -53,8 +55,8 @@ fun WatchfaceScreen(
                 .padding(8.dp),
             startAngle = 270f,
             endAngle = 270f + 360f,
-            indicatorColor = CyanPrimary,
-            trackColor = ProgressRingBg,
+            indicatorColor = colors.ring,
+            trackColor = colors.ringBg,
             strokeWidth = 5.dp
         )
 
@@ -68,7 +70,7 @@ fun WatchfaceScreen(
             val dateFormat = SimpleDateFormat("EEE, dd MMM", Locale("es", "ES"))
             Text(
                 text = dateFormat.format(Date()).uppercase(Locale.ROOT),
-                color = CyanLight,
+                color = colors.primaryLight,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -80,7 +82,7 @@ fun WatchfaceScreen(
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             Text(
                 text = timeFormat.format(Date()),
-                color = TextPrimary,
+                color = colors.textPrimary,
                 fontSize = 34.sp,
                 fontWeight = FontWeight.ExtraBold,
                 fontFamily = FontFamily.Monospace
@@ -97,13 +99,13 @@ fun WatchfaceScreen(
                 // Habits progress
                 Text(
                     text = "$completedToday/$totalHabits",
-                    color = if (completedToday >= totalHabits && totalHabits > 0) Success else TextPrimary,
+                    color = if (completedToday >= totalHabits && totalHabits > 0) colors.success else colors.textPrimary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = " HÁBITOS",
-                    color = TextSecondary,
+                    color = colors.textSecondary,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -113,12 +115,12 @@ fun WatchfaceScreen(
                 // Minimalist Streak Badge
                 Box(
                     modifier = Modifier
-                        .background(StreakFire.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(colors.streak.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
                         .padding(horizontal = 5.dp, vertical = 1.dp)
                 ) {
                     Text(
                         text = "$currentStreak D",
-                        color = StreakFire,
+                        color = colors.streak,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -127,7 +129,7 @@ fun WatchfaceScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Navigation Bar: Stopwatch (CRON) | Habits (HÁBITOS) | Settings (CFG)
+            // Navigation Bar: Stopwatch | Habits | Settings (Gear)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -136,12 +138,12 @@ fun WatchfaceScreen(
                 // Stopwatch Navigation
                 Button(
                     onClick = onNavigateToStopwatch,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                     modifier = Modifier.size(34.dp)
                 ) {
                     Text(
                         text = "⏱",
-                        color = CyanPrimary,
+                        color = colors.primary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -150,11 +152,11 @@ fun WatchfaceScreen(
                 // Main Habit List
                 Chip(
                     onClick = onNavigateToHabits,
-                    colors = ChipDefaults.chipColors(backgroundColor = CyanPrimary),
+                    colors = ChipDefaults.chipColors(backgroundColor = colors.primary),
                     label = {
                         Text(
                             text = "HÁBITOS",
-                            color = BackgroundPrimary,
+                            color = colors.onPrimary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
                             modifier = Modifier.fillMaxWidth(),
@@ -170,12 +172,12 @@ fun WatchfaceScreen(
                 // Settings Navigation (Gear Symbol)
                 Button(
                     onClick = onNavigateToSettings,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = colors.card),
                     modifier = Modifier.size(34.dp)
                 ) {
                     Text(
                         text = "⚙",
-                        color = TextSecondary,
+                        color = colors.textSecondary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
