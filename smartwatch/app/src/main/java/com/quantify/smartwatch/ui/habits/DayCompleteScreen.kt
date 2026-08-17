@@ -17,12 +17,12 @@ import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.ui.theme.*
 
 /**
- * Screen 3.4 — Day Complete (Empty State)
+ * Screen 3.4 — Day Complete
  * Shown when ALL habits for today are marked as completed.
- * Clean, engineering-focused design.
+ * Compact layout optimized for round Wear OS displays.
  */
 @Composable
-fun DayCompleteScreen(onViewSummary: () -> Unit) {
+fun DayCompleteScreen(onContinue: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -32,10 +32,11 @@ fun DayCompleteScreen(onViewSummary: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 12.dp)
         ) {
+            // Circular 100% Badge
             Box(
-                modifier = Modifier.size(54.dp),
+                modifier = Modifier.size(42.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
@@ -45,58 +46,62 @@ fun DayCompleteScreen(onViewSummary: () -> Unit) {
                     endAngle = 270f + 360f,
                     indicatorColor = Success,
                     trackColor = BackgroundElevated,
-                    strokeWidth = 4.dp
+                    strokeWidth = 3.5.dp
                 )
 
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(30.dp)
                         .background(Success.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "100%",
                         color = Success,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = "DÍA COMPLETADO",
                 color = Success,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
+                letterSpacing = 0.5.sp
             )
 
-            Spacer(modifier = Modifier.height(3.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             Text(
-                text = "Todos tus hábitos de hoy están cumplidos.",
+                text = "Hábitos de hoy cumplidos",
                 color = TextSecondary,
-                fontSize = 10.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // Continuar Button (Prominent, unclipped)
             Button(
-                onClick = onViewSummary,
-                colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
-                modifier = Modifier.height(34.dp)
+                onClick = onContinue,
+                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(110.dp)
             ) {
                 Text(
                     text = "CONTINUAR",
-                    color = CyanPrimary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
+                    color = BackgroundPrimary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }
     }
 }
+
 

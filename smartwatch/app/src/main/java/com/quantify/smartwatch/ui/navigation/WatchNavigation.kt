@@ -268,7 +268,11 @@ fun WatchNavigation() {
 
         composable(Routes.DAY_COMPLETE) {
             DayCompleteScreen(
-                onViewSummary = { navController.navigate(Routes.WEEKLY_SUMMARY) }
+                onContinue = {
+                    navController.navigate(Routes.WATCHFACE) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -277,7 +281,14 @@ fun WatchNavigation() {
         // ═══════════════════════════════════════
 
         composable(Routes.WEEKLY_SUMMARY) {
-            WeeklySummaryScreen(viewModel = progressVm)
+            WeeklySummaryScreen(
+                viewModel = progressVm,
+                onNavigateToHome = {
+                    navController.navigate(Routes.WATCHFACE) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Routes.LIVE_TELEMETRY) {

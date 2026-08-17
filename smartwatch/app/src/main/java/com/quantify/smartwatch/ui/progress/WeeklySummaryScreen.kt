@@ -11,6 +11,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Text
 import com.quantify.smartwatch.data.remote.dto.DailyPerformanceDto
 import com.quantify.smartwatch.ui.theme.*
@@ -18,10 +20,13 @@ import com.quantify.smartwatch.ui.viewmodel.ProgressViewModel
 
 /**
  * Screen 4.1 — Weekly Summary
- * Bar chart showing daily completion percentage for the last 7 days.
+ * Bar chart showing daily completion percentage for the last 7 days + Home button.
  */
 @Composable
-fun WeeklySummaryScreen(viewModel: ProgressViewModel) {
+fun WeeklySummaryScreen(
+    viewModel: ProgressViewModel,
+    onNavigateToHome: () -> Unit = {}
+) {
     val weeklyData by viewModel.weeklyData.collectAsState()
     val adherence by viewModel.adherenceScore.collectAsState()
 
@@ -34,42 +39,59 @@ fun WeeklySummaryScreen(viewModel: ProgressViewModel) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
             Text(
                 text = "Resumen Semanal",
                 color = CyanPrimary,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Mini bar chart
+            // Mini bar chart or empty text
             if (weeklyData.isNotEmpty()) {
                 WeeklyBarChart(
                     data = weeklyData,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
+                        .height(44.dp)
                 )
             } else {
                 Text(
                     text = "Sin datos disponibles",
                     color = TextDisabled,
-                    fontSize = 11.sp
+                    fontSize = 10.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Adherence score
             Text(
                 text = "Adherencia: $adherence%",
                 color = TextPrimary,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Inicio Button
+            Button(
+                onClick = onNavigateToHome,
+                colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
+                modifier = Modifier.height(30.dp)
+            ) {
+                Text(
+                    text = "INICIO",
+                    color = BackgroundPrimary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         }
     }
 }
