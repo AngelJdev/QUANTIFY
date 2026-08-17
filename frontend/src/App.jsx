@@ -17,33 +17,34 @@ import Sitemap from './pages/Sitemap';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import ProfilePage from './pages/ProfilePage';
+import SmartwatchPage from './pages/SmartwatchPage';
 
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ForgotPassword from './pages/ForgotPassword';
 import Footer from './components/Footer';
 
 const PublicRoute = () => {
-    const { isAuthenticated, user, loading } = useAuth();
-    if (loading) return <div className="h-screen flex items-center justify-center text-primary">Cargando...</div>;
-    if (isAuthenticated) {
-        return <Navigate to={user?.rol === 0 || user?.rol === 2 ? '/admin-panel' : '/dashboard'} replace />;
-    }
-    return <Outlet />;
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return <div className="h-screen flex items-center justify-center text-primary">Cargando...</div>;
+  if (isAuthenticated) {
+    return <Navigate to={user?.rol === 0 || user?.rol === 2 ? '/admin-panel' : '/dashboard'} replace />;
+  }
+  return <Outlet />;
 };
 
 const ProtectedLayout = () => {
-    return (
-      <div className="flex flex-1 relative w-full h-full overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
-          <div className="w-full max-w-7xl px-6 md:px-10 py-8 space-y-8 fade-in">
-            <Breadcrumbs />
-            <Outlet />
-          </div>
-          <Footer />
+  return (
+    <div className="flex flex-1 relative w-full h-full overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
+        <div className="w-full max-w-7xl px-6 md:px-10 py-8 space-y-8 fade-in">
+          <Breadcrumbs />
+          <Outlet />
         </div>
+        <Footer />
       </div>
-    );
+    </div>
+  );
 };
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -77,11 +78,12 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/sitemap" element={<Sitemap />} />
-              
+              <Route path="/smartwatch" element={<SmartwatchPage />} />
+
               {/* Solo Administradores y Moderadores */}
               <Route element={<ProtectedRoute requireAdmin={true} />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin-panel" element={<AdminPanel />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin-panel" element={<AdminPanel />} />
               </Route>
             </Route>
           </Route>

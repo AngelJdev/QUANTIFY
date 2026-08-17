@@ -28,6 +28,7 @@ import profileRoutes from './API/routes/profile.routes.js';
 import supportRoutes from './API/routes/support.routes.js';
 import populateRoutes from './API/routes/populate.routes.js';
 import externalRoutes from './API/routes/external.routes.js'; // Servicio Web Externo
+import smartwatchRoutes from './API/routes/smartwatch.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
@@ -36,9 +37,32 @@ import './SQL/models/userMetric.model.js';
 import './SQL/models/achievement.model.js';
 import './SQL/models/bitacora.model.js';
 
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = new SocketIOServer(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+        credentials: true
+    }
+});
+
+io.on('connection', (socket) => {
+    socket.on('join_user_room', (userId) => {
+        if (userId) {
+            socket.join(`user_${userId}`);
+        }
+    });
+});
+
+app.set('io', io);
 
 // Trust proxy for real client IP detection (used by Bitacora)
 app.set('trust proxy', true);
@@ -84,6 +108,7 @@ app.use('/api/analytics', analyticsRoutes);
 
 // Web Services Externos (Ejemplo: GitHub API & IP Geolocation)
 app.use('/api/external', externalRoutes);
+app.use('/api/smartwatch', smartwatchRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

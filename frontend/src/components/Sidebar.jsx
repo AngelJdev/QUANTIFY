@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiLogOut, FiActivity, FiBookOpen } from 'react-icons/fi';
+import { FiLogOut, FiActivity, FiBookOpen, FiWatch } from 'react-icons/fi';
 import { LuShield, LuUser } from 'react-icons/lu';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
@@ -30,28 +30,51 @@ const Sidebar = () => {
                     </div>
                 </Link>
             </div>
-            
+
             {/* Navigation Links */}
             <div className="flex-1 px-4 py-8 space-y-2">
                 <p className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-4">Menú Principal</p>
                 <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-black/10 dark:bg-white/5 transition-colors font-bold text-sm shadow-inner dark:shadow-none border border-transparent dark:border-white/10 dark:text-white">
                     <FiActivity /> Dashboard
                 </Link>
-                <Link to="/profile" 
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                        location.pathname === '/profile'
-                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
-                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
-                    }`}>
+                <Link to="/profile"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/profile'
+                            ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                            : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
                     <LuUser size={16} /> Mi Perfil
                 </Link>
-                {(user.rol === 0 || user.rol === 2) && (
-                    <Link to="/admin-panel"
-                        className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${
-                            location.pathname === '/admin-panel'
+                <Link to="/mapa-del-sitio"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/mapa-del-sitio'
                             ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
-                            : 'border-transparent text-amber-300 hover:bg-amber-500/10 hover:text-amber-200'
+                            : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
                         }`}>
+                    <FiBookOpen size={16} /> Mapa del Sitio
+                </Link>
+                <Link to="/soporte"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/soporte'
+                            ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                            : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiHelpCircle size={16} /> Soporte
+                </Link>
+                <Link to="/smartwatch"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/smartwatch'
+                            ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                            : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiWatch size={16} /> Smartwatch
+                </Link>
+                <Link to="/"
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-transparent text-gray-300 hover:text-white hover:bg-black/10 transition-colors font-bold text-sm">
+                    <FiActivity size={16} className="rotate-180" /> Página Informativa
+                </Link>
+                {(user.rol === 0 || user.rol === 2 || user.rol === 'ADMIN') && (
+                    <Link to="/admin-panel"
+                        className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/admin-panel'
+                                ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                                : 'border-transparent text-amber-300 hover:bg-amber-500/10 hover:text-amber-200'
+                            }`}>
                         <LuShield size={16} /> Panel de Administrador
                     </Link>
                 )}
@@ -70,7 +93,7 @@ const Sidebar = () => {
                 </div>
                 <div className="flex gap-2">
                     <ThemeToggle className="flex-none bg-black/10 hover:bg-black/20 dark:bg-white/5 dark:hover:bg-white/10 border border-transparent dark:border-white/10 rounded-xl transition-all" />
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="flex-1 flex items-center justify-center gap-2 bg-black/10 dark:bg-white/5 hover:bg-danger dark:hover:bg-danger text-white py-2.5 rounded-xl transition-all text-xs font-bold border border-transparent dark:border-white/10"
                         title="Cerrar Sesión"

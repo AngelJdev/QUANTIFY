@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { jwtConfig } from '../../config/jwt.config.js';
 import { sendError } from '../../utils/response.js';
 import User from '../../SQL/models/user.model.js';
+import { isUserUnlinked } from '../services/pairingService.js';
 
 export const verifyToken = (req, res, next) => {
     let token = req.headers['authorization'];
@@ -19,6 +20,11 @@ export const verifyToken = (req, res, next) => {
             return sendError(res, 401, 'Unauthorized! Invalid token.');
         }
 
+        // If this token belongs to a smartwatch device and user has unlinked
+        if (decoded.device && isUserUnlinked(decoded.id)) {
+            return sendError(res, 401, 'Dispositivo desvinculado por el usuario.');
+        }
+
         try {
             // Always fetch the current role from the DB so role changes take effect immediately
             const user = await User.findByPk(decoded.id, { attributes: ['id', 'rol'] });
@@ -27,14 +33,16 @@ export const verifyToken = (req, res, next) => {
             }
             req.user = {
                 id: user.id,
-                rol: user.rol
+                rol: user.rol,
+                device: decoded.device
             };
             next();
         } catch (dbError) {
             // Fallback to token role if DB is unreachable
             req.user = {
                 id: decoded.id,
-                rol: decoded.rol
+                rol: decoded.rol,
+                device: decoded.device
             };
             next();
         }
