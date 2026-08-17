@@ -174,45 +174,60 @@ export default function OnboardingWizard() {
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 shadow-sm block">Edad</label>
                                                 <input 
                                                     {...formik.getFieldProps('edad')}
-                                                    className={`input-field ${formik.touched.edad && formik.errors.edad ? 'border-danger' : ''}`}
+                                                    className={`input-field w-full ${formik.touched.edad && formik.errors.edad ? 'border-danger' : ''}`}
                                                     placeholder="25" type="number"
                                                 />
+                                                {formik.touched.edad && formik.errors.edad && (
+                                                    <p className="text-danger text-[10px] font-bold mt-1 ml-1">{formik.errors.edad}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 block">Estatura (cm)</label>
                                                 <input 
                                                     {...formik.getFieldProps('estatura')}
-                                                    className={`input-field ${formik.touched.estatura && formik.errors.estatura ? 'border-danger' : ''}`}
+                                                    className={`input-field w-full ${formik.touched.estatura && formik.errors.estatura ? 'border-danger' : ''}`}
                                                     placeholder="175" type="number"
                                                 />
+                                                {formik.touched.estatura && formik.errors.estatura && (
+                                                    <p className="text-danger text-[10px] font-bold mt-1 ml-1">{formik.errors.estatura}</p>
+                                                )}
                                             </div>
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 block">Peso Corporal (kg)</label>
                                             <input 
                                                 {...formik.getFieldProps('peso')}
-                                                className={`input-field ${formik.touched.peso && formik.errors.peso ? 'border-danger' : ''}`}
+                                                className={`input-field w-full ${formik.touched.peso && formik.errors.peso ? 'border-danger' : ''}`}
                                                 placeholder="70.5" type="number" step="0.1"
                                             />
+                                            {formik.touched.peso && formik.errors.peso && (
+                                                <p className="text-danger text-[10px] font-bold mt-1 ml-1">{formik.errors.peso}</p>
+                                            )}
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 block">Género</label>
-                                                <select {...formik.getFieldProps('genero')} className="input-field">
+                                                <select {...formik.getFieldProps('genero')} className="input-field w-full">
                                                     <option value="MASCULINO">Masculino</option>
                                                     <option value="FEMENINO">Femenino</option>
                                                     <option value="OTRO">Otro</option>
                                                 </select>
+                                                {formik.touched.genero && formik.errors.genero && (
+                                                    <p className="text-danger text-[10px] font-bold mt-1 ml-1">{formik.errors.genero}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold text-textMuted uppercase tracking-widest mb-1 block">Actividad</label>
-                                                <select {...formik.getFieldProps('nivel_actividad')} className="input-field">
+                                                <select {...formik.getFieldProps('nivel_actividad')} className="input-field w-full">
                                                     <option value="SEDENTARIO">Sedentario</option>
                                                     <option value="LIGERO">Ligero</option>
                                                     <option value="MODERADO">Moderado</option>
                                                     <option value="ACTIVO">Activo</option>
                                                     <option value="MUY_ACTIVO">Atleta</option>
                                                 </select>
+                                                {formik.touched.nivel_actividad && formik.errors.nivel_actividad && (
+                                                    <p className="text-danger text-[10px] font-bold mt-1 ml-1">{formik.errors.nivel_actividad}</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

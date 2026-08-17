@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiActivity, FiBookOpen, FiWatch, FiHelpCircle } from 'react-icons/fi';
+import { FiLogOut, FiActivity, FiBookOpen, FiWatch, FiHelpCircle, FiAward, FiPieChart, FiSettings, FiUsers } from 'react-icons/fi';
 import { LuShield, LuUser } from 'react-icons/lu';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
@@ -18,7 +18,7 @@ const Sidebar = () => {
     if (!user) return null;
 
     return (
-        <aside className="w-64 min-h-screen bg-primary dark:bg-background text-white hidden md:flex flex-col border-r border-black/20 dark:border-white/5 z-40 relative">
+        <aside className="w-64 h-screen bg-primary dark:bg-background text-white hidden md:flex flex-col border-r border-black/20 dark:border-white/5 z-40 relative">
             {/* Logo Area */}
             <div className="p-8 border-b border-black/10 dark:border-white/5">
                 <Link to="/dashboard" className="flex flex-col gap-2 items-start justify-center">
@@ -32,7 +32,7 @@ const Sidebar = () => {
             </div>
 
             {/* Navigation Links */}
-            <div className="flex-1 px-4 py-8 space-y-2">
+            <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-6 space-y-1.5 pb-6">
                 <p className="px-4 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-4">Menú Principal</p>
                 <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-black/10 dark:bg-white/5 transition-colors font-bold text-sm shadow-inner dark:shadow-none border border-transparent dark:border-white/10 dark:text-white">
                     <FiActivity /> Dashboard
@@ -44,19 +44,47 @@ const Sidebar = () => {
                         }`}>
                     <LuUser size={16} /> Mi Perfil
                 </Link>
-                <Link to="/mapa-del-sitio"
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/mapa-del-sitio'
+                <Link to="/sitemap"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/sitemap'
                         ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
                         : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
                         }`}>
                     <FiBookOpen size={16} /> Mapa del Sitio
                 </Link>
-                <Link to="/soporte"
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/soporte'
+                <Link to="/analytics"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/analytics'
+                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiPieChart size={16} /> Analítica Avanzada
+                </Link>
+                <Link to="/achievements"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/achievements'
+                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiAward size={16} /> Logros y Títulos
+                </Link>
+                <Link to="/community"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/community'
+                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiUsers size={16} /> Comunidad
+                </Link>
+                <Link to="/support"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/support'
                         ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
                         : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
                         }`}>
                     <FiHelpCircle size={16} /> Soporte
+                </Link>
+                <Link to="/settings"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/settings'
+                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiSettings size={16} /> Configuración
                 </Link>
                 <Link to="/smartwatch"
                     className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/smartwatch'
@@ -81,7 +109,7 @@ const Sidebar = () => {
             </div>
 
             {/* Profile & Logout */}
-            <div className="p-6 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-transparent">
+            <div className="p-6 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-transparent shrink-0">
                 <div className="flex items-center gap-3 mb-5">
                     <div className="w-10 h-10 bg-accent text-gray-900 rounded-full flex items-center justify-center font-black text-lg shadow-md border border-black/10">
                         {user.nombre.charAt(0).toUpperCase()}

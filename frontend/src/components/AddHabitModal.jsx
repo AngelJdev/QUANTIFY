@@ -1,7 +1,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiCheckCircle, FiDroplet, FiActivity, FiBook, FiSun } from 'react-icons/fi';
+import { FiX, FiCheckCircle, FiDroplet, FiActivity, FiBook, FiSun, FiZap } from 'react-icons/fi';
 
 const SUGGESTIONS = [
     { nombre: 'Tomar Agua', icono: FiDroplet, meta_diaria: 2, unidad: 'Litros', desc: 'Mantener la hidratación diaria' },
@@ -24,20 +24,70 @@ export default function AddHabitModal({ isOpen, onClose, onSave }) {
     const [descripcion, setDescripcion] = useState('');
     const [metaUnidad, setMetaUnidad] = useState('');
     const [unidadMedicion, setUnidadMedicion] = useState('');
+    const [frecuenciaMeta, setFrecuenciaMeta] = useState('DIARIO');
     const [duracionTipo, setDuracionTipo] = useState('1_MES');
     const [fechaFinPersonalizada, setFechaFinPersonalizada] = useState('');
+    
+    // AI States
+    const [aiGenerating, setAiGenerating] = useState(false);
+    const [aiApplied, setAiApplied] = useState(false);
+    const [lastAiRecommendation, setLastAiRecommendation] = useState(null);
 
     useEffect(() => {
         if (!isOpen) {
-            setNombre(''); setDescripcion(''); setMetaUnidad(''); setUnidadMedicion(''); setDuracionTipo('1_MES'); setFechaFinPersonalizada('');
+            setNombre(''); setDescripcion(''); setMetaUnidad(''); setUnidadMedicion(''); setFrecuenciaMeta('DIARIO'); setDuracionTipo('1_MES'); setFechaFinPersonalizada('');
+            setAiApplied(false);
+            setAiGenerating(false);
+            setLastAiRecommendation(null);
         }
     }, [isOpen]);
+
+    // AI Prediction Engine (Simulated MVP)
+    useEffect(() => {
+        if (!nombre || nombre.length < 3) {
+            setAiApplied(false);
+            setLastAiRecommendation(null);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            const input = nombre.toLowerCase();
+            const predict = (keywords, data) => keywords.some(k => input.includes(k)) ? data : null;
+
+            const aiRecommendation = 
+                predict(['gym', 'gimnasio', 'pesas', 'entrenar', 'ejercicio'], { frec: 'SEMANAL', meta: '5', uni: 'Días/Semana', dur: '1_MES', desc: 'Rutina de hipertrofia o fuerza constante.' }) ||
+                predict(['agua', 'hidratacion', 'beber'], { frec: 'DIARIO', meta: '2.5', uni: 'Litros', dur: '1_MES', desc: 'Mantener hidratación óptima.' }) ||
+                predict(['leer', 'lectura', 'libro'], { frec: 'DIARIO', meta: '20', uni: 'Páginas', dur: '6_MESES', desc: 'Desarrollo cognitivo y aprendizaje.' }) ||
+                predict(['correr', 'running', 'trotar', 'cardio'], { frec: 'SEMANAL', meta: '3', uni: 'Días/Semana', dur: '1_MES', desc: 'Salud cardiovascular.' }) ||
+                predict(['ingles', 'idioma', 'estudiar'], { frec: 'DIARIO', meta: '30', uni: 'Minutos', dur: '6_MESES', desc: 'Práctica constante del idioma.' }) ||
+                predict(['meditar', 'yoga', 'mindful', 'respirar'], { frec: 'DIARIO', meta: '15', uni: 'Minutos', dur: '1_ANIO', desc: 'Reducción de estrés y enfoque.' }) ||
+                predict(['dormir', 'sueño', 'descanso'], { frec: 'DIARIO', meta: '8', uni: 'Horas', dur: '1_MES', desc: 'Recuperación neuronal y muscular.' });
+
+            if (aiRecommendation && lastAiRecommendation?.desc !== aiRecommendation.desc) {
+                setAiGenerating(true);
+                setTimeout(() => {
+                    setFrecuenciaMeta(aiRecommendation.frec);
+                    setMetaUnidad(aiRecommendation.meta);
+                    setUnidadMedicion(aiRecommendation.uni);
+                    setDuracionTipo(aiRecommendation.dur);
+                    setDescripcion(aiRecommendation.desc);
+                    setAiGenerating(false);
+                    setAiApplied(true);
+                    setLastAiRecommendation(aiRecommendation);
+                }, 800); // Simulate AI thought process delay
+            }
+        }, 1000); // Debounce typing
+
+        return () => clearTimeout(timer);
+    }, [nombre, lastAiRecommendation]);
 
     const handleSuggestionClick = (suggestion) => {
         setNombre(suggestion.nombre);
         setDescripcion(suggestion.desc);
         setMetaUnidad(suggestion.meta_diaria.toString());
         setUnidadMedicion(suggestion.unidad);
+        setFrecuenciaMeta('DIARIO');
+        setAiApplied(true); // Don't trigger AI on quick suggestions
     };
 
     const calculateEndDate = () => {
@@ -64,6 +114,7 @@ export default function AddHabitModal({ isOpen, onClose, onSave }) {
             descripcion: descripcion || null,
             meta_diaria: metaUnidad ? parseFloat(metaUnidad) : null,
             unidad: unidadMedicion || null,
+            frecuencia: frecuenciaMeta === 'MENSUAL' ? 'PERSONALIZADO' : frecuenciaMeta,
             duracion_tipo: duracionTipo,
             fecha_fin: fechaFinObj ? fechaFinObj.toISOString() : null,
         };
@@ -125,7 +176,21 @@ export default function AddHabitModal({ isOpen, onClose, onSave }) {
 
                                         <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Nombre del Hábito</label>
+                                                <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider flex justify-between w-full items-center">
+                                                    <span>Nombre del Hábito</span>
+                                                    <AnimatePresence mode="wait">
+                                                        {aiGenerating && (
+                                                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-primary font-black flex items-center gap-1">
+                                                                <FiZap className="animate-pulse" /> Cuantificando IA...
+                                                            </motion.span>
+                                                        )}
+                                                        {aiApplied && !aiGenerating && (
+                                                            <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-success font-black flex items-center gap-1 bg-success/10 px-2 py-0.5 rounded-full border border-success/20">
+                                                                <FiActivity size={10} /> Configuración Auto-Ajustada
+                                                            </motion.span>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </label>
                                                 <input 
                                                     required
                                                     value={nombre}
@@ -146,42 +211,77 @@ export default function AddHabitModal({ isOpen, onClose, onSave }) {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="flex gap-2">
-                                                <div className="space-y-2 w-1/2">
-                                                    <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Meta Numérica</label>
+                                        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                                            <h4 className="text-xs font-bold text-textPrimary dark:text-white uppercase tracking-wider mb-2">Configuración de la Meta</h4>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Frecuencia / Tipo</label>
+                                                    <select
+                                                        value={frecuenciaMeta}
+                                                        onChange={(e) => {
+                                                            setFrecuenciaMeta(e.target.value);
+                                                            if (e.target.value === 'SEMANAL') setUnidadMedicion('Días/Semana');
+                                                            else if (e.target.value === 'MENSUAL') setUnidadMedicion('Días/Mes');
+                                                            else setUnidadMedicion('');
+                                                        }}
+                                                        className="input-field py-3 dark:bg-[#111111] dark:border-white/10 appearance-none font-bold"
+                                                    >
+                                                        <option value="DIARIO">Objetivo Diario</option>
+                                                        <option value="SEMANAL">Objetivo Semanal</option>
+                                                        <option value="MENSUAL">Objetivo Mensual</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Duración del Reto</label>
+                                                    <select 
+                                                        value={duracionTipo}
+                                                        onChange={(e) => setDuracionTipo(e.target.value)}
+                                                        className="input-field py-3 dark:bg-[#111111] dark:border-white/10 appearance-none font-bold"
+                                                    >
+                                                        {DURATIONS.map(d => (
+                                                            <option key={d.value} value={d.value} className="dark:bg-surface">{d.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-4 p-4 bg-primary/5 dark:bg-white/5 rounded-2xl border border-primary/20 dark:border-white/10">
+                                                <div className="space-y-2 flex-1">
+                                                    <label className="text-[10px] font-bold text-primary dark:text-gray-300 uppercase tracking-wider">
+                                                        {frecuenciaMeta === 'SEMANAL' ? '¿Cuántos días a la semana?' : 
+                                                         frecuenciaMeta === 'MENSUAL' ? '¿Cuántos días al mes?' : 'Meta Numérica'}
+                                                    </label>
                                                     <input
                                                         type="number"
                                                         step="any"
                                                         value={metaUnidad}
                                                         onChange={(e) => setMetaUnidad(e.target.value)}
-                                                        className="input-field py-3 dark:bg-[#111111] dark:border-white/10 w-full"
-                                                        placeholder="Ej. 10, 20"
+                                                        className="input-field py-3 bg-white dark:bg-[#0A0A0A] dark:border-white/20 w-full font-black text-primary dark:text-white text-lg"
+                                                        placeholder={frecuenciaMeta === 'SEMANAL' ? "Ej. 5" : "Ej. 2, 10, 20"}
                                                     />
                                                 </div>
-                                                <div className="space-y-2 w-1/2">
-                                                    <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Unidad de Medida</label>
+                                                <div className="space-y-2 flex-1 relative">
+                                                    <label className="text-[10px] font-bold text-primary dark:text-gray-300 uppercase tracking-wider">Unidad de Medida</label>
                                                     <input
                                                         type="text"
                                                         value={unidadMedicion}
                                                         onChange={(e) => setUnidadMedicion(e.target.value)}
-                                                        className="input-field py-3 dark:bg-[#111111] dark:border-white/10 w-full"
-                                                        placeholder="Litros, Km..."
+                                                        disabled={frecuenciaMeta !== 'DIARIO'}
+                                                        className="input-field py-3 bg-white dark:bg-[#0A0A0A] dark:border-white/20 w-full font-bold disabled:opacity-75 disabled:cursor-not-allowed"
+                                                        placeholder="Litros, Km, Páginas..."
                                                     />
+                                                    {frecuenciaMeta !== 'DIARIO' && (
+                                                        <div className="absolute top-1 right-2 text-[9px] text-primary bg-primary/10 px-2 py-0.5 rounded uppercase font-black">Predefinido</div>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-textPrimary dark:text-gray-400 uppercase tracking-wider">Duración Total</label>
-                                                <select 
-                                                    value={duracionTipo}
-                                                    onChange={(e) => setDuracionTipo(e.target.value)}
-                                                    className="input-field py-3 dark:bg-[#111111] dark:border-white/10 appearance-none"
-                                                >
-                                                    {DURATIONS.map(d => (
-                                                        <option key={d.value} value={d.value} className="dark:bg-surface">{d.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                            
+                                            {(frecuenciaMeta === 'SEMANAL' || frecuenciaMeta === 'MENSUAL') && metaUnidad && (
+                                                <div className="text-xs font-bold text-success flex items-center gap-2 px-2">
+                                                    <FiCheckCircle /> Resumen: El sistema te trackeará {metaUnidad} {unidadMedicion} durante {DURATIONS.find(d=>d.value===duracionTipo)?.label.toLowerCase()}.
+                                                </div>
+                                            )}
                                         </div>
 
                                         {duracionTipo === 'PERSONALIZADO' && (
