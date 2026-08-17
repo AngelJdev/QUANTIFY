@@ -2,6 +2,7 @@ package com.quantify.smartwatch.ui.progress
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,26 +32,44 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 14.dp)
         ) {
-            // Current streak
-            Text(text = "🔥", fontSize = 28.sp)
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "$currentStreak",
-                color = StreakFire,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Racha actual",
-                color = TextSecondary,
-                fontSize = 11.sp
+                text = "ESTADÍSTICAS DE RACHA",
+                color = CyanPrimary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Stats row
+            // Current streak prominent display
+            Box(
+                modifier = Modifier
+                    .background(BackgroundElevated, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "$currentStreak",
+                        color = StreakFire,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "DÍAS SEGUIDOS",
+                        color = TextSecondary,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Secondary stats row: Max Streak + Global Adherence
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
@@ -58,15 +77,16 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
                 // Best streak
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "$maxStreak",
+                        text = "$maxStreak D",
                         color = CyanPrimary,
-                        fontSize = 18.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Mejor",
+                        text = "RÉCORD",
                         color = TextDisabled,
-                        fontSize = 10.sp
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -75,16 +95,18 @@ fun StreakStatsScreen(viewModel: ProgressViewModel) {
                     Text(
                         text = "$adherence%",
                         color = Success,
-                        fontSize = 18.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Adherencia",
+                        text = "ADHERENCIA",
                         color = TextDisabled,
-                        fontSize = 10.sp
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
     }
 }
+

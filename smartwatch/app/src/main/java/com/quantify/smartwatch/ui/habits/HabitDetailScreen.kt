@@ -64,10 +64,11 @@ fun HabitDetailScreen(
 
                 if (h.completado_hoy) {
                     Text(
-                        text = "✔ Completado",
+                        text = "COMPLETADO HOY",
                         color = Success,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
                     )
                 } else {
                     Button(

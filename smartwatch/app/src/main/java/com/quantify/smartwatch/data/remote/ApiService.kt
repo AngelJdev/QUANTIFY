@@ -70,4 +70,7 @@ interface ApiService {
 
     @GET("smartwatch/dashboard")
     suspend fun getDashboard(): Response<ApiResponse<WatchDashboardDto>>
+
+    @POST("smartwatch/unlink-from-watch")
+    suspend fun unlinkFromWatch(): Response<ApiResponse<Any>>
 }

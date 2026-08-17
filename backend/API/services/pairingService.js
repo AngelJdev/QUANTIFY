@@ -82,7 +82,19 @@ export const verifyCode = (code) => {
  * @param {object} user - User data { id, nombre, email, current_streak, max_streak }
  * @param {string} token - JWT token for the watch
  */
+const activeLinkedUsers = new Set();
+const unlinkedUsers = new Set();
+
+/**
+ * Authorize a device (called after web user verifies the code).
+ * @param {string} deviceId
+ * @param {object} user - User data { id, nombre, email, current_streak, max_streak }
+ * @param {string} token - JWT token for the watch
+ */
 export const authorizeDevice = (deviceId, user, token) => {
+    activeLinkedUsers.add(user.id);
+    unlinkedUsers.delete(user.id);
+
     deviceAuth.set(deviceId, {
         authorized: true,
         token,
@@ -125,13 +137,12 @@ export const getAuthorization = (deviceId) => {
     };
 };
 
-const unlinkedUsers = new Set();
-
 /**
  * Unlink all devices for a given user.
  * @param {number} userId
  */
 export const unlinkDeviceForUser = (userId) => {
+    activeLinkedUsers.delete(userId);
     unlinkedUsers.add(userId);
     for (const [deviceId, data] of deviceAuth.entries()) {
         if (data.user?.id === userId) {
@@ -141,11 +152,19 @@ export const unlinkDeviceForUser = (userId) => {
 };
 
 /**
+ * Check if a user has an active smartwatch linked.
+ * @param {number} userId
+ */
+export const isUserLinked = (userId) => {
+    return activeLinkedUsers.has(userId) && !unlinkedUsers.has(userId);
+};
+
+/**
  * Check if a user's smartwatch session has been unlinked.
  * @param {number} userId
  */
 export const isUserUnlinked = (userId) => {
-    return unlinkedUsers.has(userId);
+    return unlinkedUsers.has(userId) || !activeLinkedUsers.has(userId);
 };
 
 /**
@@ -154,6 +173,7 @@ export const isUserUnlinked = (userId) => {
  */
 export const clearUnlinkedUser = (userId) => {
     unlinkedUsers.delete(userId);
+    activeLinkedUsers.add(userId);
 };
 
 

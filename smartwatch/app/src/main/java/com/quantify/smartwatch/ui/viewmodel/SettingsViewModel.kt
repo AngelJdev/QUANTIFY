@@ -43,10 +43,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * Unlink device: clear all local data, cancel sync, reset to initial state.
+     * Unlink device: notify backend, clear all local data, cancel sync, reset to initial state.
      */
     fun unlinkDevice(onComplete: () -> Unit) {
         viewModelScope.launch {
+            try {
+                com.quantify.smartwatch.data.remote.RetrofitClient.apiService.unlinkFromWatch()
+            } catch (_: Exception) {}
             SyncWorker.cancelAll(getApplication())
             db.habitDao().clearAll()
             db.actionQueueDao().clearAll()

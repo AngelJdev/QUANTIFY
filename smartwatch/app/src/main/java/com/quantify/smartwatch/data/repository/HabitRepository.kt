@@ -35,6 +35,35 @@ class HabitRepository(private val habitDao: HabitDao) {
      */
     suspend fun refreshFromRemote(): Result<Unit> {
         return try {
+            // Prefer dashboard endpoint (includes completado_hoy status)
+            val dashResponse = api.getDashboard()
+            if (dashResponse.isSuccessful && dashResponse.body()?.success == true) {
+                val data = dashResponse.body()!!.data
+                if (data != null && data.habits.isNotEmpty()) {
+                    val entities = data.habits
+                        .filter { it.activo }
+                        .map { dto ->
+                            CachedHabitEntity(
+                                id = dto.id,
+                                usuario_id = dto.usuario_id,
+                                nombre = dto.nombre,
+                                descripcion = dto.descripcion,
+                                tipo_medicion = dto.tipo_medicion,
+                                meta_diaria = dto.meta_diaria,
+                                unidad = dto.unidad,
+                                frecuencia = dto.frecuencia,
+                                activo = dto.activo,
+                                completado_hoy = dto.completado_hoy,
+                                valor_hoy = dto.valor_hoy
+                            )
+                        }
+                    habitDao.clearAll()
+                    habitDao.insertAll(entities)
+                    return Result.success(Unit)
+                }
+            }
+
+            // Fallback: use GET /api/habits (no completado_hoy info)
             val response = api.getHabits()
             if (response.isSuccessful && response.body()?.success == true) {
                 val habits = response.body()!!.data ?: emptyList()

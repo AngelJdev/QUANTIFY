@@ -10,6 +10,7 @@ import com.quantify.smartwatch.ui.auth.*
 import com.quantify.smartwatch.ui.habits.*
 import com.quantify.smartwatch.ui.progress.*
 import com.quantify.smartwatch.ui.settings.*
+import com.quantify.smartwatch.ui.stopwatch.*
 import com.quantify.smartwatch.ui.watchface.*
 import com.quantify.smartwatch.ui.viewmodel.*
 
@@ -19,7 +20,7 @@ import com.quantify.smartwatch.ui.viewmodel.*
  * Navigation structure:
  * ┌─ splash → auth flow (if not paired) → watchface (home)
  * ├─ watchface ←→ habits (swipe left)
- * ├─ watchface ←→ progress (swipe right)
+ * ├─ watchface ←→ stopwatch (swipe right / direct button)
  * ├─ watchface → quick_status (swipe down)
  * └─ watchface → settings (swipe up)
  */
@@ -33,9 +34,10 @@ object Routes {
     const val AUTH_SUCCESS = "auth_success/{email}"
     const val AUTH_ERROR = "auth_error/{message}"
 
-    // Module 2: Watchface
+    // Module 2: Watchface & Tools
     const val WATCHFACE = "watchface"
     const val QUICK_STATUS = "quick_status"
+    const val STOPWATCH = "stopwatch"
 
     // Module 3: Habits
     const val HABIT_LIST = "habit_list"
@@ -196,9 +198,13 @@ fun WatchNavigation() {
                 completedToday = completed,
                 totalHabits = total,
                 onNavigateToHabits = { navController.navigate(Routes.HABIT_LIST) },
-                onNavigateToProgress = { navController.navigate(Routes.WEEKLY_SUMMARY) },
+                onNavigateToStopwatch = { navController.navigate(Routes.STOPWATCH) },
                 onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
             )
+        }
+
+        composable(Routes.STOPWATCH) {
+            StopwatchScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Routes.QUICK_STATUS) {

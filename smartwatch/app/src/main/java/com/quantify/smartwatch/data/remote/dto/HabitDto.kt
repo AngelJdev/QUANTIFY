@@ -19,5 +19,8 @@ data class HabitDto(
     val fecha_fin: String? = null,
     val duracion_tipo: String? = null,
     val activo: Boolean = true,
-    val fecha_creacion: String? = null
+    val fecha_creacion: String? = null,
+    // Fields added by /api/smartwatch/dashboard endpoint
+    val completado_hoy: Boolean = false,
+    val valor_hoy: Double? = null
 )

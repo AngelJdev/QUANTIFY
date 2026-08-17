@@ -9,10 +9,12 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,7 +25,7 @@ import com.quantify.smartwatch.ui.theme.*
 /**
  * Screen 4.2 — Live Telemetry
  * Real-time heart rate from the watch sensor.
- * Falls back gracefully if BODY_SENSORS permission is denied or sensor unavailable.
+ * Clean, engineering-focused design without emojis.
  */
 @Composable
 fun LiveTelemetryScreen() {
@@ -71,51 +73,57 @@ fun LiveTelemetryScreen() {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(horizontal = 14.dp)
         ) {
             Text(
-                text = "Telemetría en Vivo",
+                text = "TELEMETRÍA CARDÍACA",
                 color = CyanPrimary,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (!sensorAvailable) {
-                Text(text = "💔", fontSize = 28.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Sensor no disponible",
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
+                Box(
+                    modifier = Modifier
+                        .background(BackgroundElevated, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "Sensor no disponible",
+                        color = TextDisabled,
+                        fontSize = 11.sp
+                    )
+                }
             } else {
                 // Heart rate display
-                Text(text = "❤️", fontSize = 28.sp)
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (heartRate > 0) "$heartRate" else "--",
                     color = Error,
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
                 )
                 Text(
-                    text = "BPM",
+                    text = "LATIDOS POR MINUTO (BPM)",
                     color = TextSecondary,
-                    fontSize = 12.sp
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Heart rate zone
+                // Heart rate zone badge
                 val zoneText = when {
-                    heartRate == 0 -> "Esperando datos..."
-                    heartRate < 60 -> "Reposo"
-                    heartRate < 100 -> "Normal"
-                    heartRate < 140 -> "Cardio"
-                    heartRate < 170 -> "Intenso"
-                    else -> "Máximo"
+                    heartRate == 0 -> "BUSCANDO PULSO"
+                    heartRate < 60 -> "REPOSO"
+                    heartRate < 100 -> "NORMAL"
+                    heartRate < 140 -> "CARDIO"
+                    heartRate < 170 -> "INTENSO"
+                    else -> "MÁXIMO"
                 }
                 val zoneColor = when {
                     heartRate == 0 -> TextDisabled
@@ -125,13 +133,22 @@ fun LiveTelemetryScreen() {
                     heartRate < 170 -> StreakFire
                     else -> Error
                 }
-                Text(
-                    text = zoneText,
-                    color = zoneColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
-                )
+
+                Box(
+                    modifier = Modifier
+                        .background(zoneColor.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = zoneText,
+                        color = zoneColor,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                }
             }
         }
     }
 }
+

@@ -2,6 +2,8 @@ package com.quantify.smartwatch.ui.watchface
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +17,7 @@ import com.quantify.smartwatch.ui.theme.*
 
 /**
  * Screen 2.2 — Quick Status (Swipe down)
- * Shows: Battery, WiFi status, last sync time, pending actions, and sync button.
+ * Shows: Network status, last sync time, pending queue actions, and manual sync trigger.
  */
 @Composable
 fun QuickStatusScreen(
@@ -33,61 +35,83 @@ fun QuickStatusScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 14.dp)
         ) {
-            // Connection status
+            Text(
+                text = "ESTADO DEL SISTEMA",
+                color = CyanPrimary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Connection status pill
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .background(BackgroundElevated, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(
-                    text = if (isOnline) "📶" else "📡",
-                    fontSize = 16.sp
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(if (isOnline) Success else Warning, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isOnline) "Conectado" else "Sin conexión",
+                    text = if (isOnline) "CONECTADO" else "OFFLINE",
                     color = if (isOnline) Success else Warning,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Last sync
+            // Last sync info
             Text(
-                text = "Última sync: $lastSyncText",
-                color = TextSecondary,
-                fontSize = 11.sp
+                text = "Última sincronización:",
+                color = TextDisabled,
+                fontSize = 10.sp
+            )
+            Text(
+                text = lastSyncText,
+                color = TextPrimary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
             )
 
             // Pending actions
             if (pendingActions > 0) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "$pendingActions acciones pendientes",
+                    text = "$pendingActions acción(es) en cola",
                     color = Warning,
-                    fontSize = 11.sp
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Sync now button
             Button(
                 onClick = onSyncNow,
                 colors = ButtonDefaults.buttonColors(backgroundColor = CyanPrimary),
-                modifier = Modifier.height(36.dp),
+                modifier = Modifier.height(34.dp),
                 enabled = isOnline
             ) {
                 Text(
-                    text = "Sincronizar ahora",
+                    text = "SINCRONIZAR AHORA",
                     color = BackgroundPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }
     }
 }
+

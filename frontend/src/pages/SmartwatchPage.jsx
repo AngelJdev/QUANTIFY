@@ -22,9 +22,16 @@ const SmartwatchPage = () => {
                 setLinkedDevice(res.data.user);
                 setDashboardData(res.data);
                 setStatus('linked');
+            } else {
+                setLinkedDevice(null);
+                setDashboardData(null);
+                setStatus('idle');
             }
         } catch {
             // No device linked — show pairing UI
+            setLinkedDevice(null);
+            setDashboardData(null);
+            setStatus('idle');
         }
     };
 

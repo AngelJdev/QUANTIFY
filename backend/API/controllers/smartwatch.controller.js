@@ -222,6 +222,17 @@ export const getDashboard = async (req, res, next) => {
             .filter(l => l.completado)
             .map(l => l.habito_id);
 
+        // Build a map of habit_id -> latest valor_registrado from today's logs
+        const habitValueMap = {};
+        for (const log of todayLogs) {
+            if (log.valor_registrado != null) {
+                // Keep the latest (or highest) value for each habit
+                if (!habitValueMap[log.habito_id] || log.valor_registrado > habitValueMap[log.habito_id]) {
+                    habitValueMap[log.habito_id] = log.valor_registrado;
+                }
+            }
+        }
+
         return sendSuccess(res, 200, 'Dashboard del smartwatch', {
             user: {
                 id: user.id,
@@ -232,7 +243,8 @@ export const getDashboard = async (req, res, next) => {
             },
             habits: habits.map(h => ({
                 ...h.toJSON(),
-                completado_hoy: completedHabitIds.includes(h.id)
+                completado_hoy: completedHabitIds.includes(h.id),
+                valor_hoy: habitValueMap[h.id] || null
             })),
             stats: {
                 totalHabits: habits.length,
@@ -257,6 +269,22 @@ export const unlinkDevice = async (req, res, next) => {
         const userId = req.user.id;
         unlinkDeviceForUser(userId);
         return sendSuccess(res, 200, 'Dispositivo desvinculado exitosamente');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /api/smartwatch/unlink-from-watch
+ * Called by the watch when user unlinks from the watch settings.
+ * Marks the user as unlinked so the web dashboard reflects the change.
+ * Auth: Requires JWT (watch token)
+ */
+export const unlinkFromWatch = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        unlinkDeviceForUser(userId);
+        return sendSuccess(res, 200, 'Dispositivo desvinculado desde el reloj');
     } catch (error) {
         next(error);
     }

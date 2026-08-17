@@ -5,7 +5,8 @@ import {
     pollAuth,
     syncData,
     getDashboard,
-    unlinkDevice
+    unlinkDevice,
+    unlinkFromWatch
 } from '../controllers/smartwatch.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
@@ -40,5 +41,8 @@ router.post('/sync', verifyToken, syncData);
 
 // Optimized dashboard endpoint (habits + stats + streak in 1 call)
 router.get('/dashboard', verifyToken, getDashboard);
+
+// Watch unlinks itself (notifies backend so web reflects the change)
+router.post('/unlink-from-watch', verifyToken, unlinkFromWatch);
 
 export default router;

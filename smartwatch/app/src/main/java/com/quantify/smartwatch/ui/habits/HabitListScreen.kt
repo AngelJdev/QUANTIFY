@@ -30,6 +30,11 @@ fun HabitListScreen(
     val habits by viewModel.habits.collectAsState()
     val allCompleted by viewModel.allCompleted.collectAsState()
 
+    // Refresh habits from backend when entering the screen
+    LaunchedEffect(Unit) {
+        viewModel.refreshHabits()
+    }
+
     LaunchedEffect(allCompleted) {
         if (allCompleted && habits.isNotEmpty()) onAllCompleted()
     }
@@ -67,10 +72,10 @@ fun HabitListScreen(
 
 @Composable
 private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
-    val typeIcon = when (habit.tipo_medicion) {
-        "NUMERICO" -> "#"
-        "TIEMPO" -> "⏱"
-        else -> "✓"
+    val typeLabel = when (habit.tipo_medicion) {
+        "NUMERICO" -> "NUM"
+        "TIEMPO" -> "MIN"
+        else -> "OK"
     }
     val typeColor = when (habit.tipo_medicion) {
         "NUMERICO" -> HabitNumeric
@@ -84,29 +89,43 @@ private fun HabitChip(habit: CachedHabitEntity, onClick: () -> Unit) {
             Text(
                 text = habit.nombre,
                 color = TextPrimary,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
         },
         secondaryLabel = {
             if (habit.completado_hoy) {
-                Text("Completado ✔", color = Success, fontSize = 10.sp)
+                Text("COMPLETADO", color = Success, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             } else {
                 habit.meta_diaria?.let { meta ->
                     Text(
                         text = "${habit.valor_hoy?.toInt() ?: 0}/${meta.toInt()} ${habit.unidad ?: ""}",
                         color = TextSecondary,
-                        fontSize = 10.sp
+                        fontSize = 9.sp
                     )
                 }
             }
         },
         icon = {
-            Text(text = typeIcon, color = typeColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(typeColor.copy(alpha = 0.2f), androidx.compose.foundation.shape.CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = typeLabel,
+                    color = typeColor,
+                    fontSize = 7.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         },
         colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     )
 }
+
