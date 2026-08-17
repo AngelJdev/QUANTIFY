@@ -252,17 +252,20 @@ const Dashboard = () => {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {habits.map((habit, idx) => (
+                            {habits.map((habit, idx) => {
+                                const isCompleted = habit.completado_hoy;
+                                return (
                                 <motion.div
                                     key={habit.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3, delay: idx * 0.1 }}
-                                    className={`glass-card cursor-pointer flex flex-col justify-between items-start group transition-all duration-300 ${selectedHabitId === habit.id ? 'border-primary dark:border-white ring-1 ring-primary/30 dark:ring-white/30 shadow-md bg-blue-50/30 dark:bg-white/10' : 'hover:border-blue-200 dark:hover:border-white/20 dark:border-white/5 hover:shadow-md dark:bg-surface'}`}
+                                    whileTap={!isCompleted ? { scale: 0.95 } : {}}
+                                    className={`glass-card cursor-pointer flex flex-col justify-between items-start group transition-all duration-500 ${isCompleted ? 'bg-green-50 dark:bg-green-900/10 border-green-500/50 opacity-75' : selectedHabitId === habit.id ? 'border-primary dark:border-white ring-1 ring-primary/30 dark:ring-white/30 shadow-md bg-blue-50/30 dark:bg-white/10' : 'hover:border-blue-200 dark:hover:border-white/20 dark:border-white/5 hover:shadow-md dark:bg-surface'}`}
                                     onClick={() => loadStatsFor(habit.id)}
                                 >
                                     <div className="flex w-full justify-between items-center mb-1 gap-2">
-                                        <h3 className={`font-bold text-lg capitalize transition-colors truncate max-w-[70%] ${selectedHabitId === habit.id ? 'text-primary dark:text-white' : 'text-textPrimary group-hover:text-primary dark:group-hover:text-white'}`} title={habit.nombre}>
+                                        <h3 className={`font-bold text-lg capitalize transition-colors truncate max-w-[70%] ${isCompleted ? 'line-through text-gray-400 dark:text-gray-500' : selectedHabitId === habit.id ? 'text-primary dark:text-white' : 'text-textPrimary group-hover:text-primary dark:group-hover:text-white'}`} title={habit.nombre}>
                                             {habit.nombre}
                                         </h3>
                                         <div className="flex items-center gap-1 shrink-0">
@@ -273,20 +276,23 @@ const Dashboard = () => {
                                             >
                                                 <FiTrash2 size={22} />
                                             </button>
-                                            <button
-                                                className="text-gray-300 dark:text-gray-600 hover:text-success dark:hover:text-success transition-colors p-1"
-                                                onClick={(e) => { e.stopPropagation(); handleLogDone(habit.id); }}
-                                                title="Marcar completado hoy"
+                                            <motion.button
+                                                whileTap={!isCompleted ? { scale: 0.8 } : {}}
+                                                className={`transition-all duration-500 p-1 ${isCompleted ? 'text-green-500 scale-125 pointer-events-none cursor-default' : 'text-gray-300 dark:text-gray-600 hover:text-success dark:hover:text-success'}`}
+                                                onClick={(e) => { e.stopPropagation(); if (!isCompleted) handleLogDone(habit.id); }}
+                                                title={isCompleted ? "Completado hoy" : "Marcar completado hoy"}
+                                                disabled={isCompleted}
                                             >
                                                 <FiCheckCircle size={26} />
-                                            </button>
+                                            </motion.button>
                                         </div>
                                     </div>
                                     <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${selectedHabitId === habit.id ? 'bg-primary/10 dark:bg-white/20 text-primary dark:text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400'}`}>
                                         {habit.frecuencia}
                                     </span>
                                 </motion.div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

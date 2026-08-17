@@ -18,6 +18,11 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import ProfilePage from './pages/ProfilePage';
 import SmartwatchPage from './pages/SmartwatchPage';
+import SupportPage from './pages/SupportPage';
+import AchievementsPage from './pages/AchievementsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import CommunityPage from './pages/CommunityPage';
+import SettingsPage from './pages/SettingsPage';
 
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ForgotPassword from './pages/ForgotPassword';
@@ -79,6 +84,11 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/smartwatch" element={<SmartwatchPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/community" element={<CommunityPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
 
               {/* Solo Administradores y Moderadores */}
               <Route element={<ProtectedRoute requireAdmin={true} />}>

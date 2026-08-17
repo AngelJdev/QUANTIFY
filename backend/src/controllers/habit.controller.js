@@ -1,4 +1,5 @@
 import Habit from '../models/habit.model.js';
+import Log from '../models/log.model.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 export const createHabit = async (req, res, next) => {
@@ -17,7 +18,27 @@ export const getAllHabits = async (req, res, next) => {
             where: { usuario_id: req.user.id },
             order: [['fecha_creacion', 'DESC']]
         });
-        return sendSuccess(res, 200, 'Hábitos recuperados', habits);
+
+        // Query today's logs to mark habits as completed today
+        const todayStr = new Date().toISOString().split('T')[0];
+        const allLogsToday = await Log.find({
+            usuario_id: req.user.id,
+            completado: true
+        });
+
+        const completedHabitIds = new Set(
+            allLogsToday
+                .filter(l => l.fecha_registro.toISOString().split('T')[0] === todayStr)
+                .map(l => l.habito_id)
+        );
+
+        const habitsWithStatus = habits.map(h => {
+            const habitData = h.toJSON();
+            habitData.completado_hoy = completedHabitIds.has(h.id);
+            return habitData;
+        });
+
+        return sendSuccess(res, 200, 'Hábitos recuperados', habitsWithStatus);
     } catch (error) {
         next(error);
     }

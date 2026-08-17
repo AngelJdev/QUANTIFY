@@ -327,6 +327,69 @@ const AdminPanel = () => {
                 )}
             </div>
 
+            {/* Broadcast / Announcements */}
+            <div className="glass-card dark:border-white/5 dark:bg-surface mt-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-textPrimary flex items-center gap-2">
+                        <span className="w-2 h-6 rounded bg-purple-500 dark:bg-purple-400"></span>
+                        Centro de Anuncios Global
+                    </h2>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-4">
+                        <input type="text" placeholder="Título del Anuncio..." className="input-field w-full" />
+                        <textarea placeholder="Escribe el mensaje que verán todos los usuarios..." rows="4" className="input-field w-full resize-none"></textarea>
+                    </div>
+                    <div className="flex flex-col justify-between bg-purple-500/5 border border-purple-500/20 p-6 rounded-2xl">
+                        <div>
+                            <h4 className="font-bold text-purple-600 dark:text-purple-400 mb-2">Enviar a:</h4>
+                            <select className="input-field w-full mb-4 opacity-75">
+                                <option>Todos los usuarios</option>
+                                <option>Solo usuarios inactivos (+7 días)</option>
+                                <option>Solo usuarios premium</option>
+                            </select>
+                        </div>
+                        <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2">
+                            <FiActivity /> Enviar Broadcast
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Audit Logs */}
+            <div className="glass-card dark:border-white/5 dark:bg-surface mt-8 overflow-hidden">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-textPrimary flex items-center gap-2">
+                        <span className="w-2 h-6 rounded bg-gray-500 dark:bg-gray-400"></span>
+                        Logs de Auditoría
+                    </h2>
+                    <span className="text-xs font-bold text-textMuted uppercase tracking-widest">En vivo</span>
+                </div>
+                <div className="space-y-3 opacity-70">
+                    <div className="p-4 bg-gray-100 dark:bg-white/5 rounded-xl flex items-start gap-4">
+                        <div className="bg-red-500 text-white p-2 rounded-lg mt-1"><FiAlertTriangle size={16} /></div>
+                        <div>
+                            <p className="font-bold text-sm dark:text-white">Intento fallido de inicio de sesión</p>
+                            <p className="text-xs text-textMuted">IP: 192.168.1.100 • Hace 2 minutos</p>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-100 dark:bg-white/5 rounded-xl flex items-start gap-4">
+                        <div className="bg-blue-500 text-white p-2 rounded-lg mt-1"><FiShield size={16} /></div>
+                        <div>
+                            <p className="font-bold text-sm dark:text-white">Admin cambió rol a Usuario #42</p>
+                            <p className="text-xs text-textMuted">IP: 10.0.0.5 • Hace 15 minutos</p>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-100 dark:bg-white/5 rounded-xl flex items-start gap-4">
+                        <div className="bg-green-500 text-white p-2 rounded-lg mt-1"><FiActivity size={16} /></div>
+                        <div>
+                            <p className="font-bold text-sm dark:text-white">Sistema Auto-escalado Correctamente</p>
+                            <p className="text-xs text-textMuted">Server Node JS • Hace 1 hora</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Info Banner */}
             <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10">
                 <h4 className="text-primary font-bold mb-2 flex items-center gap-2 uppercase text-xs tracking-widest">
