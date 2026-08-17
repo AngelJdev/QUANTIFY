@@ -77,6 +77,8 @@ export const verifyPairingCode = async (req, res, next) => {
             max_streak: user.max_streak || 0
         }, watchToken);
 
+        req.app.get('io')?.to(`user_${user.id}`).emit('smartwatch_linked', { userId: user.id, deviceId: result.deviceId });
+
         return sendSuccess(res, 200, 'Dispositivo vinculado exitosamente', {
             deviceId: result.deviceId,
             userName: user.nombre
@@ -168,6 +170,10 @@ export const syncData = async (req, res, next) => {
             }
         }
 
+        // Trigger real-time updates on web
+        req.app.get('io')?.to(`user_${userId}`).emit('habit_updated', { userId });
+        req.app.get('io')?.to(`user_${userId}`).emit('dashboard_updated', { userId });
+
         return sendSuccess(res, 200, 'Sincronización completada', {
             processedActions,
             processedTelemetry,
@@ -201,7 +207,7 @@ export const getDashboard = async (req, res, next) => {
             return sendError(res, 404, 'Usuario no encontrado');
         }
 
-        // Get active habits
+        // Get active habits only belonging to this user
         const habits = await Habit.findAll({
             where: { usuario_id: userId, activo: true },
             order: [['nombre', 'ASC']]
@@ -218,20 +224,26 @@ export const getDashboard = async (req, res, next) => {
             fecha_registro: { $gte: todayStart, $lte: todayEnd }
         });
 
-        const completedHabitIds = todayLogs
-            .filter(l => l.completado)
-            .map(l => l.habito_id);
+        // Filter and deduplicate completed habit IDs that match active habits
+        const activeHabitIds = new Set(habits.map(h => h.id));
+        const completedHabitIdSet = new Set(
+            todayLogs
+                .filter(l => l.completado && activeHabitIds.has(l.habito_id))
+                .map(l => l.habito_id)
+        );
 
         // Build a map of habit_id -> latest valor_registrado from today's logs
         const habitValueMap = {};
         for (const log of todayLogs) {
-            if (log.valor_registrado != null) {
-                // Keep the latest (or highest) value for each habit
+            if (log.valor_registrado != null && activeHabitIds.has(log.habito_id)) {
                 if (!habitValueMap[log.habito_id] || log.valor_registrado > habitValueMap[log.habito_id]) {
                     habitValueMap[log.habito_id] = log.valor_registrado;
                 }
             }
         }
+
+        const totalHabitsCount = habits.length;
+        const completedTodayCount = completedHabitIdSet.size;
 
         return sendSuccess(res, 200, 'Dashboard del smartwatch', {
             user: {
@@ -243,14 +255,14 @@ export const getDashboard = async (req, res, next) => {
             },
             habits: habits.map(h => ({
                 ...h.toJSON(),
-                completado_hoy: completedHabitIds.includes(h.id),
+                completado_hoy: completedHabitIdSet.has(h.id),
                 valor_hoy: habitValueMap[h.id] || null
             })),
             stats: {
-                totalHabits: habits.length,
-                completedToday: completedHabitIds.length,
-                completionPercent: habits.length > 0
-                    ? Math.round((completedHabitIds.length / habits.length) * 100)
+                totalHabits: totalHabitsCount,
+                completedToday: completedTodayCount,
+                completionPercent: totalHabitsCount > 0
+                    ? Math.round((completedTodayCount / totalHabitsCount) * 100)
                     : 0
             }
         });
@@ -268,6 +280,7 @@ export const unlinkDevice = async (req, res, next) => {
     try {
         const userId = req.user.id;
         unlinkDeviceForUser(userId);
+        req.app.get('io')?.to(`user_${userId}`).emit('smartwatch_unlinked', { userId });
         return sendSuccess(res, 200, 'Dispositivo desvinculado exitosamente');
     } catch (error) {
         next(error);
@@ -284,9 +297,11 @@ export const unlinkFromWatch = async (req, res, next) => {
     try {
         const userId = req.user.id;
         unlinkDeviceForUser(userId);
+        req.app.get('io')?.to(`user_${userId}`).emit('smartwatch_unlinked', { userId });
         return sendSuccess(res, 200, 'Dispositivo desvinculado desde el reloj');
     } catch (error) {
         next(error);
     }
 };
+
 

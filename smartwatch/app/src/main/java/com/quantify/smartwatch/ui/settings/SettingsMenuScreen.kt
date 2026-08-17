@@ -104,6 +104,36 @@ fun SettingsMenuScreen(
                 )
             }
 
+            // Theme Selector (Clásico, B&W, Girly 💖💖💖, Claro)
+            item {
+                val currentTheme by viewModel.currentTheme.collectAsState()
+                val themeLabel = when (currentTheme) {
+                    "BLACK_WHITE" -> "B&W ⚪"
+                    "GIRLY" -> "Girly 💖💖💖"
+                    "CLARO" -> "Claro ☀️"
+                    else -> "Clásico 💎"
+                }
+                Chip(
+                    onClick = { viewModel.cycleTheme() },
+                    label = { Text("Tema", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                    secondaryLabel = {
+                        Text(themeLabel, color = CyanPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    },
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(CyanPrimary.copy(alpha = 0.2f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🎨", fontSize = 9.sp)
+                        }
+                    },
+                    colors = ChipDefaults.chipColors(backgroundColor = BackgroundElevated),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
+
             // Vibration toggle
             item {
                 Chip(

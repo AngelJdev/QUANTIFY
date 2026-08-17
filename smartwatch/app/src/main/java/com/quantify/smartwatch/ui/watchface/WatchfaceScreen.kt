@@ -167,16 +167,16 @@ fun WatchfaceScreen(
                         .height(34.dp)
                 )
 
-                // Settings Navigation
+                // Settings Navigation (Gear Symbol)
                 Button(
                     onClick = onNavigateToSettings,
                     colors = ButtonDefaults.buttonColors(backgroundColor = BackgroundElevated),
                     modifier = Modifier.size(34.dp)
                 ) {
                     Text(
-                        text = "CFG",
+                        text = "⚙",
                         color = TextSecondary,
-                        fontSize = 9.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

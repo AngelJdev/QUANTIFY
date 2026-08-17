@@ -29,6 +29,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val vibrationEnabled: StateFlow<Boolean> = prefs.vibrationEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val currentTheme: StateFlow<String> = prefs.theme
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "CLASICO")
+
+    fun cycleTheme() {
+        viewModelScope.launch {
+            val themes = listOf("CLASICO", "BLACK_WHITE", "GIRLY", "CLARO")
+            val currentIndex = themes.indexOf(currentTheme.value).coerceAtLeast(0)
+            val nextTheme = themes[(currentIndex + 1) % themes.size]
+            prefs.setTheme(nextTheme)
+        }
+    }
+
     fun setSyncInterval(minutes: Int) {
         viewModelScope.launch {
             prefs.setSyncInterval(minutes)

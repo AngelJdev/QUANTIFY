@@ -32,6 +32,22 @@ const Dashboard = () => {
 
     useEffect(() => {
         loadHabits();
+
+        // Real-time synchronization via Socket.io
+        let socketInstance;
+        api.get('/auth/profile').then(res => {
+            const uid = res.data?.data?.user?.id;
+            import('../services/socket').then(({ initSocket }) => {
+                socketInstance = initSocket(uid);
+                socketInstance?.on('habit_updated', () => loadHabits());
+                socketInstance?.on('dashboard_updated', () => loadHabits());
+            });
+        }).catch(() => {});
+
+        return () => {
+            socketInstance?.off('habit_updated');
+            socketInstance?.off('dashboard_updated');
+        };
     }, []);
 
     const loadHabits = async () => {

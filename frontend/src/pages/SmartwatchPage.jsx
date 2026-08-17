@@ -13,6 +13,33 @@ const SmartwatchPage = () => {
 
     useEffect(() => {
         checkLinkedDevice();
+
+        let socketInstance;
+        import('../services/api').then(({ default: apiInstance }) => {
+            apiInstance.get('/auth/profile').then(res => {
+                const uid = res.data?.data?.user?.id;
+                import('../services/socket').then(({ initSocket }) => {
+                    socketInstance = initSocket(uid);
+                    socketInstance?.on('smartwatch_unlinked', () => {
+                        setLinkedDevice(null);
+                        setDashboardData(null);
+                        setStatus('idle');
+                    });
+                    socketInstance?.on('smartwatch_linked', () => {
+                        checkLinkedDevice();
+                    });
+                    socketInstance?.on('habit_updated', () => {
+                        checkLinkedDevice();
+                    });
+                });
+            }).catch(() => {});
+        });
+
+        return () => {
+            socketInstance?.off('smartwatch_unlinked');
+            socketInstance?.off('smartwatch_linked');
+            socketInstance?.off('habit_updated');
+        };
     }, []);
 
     const checkLinkedDevice = async () => {

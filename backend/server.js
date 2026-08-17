@@ -27,9 +27,32 @@ import './SQL/models/userMetric.model.js';
 import './SQL/models/achievement.model.js';
 import './SQL/models/bitacora.model.js';
 
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = new SocketIOServer(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+        credentials: true
+    }
+});
+
+io.on('connection', (socket) => {
+    socket.on('join_user_room', (userId) => {
+        if (userId) {
+            socket.join(`user_${userId}`);
+        }
+    });
+});
+
+app.set('io', io);
 
 // Trust proxy for real client IP detection (used by Bitacora)
 app.set('trust proxy', true);
@@ -86,6 +109,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+server.listen(PORT, () => {
+    console.log(`🚀 Server with Socket.io running on port ${PORT}`);
 });
+

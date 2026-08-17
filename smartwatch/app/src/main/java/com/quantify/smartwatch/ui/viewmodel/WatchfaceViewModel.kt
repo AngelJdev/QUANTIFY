@@ -93,24 +93,24 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
                     _completionPercent.value = data.stats.completionPercent
                     prefs.updateStreaks(data.user.current_streak, data.user.max_streak)
 
-                    // Persist habits from dashboard into Room so HabitListScreen can display them
-                    if (data.habits.isNotEmpty()) {
-                        val entities = data.habits.map { dto ->
-                            com.quantify.smartwatch.data.local.entity.CachedHabitEntity(
-                                id = dto.id,
-                                usuario_id = dto.usuario_id,
-                                nombre = dto.nombre,
-                                descripcion = dto.descripcion,
-                                tipo_medicion = dto.tipo_medicion,
-                                meta_diaria = dto.meta_diaria,
-                                unidad = dto.unidad,
-                                frecuencia = dto.frecuencia,
-                                activo = dto.activo,
-                                completado_hoy = dto.completado_hoy,
-                                valor_hoy = dto.valor_hoy
-                            )
-                        }
-                        db.habitDao().clearAll()
+                    // Persist habits from dashboard into Room so HabitListScreen displays active habits
+                    val entities = data.habits.map { dto ->
+                        com.quantify.smartwatch.data.local.entity.CachedHabitEntity(
+                            id = dto.id,
+                            usuario_id = dto.usuario_id,
+                            nombre = dto.nombre,
+                            descripcion = dto.descripcion,
+                            tipo_medicion = dto.tipo_medicion,
+                            meta_diaria = dto.meta_diaria,
+                            unidad = dto.unidad,
+                            frecuencia = dto.frecuencia,
+                            activo = dto.activo,
+                            completado_hoy = dto.completado_hoy,
+                            valor_hoy = dto.valor_hoy
+                        )
+                    }
+                    db.habitDao().clearAll()
+                    if (entities.isNotEmpty()) {
                         db.habitDao().insertAll(entities)
                     }
                 }

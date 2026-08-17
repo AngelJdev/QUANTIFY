@@ -27,6 +27,7 @@ class UserPreferences(private val context: Context) {
         val KEY_SYNC_INTERVAL = intPreferencesKey("sync_interval_minutes")
         val KEY_VIBRATION_ENABLED = booleanPreferencesKey("vibration_enabled")
         val KEY_LAST_SYNC = longPreferencesKey("last_sync_timestamp")
+        val KEY_THEME = stringPreferencesKey("app_theme")
     }
 
     val token: Flow<String?> = context.dataStore.data.map { it[KEY_TOKEN] }
@@ -39,6 +40,7 @@ class UserPreferences(private val context: Context) {
     val syncInterval: Flow<Int> = context.dataStore.data.map { it[KEY_SYNC_INTERVAL] ?: 15 }
     val vibrationEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_VIBRATION_ENABLED] ?: true }
     val lastSync: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC] ?: 0L }
+    val theme: Flow<String> = context.dataStore.data.map { it[KEY_THEME] ?: "CLASICO" }
 
     suspend fun saveSession(token: String, userId: Int, email: String, name: String) {
         context.dataStore.edit {
@@ -71,6 +73,10 @@ class UserPreferences(private val context: Context) {
 
     suspend fun setVibration(enabled: Boolean) {
         context.dataStore.edit { it[KEY_VIBRATION_ENABLED] = enabled }
+    }
+
+    suspend fun setTheme(themeName: String) {
+        context.dataStore.edit { it[KEY_THEME] = themeName }
     }
 
     suspend fun clearAll() {
