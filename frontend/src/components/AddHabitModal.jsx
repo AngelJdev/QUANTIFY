@@ -142,9 +142,21 @@ export default function AddHabitModal({ isOpen, onClose, onSave }) {
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95, y: -20 }}
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className="relative w-full max-w-2xl bg-surface border border-gray-200 dark:border-white/10 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col text-left align-middle max-h-[90vh]"
+                                    className={`relative w-full max-w-2xl bg-surface border rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.1)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col text-left align-middle max-h-[90vh] transition-colors duration-700 ${aiApplied ? 'border-success/50 box-shadow-success' : 'border-gray-200 dark:border-white/10'}`}
                                 >
                                     
+                                    {/* AI Minimalist Scanning Border Element */}
+                                    <AnimatePresence>
+                                        {aiGenerating && (
+                                            <motion.div
+                                                initial={{ x: '-100%' }}
+                                                animate={{ x: '200%' }}
+                                                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                                                className="absolute top-0 left-0 w-1/2 h-[3px] bg-gradient-to-r from-transparent via-primary to-transparent z-50 shadow-[0_0_15px_rgba(var(--color-primary),0.8)] blur-[1px]"
+                                            />
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* Header */}
                                     <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-white/10 shrink-0">
                                         <Dialog.Title as="h2" className="text-2xl font-extrabold text-primary dark:text-white">Añadir Nuevo Hábito</Dialog.Title>
