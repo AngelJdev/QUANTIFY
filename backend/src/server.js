@@ -18,6 +18,7 @@ import adminRoutes from './routes/admin.routes.js';
 import onboardingRoutes from './routes/onboarding.routes.js';
 import achievementRoutes from './routes/achievement.routes.js';
 import profileRoutes from './routes/profile.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './models/user.model.js';
@@ -40,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
     const { default: sequelize } = await import('./config/db.mysql.js');
-    await sequelize.sync({ alter: process.env.NODE_ENV !== 'production' });
+    await sequelize.sync({ alter: true });
     console.log('✅ Database models synchronized (MySQL).');
 
     // Seed admin users
@@ -58,6 +59,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });
@@ -76,9 +78,15 @@ const io = new SocketServer(httpServer, {
 setIO(io);
 
 io.on('connection', (socket) => {
-    console.log(`🔌 Admin socket connected: ${socket.id}`);
+    console.log(`🔌 Socket connected: ${socket.id}`);
+    
+    socket.on('join_user_room', (userId) => {
+        socket.join(`user_${userId}`);
+        console.log(`👤 User joined room: user_${userId}`);
+    });
+
     socket.on('disconnect', () => {
-        console.log(`🔌 Admin socket disconnected: ${socket.id}`);
+        console.log(`🔌 Socket disconnected: ${socket.id}`);
     });
 });
 

@@ -1,8 +1,7 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiTrash2, FiUserX, FiShield, FiActivity, FiTrendingUp, FiEye, FiX, FiAlertTriangle } from 'react-icons/fi';
+import { FiUsers, FiActivity, FiShield, FiTrendingUp, FiTrash2, FiAlertCircle, FiStar, FiCheckCircle, FiEye, FiX, FiAlertTriangle, FiUserX } from 'react-icons/fi';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 import { io as socketIO } from 'socket.io-client';
@@ -21,6 +20,8 @@ const AdminPanel = () => {
 
     // Habits modal state
     const [habitsModal, setHabitsModal] = useState({ open: false, user: null, habits: [], loading: false });
+
+    const SUPER_ADMINS = ['angelcangel282@gmail.com', 'angel@quantify.ai', 'tellescangel282@gmail.com'];
 
     useEffect(() => {
         loadData();
@@ -113,11 +114,30 @@ const AdminPanel = () => {
     };
 
     const handleRoleChange = async (userId, newRole) => {
-        setActionLoading(`role-${userId}`);
+        const targetUser = users.find(u => u.id === userId);
+        if (targetUser && SUPER_ADMINS.includes(targetUser.email.toLowerCase())) {
+            alert('Acción denegada: El Creador y Super Admin es inamovible.');
+            return;
+        }
+
         try {
+            setActionLoading(`role-${userId}`);
             await api.patch(`/admin/users/${userId}/role`, { rol: newRole });
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, rol: newRole } : u));
         } catch (error) {
-            alert(error.response?.data?.message || 'Error al cambiar rol.');
+            alert(error.response?.data?.message || 'Error al cambiar rol');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handlePremiumToggle = async (userId, currentState) => {
+        try {
+            setActionLoading(`premium-${userId}`);
+            await api.patch(`/admin/users/${userId}/premium`, { is_premium: !currentState });
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_premium: !currentState } : u));
+        } catch (error) {
+            alert(error.response?.data?.message || 'Error al cambiar estado premium');
         } finally {
             setActionLoading(null);
         }
@@ -236,6 +256,7 @@ const AdminPanel = () => {
                                     <th className="text-left py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Usuario</th>
                                     <th className="text-left py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Email</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Rol</th>
+                                    <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Plan</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Hábitos</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Racha</th>
                                     <th className="text-center py-3 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest whitespace-nowrap">Registro</th>
@@ -268,7 +289,11 @@ const AdminPanel = () => {
                                                 </td>
                                                 <td className="py-3 px-4 text-textMuted font-medium whitespace-nowrap">{u.email}</td>
                                                 <td className="py-3 px-4 text-center whitespace-nowrap">
-                                                    {isAdmin && u.id !== currentUser?.id ? (
+                                                    {SUPER_ADMINS.includes(u.email.toLowerCase()) ? (
+                                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-yellow-500/30 text-yellow-500 bg-yellow-500/10">
+                                                            SUPER ADMIN
+                                                        </span>
+                                                    ) : isAdmin && u.id !== currentUser?.id ? (
                                                         <select
                                                             value={u.rol}
                                                             onChange={(e) => handleRoleChange(u.id, parseInt(e.target.value))}
@@ -284,6 +309,20 @@ const AdminPanel = () => {
                                                             {ROL_LABELS[u.rol]}
                                                         </span>
                                                     )}
+                                                </td>
+                                                <td className="py-3 px-4 text-center whitespace-nowrap">
+                                                    <button
+                                                        onClick={() => { if(isAdmin) handlePremiumToggle(u.id, u.is_premium); }}
+                                                        disabled={!isAdmin || actionLoading === `premium-${u.id}`}
+                                                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${
+                                                            u.is_premium 
+                                                            ? 'border-blue-500/30 text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]' 
+                                                            : 'border-gray-300 dark:border-white/10 text-gray-500 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10'
+                                                        }`}
+                                                    >
+                                                        {u.is_premium ? <FiStar size={10} /> : null}
+                                                        {u.is_premium ? 'PRO' : 'FREE'}
+                                                    </button>
                                                 </td>
                                                 <td className="py-3 px-4 text-center font-bold text-textPrimary dark:text-white">{u.habitCount}</td>
                                                 <td className="py-3 px-4 text-center whitespace-nowrap">

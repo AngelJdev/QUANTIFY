@@ -40,6 +40,10 @@ const User = sequelize.define('User', {
         type: DataTypes.JSON,
         allowNull: true,
     },
+    is_premium: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
     security_phrase_hash: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -77,6 +81,7 @@ const User = sequelize.define('User', {
                     email: user.email,
                     rol: user.rol,
                     preferencias: user.preferencias,
+                    is_premium: user.is_premium,
                     avatar_url: user.avatar_url,
                     current_streak: user.current_streak,
                     max_streak: user.max_streak,
@@ -101,6 +106,7 @@ const User = sequelize.define('User', {
                         email: user.email,
                         rol: user.rol,
                         preferencias: user.preferencias,
+                        is_premium: user.is_premium,
                         avatar_url: user.avatar_url,
                         current_streak: user.current_streak,
                         max_streak: user.max_streak,

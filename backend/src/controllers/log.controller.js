@@ -233,11 +233,29 @@ export const getGlobalStats = async (req, res, next) => {
 
         const globalScore = Math.round(totalAdherenceSum / habits.length);
 
+        // --- SISTEMA DE EXPERIENCIA (XP) ---
+        // 1 hábito completado = 10 XP base.
+        // Consultamos todo el historial vitalicio para el XP total.
+        const lifetimeCompletedLogs = await Log.countDocuments({ 
+            usuario_id, 
+            completado: true 
+        });
+        
+        const totalXP = lifetimeCompletedLogs * 10;
+        const currentLevel = Math.floor(totalXP / 100) + 1;
+        const xpForNextLevel = currentLevel * 100;
+
         return sendSuccess(res, 200, 'Estadísticas globales recuperadas', {
             globalScore,
             dailyCompletion,
             totalHabits: habits.length,
-            dailyPerformance
+            dailyPerformance,
+            xpData: {
+                totalXP,
+                currentLevel,
+                xpNextLevel: xpForNextLevel,
+                progressXP: totalXP % 100
+            }
         });
     } catch (error) {
         next(error);
