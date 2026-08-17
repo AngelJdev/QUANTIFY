@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { loginUser, registerUser, fetchProfile, googleLoginService } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const AuthContext = createContext(null);
 
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ 
+        <AuthContext.Provider value={{
             user, token, loading, login, loginWithGoogle, register, logout, refreshUser, updateLocalUser, isAuthenticated: !!user,
             globalGoogleTransition, setGlobalGoogleTransition
         }}>

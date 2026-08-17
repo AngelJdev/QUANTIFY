@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiLogOut, FiActivity, FiBookOpen, FiWatch, FiHelpCircle } from 'react-icons/fi';
 import { LuShield, LuUser } from 'react-icons/lu';
+import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
