@@ -1,3 +1,7 @@
+/**
+ * SupportPage - Módulo de Atención y Soporte Técnico de QUANTIFY
+ * Gestiona tickets de soporte, validaciones en tiempo real y retroalimentación de usuario.
+ */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiAlertCircle, FiCheckCircle, FiHelpCircle } from 'react-icons/fi';
