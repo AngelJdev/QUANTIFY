@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS Habits (
 
 -- Indices
 CREATE INDEX idx_habits_usuario_id ON Habits(usuario_id);
-CREATE INDEX idx_users_email ON Users(email);
 
 -- Usuario admin y de prueba inicial (La clave es 'password123' usando bcrypt)
 -- Hasheado para demostración: $2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6
