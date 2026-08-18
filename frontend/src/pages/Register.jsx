@@ -402,19 +402,17 @@ export default function Register() {
                     </footer>
                 </div>
 
-                <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-textMuted leading-loose">
-                    ¿Cuenta existente? <Link to="/login" className="text-primary dark:text-white hover:underline">Acceso Directo</Link>
+                               <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-textMuted leading-loose">
+                    ¿Cuenta existente?{' '}
+                    <Link
+                        to="/login"
+                        className="text-primary dark:text-white hover:underline"
+                    >
+                        Acceso Directo
+                    </Link>
                 </p>
             </div>
-
-            <style jsx>{`
-                .label-style {
-                    @apply text-[10px] font-black text-textMuted uppercase tracking-[0.2em] block mb-2 px-1;
-                }
-                .error-text {
-                    @apply text-[9px] font-bold text-danger mt-1 uppercase pl-1;
-                }
-            `}</style>
         </div>
+        
     );
 }
