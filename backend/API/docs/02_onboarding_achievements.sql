@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS user_metrics (
+CREATE TABLE IF NOT EXISTS UserMetrics (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL UNIQUE,
     edad INT NOT NULL,
@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS user_metrics (
     genero ENUM('MASCULINO', 'FEMENINO', 'OTRO') NOT NULL,
     nivel_actividad ENUM('SEDENTARIO', 'LIGERO', 'MODERADO', 'ACTIVO', 'MUY_ACTIVO') NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (usuario_id) REFERENCES Users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS achievements (
+CREATE TABLE IF NOT EXISTS Achievements (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
     titulo VARCHAR(255) NOT NULL,
@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS achievements (
     mes_logro VARCHAR(20) NOT NULL,
     icono_url VARCHAR(255),
     fecha_desbloqueo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES Users(id) ON DELETE CASCADE,
     UNIQUE KEY unique_user_monthly_achievement (usuario_id, titulo, mes_logro)
 );
