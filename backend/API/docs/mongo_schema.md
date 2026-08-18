@@ -1,8 +1,39 @@
-# 🍃 Mongoose Schema Definition: `logs`
+# 🍃 Logs de Hábitos — MongoDB / Mongoose
 
-Este schema está diseñado para alojarse en MongoDB, debido a que el registro de los logs de los hábitos ocurre con mucha más frecuencia que la creación/edición de usuarios y hábitos.
+Este módulo almacena los **registros de cumplimiento de hábitos** utilizando MongoDB y Mongoose.
 
-```json
+La decisión de utilizar MongoDB para los logs se debe a que estos registros tienen una **frecuencia de escritura considerablemente mayor** que la creación o modificación de usuarios y hábitos.
+
+La información principal del sistema permanece en **MySQL**, mientras que MongoDB funciona como almacén especializado para el historial de seguimiento, métricas y estadísticas.
+
+---
+
+## 🏗️ Arquitectura
+
+```text
+                    ┌──────────────────┐
+                    │     Frontend     │
+                    │   Web / Mobile   │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │     Backend      │
+                    │ Node.js/Express  │
+                    └───────┬──────────┘
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+              ▼                           ▼
+       ┌──────────────┐            ┌──────────────┐
+       │    MySQL     │            │   MongoDB    │
+       │              │            │              │
+       │ • Usuarios   │            │ • Logs       │
+       │ • Hábitos    │            │ • Historial  │
+       │ • Config.    │            │ • Métricas   │
+       └──────────────┘            └──────────────┘
+```
+json
 {
   "habito_id": {
     "type": "Number",
@@ -44,3 +75,24 @@ Este schema está diseñado para alojarse en MongoDB, debido a que el registro d
 ## Índices Recomendados
 - `{ "habito_id": 1, "fecha_registro": -1 }`: Optimizado para encontrar el último log de un hábito (útil para rachas) y consultas de rango temporal (Adherencia).
 - `{ "usuario_id": 1 }`: Para métricas globales del usuario.
+
+
+Cliente
+   │
+   ▼
+Autenticación
+   │
+   ▼
+Validar usuario ──────► MySQL
+   │
+   ▼
+Validar hábito ───────► MySQL
+   │
+   ▼
+Validar pertenencia
+   │
+   ▼
+Validar datos
+   │
+   ▼
+Guardar log ──────────► MongoDB
