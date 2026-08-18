@@ -1,7 +1,20 @@
-# Documentación: Sistema de Población de Datos
+# 🧪 Sistema de Población de Datos — QUANTIFY
 
-## Descripción General
-Sistema de pruebas de carga masiva para validar la capacidad de almacenamiento y rendimiento de las bases de datos MySQL y MongoDB del proyecto Quantify.
+Sistema de **población y pruebas de carga masiva** diseñado para validar el almacenamiento, comportamiento y rendimiento de las bases de datos **MySQL y MongoDB** utilizadas por el proyecto **QUANTIFY**.
+
+Este módulo permite generar grandes cantidades de usuarios de prueba bajo diferentes condiciones y escenarios, con el objetivo de evaluar:
+
+- 💾 Capacidad de almacenamiento.
+- ⚡ Rendimiento de inserción.
+- 🔎 Rendimiento de consultas.
+- 📊 Comportamiento con grandes volúmenes de información.
+- 🔄 Sincronización entre MySQL y MongoDB.
+- 🧹 Procesos de limpieza.
+- 🛡️ Protección de información real.
+- 📈 Escalabilidad de la arquitectura.
+
+> ⚠️ Este sistema está destinado exclusivamente a **pruebas y ambientes de desarrollo**. Los datos generados no representan usuarios reales.
+
 
 ## Endpoints
 
