@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     FiAward, FiStar, FiTrendingUp, FiLock, FiUnlock, 
@@ -410,90 +411,98 @@ const AchievementsPage = () => {
                 </motion.div>
             )}
 
-            {/* Achievement Detail Modal */}
-            <AnimatePresence>
-                {selectedAchievement && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-8 max-w-md w-full text-white shadow-2xl relative space-y-6"
+            {/* Achievement Detail Modal Portaled to document.body */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {selectedAchievement && (
+                        <div 
+                            onClick={() => setSelectedAchievement(null)}
+                            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-200"
                         >
-                            <button
-                                onClick={() => setSelectedAchievement(null)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-white text-sm font-bold bg-white/5 p-2 rounded-full"
+                            <motion.div
+                                onClick={(e) => e.stopPropagation()}
+                                initial={{ scale: 0.9, opacity: 0, y: 15 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 15 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                className="bg-zinc-900 border border-white/15 rounded-3xl p-6 md:p-8 max-w-md w-full text-white shadow-2xl relative space-y-6"
                             >
-                                ✕
-                            </button>
+                                <button
+                                    onClick={() => setSelectedAchievement(null)}
+                                    className="absolute top-4 right-4 text-gray-400 hover:text-white text-sm font-bold bg-white/5 hover:bg-white/10 p-2 rounded-full transition-all"
+                                >
+                                    ✕
+                                </button>
 
-                            <div className="flex flex-col items-center text-center space-y-4">
-                                {(() => {
-                                    const { Icon, color } = getIconData(selectedAchievement.icono_key, selectedAchievement.titulo);
-                                    const rarity = getRarityBadge(selectedAchievement.rareza);
-                                    return (
-                                        <>
-                                            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl ${
-                                                selectedAchievement.unlocked
-                                                    ? `bg-gradient-to-br ${color} text-white`
-                                                    : 'bg-white/10 text-gray-400'
-                                            }`}>
-                                                <Icon size={40} />
-                                            </div>
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    {(() => {
+                                        const { Icon, color } = getIconData(selectedAchievement.icono_key, selectedAchievement.titulo);
+                                        const rarity = getRarityBadge(selectedAchievement.rareza);
+                                        return (
+                                            <>
+                                                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl ${
+                                                    selectedAchievement.unlocked
+                                                        ? `bg-gradient-to-br ${color} text-white`
+                                                        : 'bg-white/10 text-gray-400'
+                                                }`}>
+                                                    <Icon size={40} />
+                                                </div>
 
-                                            <div>
-                                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase border tracking-widest ${rarity.bg}`}>
-                                                    {rarity.label} • {selectedAchievement.categoria}
-                                                </span>
-                                                <h3 className="text-2xl font-black mt-2">
-                                                    {selectedAchievement.titulo}
-                                                </h3>
-                                            </div>
-                                        </>
-                                    );
-                                })()}
-                            </div>
-
-                            <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <div>
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Descripción</h4>
-                                    <p className="text-sm font-medium mt-1 leading-relaxed">
-                                        {selectedAchievement.descripcion}
-                                    </p>
+                                                <div>
+                                                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase border tracking-widest ${rarity.bg}`}>
+                                                        {rarity.label} • {selectedAchievement.categoria}
+                                                    </span>
+                                                    <h3 className="text-2xl font-black mt-2">
+                                                        {selectedAchievement.titulo}
+                                                    </h3>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
 
-                                <div>
-                                    <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                                        <FiTarget size={14} /> Cómo Desbloquear
-                                    </h4>
-                                    <p className="text-xs font-semibold text-gray-300 mt-1">
-                                        {selectedAchievement.requisito}
-                                    </p>
+                                <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <div>
+                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Descripción</h4>
+                                        <p className="text-sm font-medium mt-1 leading-relaxed text-gray-200">
+                                            {selectedAchievement.descripcion}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                                            <FiTarget size={14} /> Cómo Desbloquear
+                                        </h4>
+                                        <p className="text-xs font-semibold text-gray-300 mt-1">
+                                            {selectedAchievement.requisito}
+                                        </p>
+                                    </div>
+
+                                    {selectedAchievement.unlocked ? (
+                                        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                            <FiCheckCircle size={16} />
+                                            <span>¡Logro desbloqueado y registrado en tu perfil!</span>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-amber-400 text-xs font-bold">
+                                            <FiLock size={16} />
+                                            <span>Logro aún bloqueado. ¡Sigue progresando para obtenerlo!</span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {selectedAchievement.unlocked ? (
-                                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                                        <FiCheckCircle size={16} />
-                                        <span>¡Logro desbloqueado y registrado en tu perfil!</span>
-                                    </div>
-                                ) : (
-                                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-amber-400 text-xs font-bold">
-                                        <FiLock size={16} />
-                                        <span>Logro aún bloqueado. ¡Sigue progresando para obtenerlo!</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <button
-                                onClick={() => setSelectedAchievement(null)}
-                                className="w-full py-3 bg-white text-black font-bold rounded-2xl hover:bg-gray-200 transition-all text-xs uppercase tracking-wider"
-                            >
-                                Entendido
-                            </button>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                <button
+                                    onClick={() => setSelectedAchievement(null)}
+                                    className="w-full py-3 bg-white text-black font-bold rounded-2xl hover:bg-gray-200 transition-all text-xs uppercase tracking-wider shadow-lg"
+                                >
+                                    Entendido
+                                </button>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };
