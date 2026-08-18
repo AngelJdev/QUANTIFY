@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiArrowRight, FiShield } from 'react-icons/fi';
-import api from '../api';
+import api from '../services/api';
 import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 

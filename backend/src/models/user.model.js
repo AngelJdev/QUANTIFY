@@ -17,7 +17,7 @@ const User = sequelize.define('User', {
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
+        unique: 'users_email_unique',
         validate: {
             isEmail: true,
         }
@@ -29,7 +29,7 @@ const User = sequelize.define('User', {
     google_id: {
         type: DataTypes.STRING,
         allowNull: true,
-        unique: true,
+        unique: 'users_google_id_unique',
     },
     rol: {
         type: DataTypes.INTEGER,
