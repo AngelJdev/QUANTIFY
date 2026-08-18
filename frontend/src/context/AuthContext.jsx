@@ -26,6 +26,19 @@ export const AuthProvider = ({ children }) => {
         loadUser();
     }, [token]);
 
+    useEffect(() => {
+        if (user?.id) {
+            import('../services/socket').then(({ initSocket }) => {
+                const socket = initSocket(user.id);
+                const handleAuthUpdated = (changes) => {
+                    updateLocalUser(changes);
+                };
+                socket.on('auth_updated', handleAuthUpdated);
+                return () => socket.off('auth_updated', handleAuthUpdated);
+            });
+        }
+    }, [user?.id]);
+
     const login = async (credentials) => {
         const res = await loginUser(credentials);
         setToken(res.data.token);

@@ -39,7 +39,7 @@ router.get('/users/:id/habits', isAdminOrMod, async (req, res, next) => {
 router.get('/users', isAdminOrMod, async (req, res, next) => {
     try {
         const users = await User.findAll({
-            attributes: ['id', 'nombre', 'email', 'rol', 'fecha_creacion', 'current_streak', 'max_streak']
+            attributes: ['id', 'nombre', 'email', 'rol', 'is_premium', 'fecha_creacion', 'current_streak', 'max_streak']
         });
 
         const usersWithHabits = await Promise.all(users.map(async (u) => {
@@ -186,6 +186,11 @@ router.delete('/users/:id', isAdminOrMod, async (req, res, next) => {
             return sendError(res, 403, 'Un moderador no puede eliminar a un administrador.');
         }
 
+        const superAdminEmails = ['angelcangel282@gmail.com', 'angel@quantify.ai', 'tellescangel282@gmail.com'];
+        if (superAdminEmails.includes(user.email.toLowerCase())) {
+            return sendError(res, 403, 'Acción denegada: No se puede eliminar a un Creador/Super Admin.');
+        }
+
         // Delete all related data
         await Log.deleteMany({ usuario_id: userId });
         await Achievement.destroy({ where: { usuario_id: userId }, individualHooks: true });
@@ -220,10 +225,41 @@ router.patch('/users/:id/role', isAdmin, async (req, res, next) => {
             return sendError(res, 403, 'No puedes cambiar tu propio rol.');
         }
 
+        const superAdminEmails = ['angelcangel282@gmail.com', 'angel@quantify.ai', 'tellescangel282@gmail.com'];
+        if (superAdminEmails.includes(user.email.toLowerCase())) {
+            return sendError(res, 403, 'Acción denegada: El Creador y Super Admin es inamovible.');
+        }
+
         await user.update({ rol });
 
         emitAdminEvent('admin:data-changed', { type: 'ROLE_CHANGED', userId, newRole: rol });
+        
+        // Push exclusively to the user's connected sessions for instant real-time sync!
+        const io = getIO();
+        if (io) io.to(`user_${userId}`).emit('auth_updated', { rol });
         return sendSuccess(res, 200, `Rol de ${user.nombre} actualizado.`, { id: user.id, rol: user.rol });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ─── PATCH /api/admin/users/:id/premium ─── (ADMIN ONLY)
+router.patch('/users/:id/premium', isAdmin, async (req, res, next) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { is_premium } = req.body;
+        
+        const user = await User.findByPk(userId);
+        if (!user) return sendError(res, 404, 'Usuario no encontrado.');
+
+        await user.update({ is_premium: !!is_premium });
+        emitAdminEvent('admin:data-changed', { type: 'PREMIUM_CHANGED', userId, is_premium: user.is_premium });
+        
+        // Push exclusively to the user's connected sessions
+        const io = getIO();
+        if (io) io.to(`user_${userId}`).emit('auth_updated', { is_premium: user.is_premium });
+        
+        return sendSuccess(res, 200, `Estado Premium de ${user.nombre} actualizado.`);
     } catch (error) {
         next(error);
     }
