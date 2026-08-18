@@ -66,8 +66,24 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/ai', aiRoutes);
 
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Quantify API is running' });
+app.get('/api/health', async (req, res) => {
+    try {
+        const { default: sequelize } = await import('./config/db.mysql.js');
+        const [cols] = await sequelize.query('SHOW COLUMNS FROM Users');
+        const dbFields = cols.map(c => c.Field);
+        
+        res.status(200).json({ 
+            status: 'OK', 
+            host: process.env.MYSQL_HOST,
+            db: process.env.MYSQL_DATABASE,
+            env: process.env.NODE_ENV,
+            isVercel: !!process.env.VERCEL,
+            userCols: dbFields,
+            message: 'Quantify API is running' 
+        });
+    } catch(e) {
+        res.status(500).json({ error: String(e), host: process.env.MYSQL_HOST });
+    }
 });
 
 // Error Handling
