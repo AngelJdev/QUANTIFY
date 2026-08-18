@@ -40,13 +40,18 @@ app.use(express.urlencoded({ extended: true }));
 // Database Connections (Trigger sync on start for MySQL)
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
-    const { default: sequelize } = await import('./config/db.mysql.js');
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database models synchronized (MySQL).');
-
-    // Seed admin users
-    const { seedAdmins } = await import('./seeds/adminSeed.js');
-    await seedAdmins();
+    // Running sync({ alter: true }) in Vercel causes deadlocks when multiple instances spin up.
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+        const { default: sequelize } = await import('./config/db.mysql.js');
+        await sequelize.sync({ alter: true });
+        console.log('✅ Database models synchronized (MySQL).');
+        
+        // Seed admin users
+        const { seedAdmins } = await import('./seeds/adminSeed.js');
+        await seedAdmins();
+    } else {
+        console.log('✅ Production mode: Skipping DB Sync and Seeding to prevent deadlocks.');
+    }
 }).catch(err => {
     console.error('Failed to initialize databases:', err);
 });
