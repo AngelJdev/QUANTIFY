@@ -39,11 +39,19 @@ export const analyzeAchievements = async (userId, habitoId, logValue) => {
 const checkStreakMilestones = async (user) => {
     const streak = user.current_streak;
     
+    if (streak >= 100) {
+        await awardAchievement(user.id, 'Leyenda Viviente 👑', '100 días de racha inquebrantable. Perteneces al 1% de usuarios con disciplina de nivel élite.', '👑');
+    }
     if (streak >= 66) {
         await awardAchievement(user.id, 'Imparable 🚀', 'Has alcanzado los 66 días de racha. ¡Tus hábitos son ahora parte de tu ADN!', '🛸');
-    } else if (streak >= 21) {
+    }
+    if (streak >= 21) {
         await awardAchievement(user.id, 'Hábito Forjado ⛓️', '21 días de constancia ininterrumpida. El hábito ya está enraizado.', '🔗');
-    } else if (streak >= 3) {
+    }
+    if (streak >= 7) {
+        await awardAchievement(user.id, 'Racha Estelar ⭐', 'Una semana entera manteniendo el foco e impulsando tus objetivos diarios.', '⭐');
+    }
+    if (streak >= 3) {
         await awardAchievement(user.id, 'Chispa Inicial 🔥', 'Primeros 3 días de racha. ¡El motor ha arrancado!', '⚡');
     }
 };
