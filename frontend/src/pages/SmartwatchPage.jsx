@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiWatch, FiWifi, FiCheckCircle, FiAlertTriangle, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import { verifyPairingCode, getSmartwatchDashboard, unlinkSmartwatch } from '../services/smartwatchService';
+import ConfirmModal from '../components/ConfirmModal';
 
 const SmartwatchPage = () => {
     const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -9,6 +10,16 @@ const SmartwatchPage = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const [linkedDevice, setLinkedDevice] = useState(null);
     const [dashboardData, setDashboardData] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        variant: 'danger',
+        confirmText: 'Confirmar',
+        cancelText: 'Cancelar',
+        showCancel: true,
+        onConfirm: null
+    });
     const inputRefs = useRef([]);
 
     useEffect(() => {
@@ -126,107 +137,141 @@ const SmartwatchPage = () => {
         inputRefs.current[0]?.focus();
     };
 
-    const handleUnlink = async () => {
-        if (!window.confirm('¿Seguro que deseas desvincular tu Smartwatch?')) return;
-        try {
-            setStatus('loading');
-            await unlinkSmartwatch();
-            setLinkedDevice(null);
-            setDashboardData(null);
-            resetCode();
-        } catch (err) {
-            setStatus('linked');
-            alert(err.response?.data?.message || 'Error al desvincular el dispositivo');
-        }
+    const handleUnlink = () => {
+        setConfirmModal({
+            open: true,
+            title: 'Desvincular Smartwatch',
+            message: '¿Seguro que deseas desvincular tu Smartwatch? Dejarás de recibir sincronizaciones biométricas en tiempo real.',
+            variant: 'danger',
+            confirmText: 'Desvincular Dispositivo',
+            cancelText: 'Cancelar',
+            showCancel: true,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                try {
+                    setStatus('loading');
+                    await unlinkSmartwatch();
+                    setLinkedDevice(null);
+                    setDashboardData(null);
+                    resetCode();
+                } catch (err) {
+                    setStatus('linked');
+                    setConfirmModal({
+                        open: true,
+                        title: 'Error al Desvincular',
+                        message: err.response?.data?.message || 'No se pudo desvincular el dispositivo.',
+                        variant: 'warning',
+                        confirmText: 'Entendido',
+                        cancelText: 'Cerrar',
+                        showCancel: false,
+                        onConfirm: () => setConfirmModal(prev => ({ ...prev, open: false }))
+                    });
+                }
+            }
+        });
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-        >
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 bg-cyan-500/10 dark:bg-cyan-400/10 rounded-2xl">
-                    <FiWatch className="w-7 h-7 text-cyan-500 dark:text-cyan-400" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Smartwatch</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Vincula tu reloj QUANTIFY para seguir tus hábitos desde la muñeca</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left: Pairing Card */}
-                <div className="bg-white dark:bg-gray-900/50 rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm">
-                    <AnimatePresence mode="wait">
-                        {status === 'linked' ? (
-                            <LinkedDeviceView
-                                key="linked"
-                                device={linkedDevice}
-                                dashboard={dashboardData}
-                                onUnlink={handleUnlink}
-                            />
-                        ) : status === 'success' ? (
-                            <SuccessView key="success" device={linkedDevice} />
-                        ) : (
-                            <PairingView
-                                key="pairing"
-                                code={code}
-                                status={status}
-                                errorMsg={errorMsg}
-                                inputRefs={inputRefs}
-                                onInputChange={handleInputChange}
-                                onKeyDown={handleKeyDown}
-                                onPaste={handlePaste}
-                                onSubmit={() => handleSubmit()}
-                                onReset={resetCode}
-                            />
-                        )}
-                    </AnimatePresence>
+        <>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+            >
+                {/* Header */}
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-cyan-500/10 dark:bg-cyan-400/10 rounded-2xl">
+                        <FiWatch className="w-7 h-7 text-cyan-500 dark:text-cyan-400" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Smartwatch</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Vincula tu reloj QUANTIFY para seguir tus hábitos desde la muñeca</p>
+                    </div>
                 </div>
 
-                {/* Right: Instructions */}
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Left: Pairing Card */}
                     <div className="bg-white dark:bg-gray-900/50 rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">¿Cómo vincular?</h3>
-                        <div className="space-y-5">
-                            {[
-                                { step: '1', title: 'Abre QUANTIFY en tu reloj', desc: 'La app mostrará un código de 6 caracteres.' },
-                                { step: '2', title: 'Ingresa el código aquí', desc: 'Escríbelo o pégalo en los campos de la izquierda.' },
-                                { step: '3', title: '¡Listo!', desc: 'Tu reloj se sincronizará automáticamente con tu cuenta.' },
-                            ].map((item) => (
-                                <div key={item.step} className="flex gap-4">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/10 dark:bg-cyan-400/10 flex items-center justify-center">
-                                        <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400">{item.step}</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <AnimatePresence mode="wait">
+                            {status === 'linked' ? (
+                                <LinkedDeviceView
+                                    key="linked"
+                                    device={linkedDevice}
+                                    dashboard={dashboardData}
+                                    onUnlink={handleUnlink}
+                                />
+                            ) : status === 'success' ? (
+                                <SuccessView key="success" device={linkedDevice} />
+                            ) : (
+                                <PairingView
+                                    key="pairing"
+                                    code={code}
+                                    status={status}
+                                    errorMsg={errorMsg}
+                                    inputRefs={inputRefs}
+                                    onInputChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    onPaste={handlePaste}
+                                    onSubmit={() => handleSubmit()}
+                                    onReset={resetCode}
+                                />
+                            )}
+                        </AnimatePresence>
                     </div>
 
-                    <div className="bg-gradient-to-br from-cyan-500/5 to-blue-500/5 dark:from-cyan-400/5 dark:to-blue-400/5 rounded-3xl border border-cyan-200/50 dark:border-cyan-500/10 p-8">
-                        <div className="flex items-start gap-3">
-                            <FiWifi className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="font-semibold text-gray-900 dark:text-white text-sm">Conexión WiFi requerida</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                    Tu reloj necesita estar conectado a una red WiFi para la vinculación inicial
-                                    y la sincronización de datos. Los hábitos registrados sin conexión se
-                                    sincronizarán automáticamente cuando el WiFi esté disponible.
-                                </p>
+                    {/* Right: Instructions */}
+                    <div className="space-y-6">
+                        <div className="bg-white dark:bg-gray-900/50 rounded-3xl border border-gray-200 dark:border-white/5 p-8 shadow-sm">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">¿Cómo vincular?</h3>
+                            <div className="space-y-5">
+                                {[
+                                    { step: '1', title: 'Abre QUANTIFY en tu reloj', desc: 'La app mostrará un código de 6 caracteres.' },
+                                    { step: '2', title: 'Ingresa el código aquí', desc: 'Escríbelo o pégalo en los campos de la izquierda.' },
+                                    { step: '3', title: '¡Listo!', desc: 'Tu reloj se sincronizará automáticamente con tu cuenta.' },
+                                ].map((item) => (
+                                    <div key={item.step} className="flex gap-4">
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/10 dark:bg-cyan-400/10 flex items-center justify-center">
+                                            <span className="text-sm font-bold text-cyan-600 dark:text-cyan-400">{item.step}</span>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-cyan-500/5 to-blue-500/5 dark:from-cyan-400/5 dark:to-blue-400/5 rounded-3xl border border-cyan-200/50 dark:border-cyan-500/10 p-8">
+                            <div className="flex items-start gap-3">
+                                <FiWifi className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="font-semibold text-gray-900 dark:text-white text-sm">Conexión WiFi requerida</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                        Tu reloj necesita estar conectado a una red WiFi para la vinculación inicial
+                                        y la sincronización de datos. Los hábitos registrados sin conexión se
+                                        sincronizarán automáticamente cuando el WiFi esté disponible.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+            
+            <ConfirmModal
+                isOpen={confirmModal.open}
+                onClose={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                variant={confirmModal.variant}
+                confirmText={confirmModal.confirmText}
+                cancelText={confirmModal.cancelText}
+                showCancel={confirmModal.showCancel}
+            />
+        </>
     );
 };
 
