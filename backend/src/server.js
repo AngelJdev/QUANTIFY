@@ -41,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
     // Running sync({ alter: true }) in Vercel causes deadlocks when multiple instances spin up.
+    // Database schema is managed explicitly via migrations / manual scripts to prevent column drops.
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         const { default: sequelize } = await import('./config/db.mysql.js');
         await sequelize.sync({ alter: true });
