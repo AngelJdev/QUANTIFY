@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Iniciar cliente de Gemini
-// Asume que la clave está guardada en proces.env.GEMINI_API_KEY
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 export const recommendHabitConfig = async (req, res, next) => {
     try {
