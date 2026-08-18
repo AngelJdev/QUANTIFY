@@ -35,12 +35,17 @@ No respondas con saludos ni markdown. SOLO envia texto JSON puro.
         
         let result;
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             result = await model.generateContent(`${systemPrompt}\n\nHabito a analizar: "${query}"`);
         } catch (e) {
-            console.warn("gemini-3.6-flash falló, intentando con gemini-3.5-flash...");
-            const modelFallback = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
-            result = await modelFallback.generateContent(`${systemPrompt}\n\nHabito a analizar: "${query}"`);
+            console.warn("gemini-1.5-flash falló, intentando de nuevo...");
+            try {
+                const modelFallback = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+                result = await modelFallback.generateContent(`${systemPrompt}\n\nHabito a analizar: "${query}"`);
+            } catch (e2) {
+                console.error("Gemini AI API Error:", e2);
+                throw e2;
+            }
         }
 
         const responseText = result.response.text().trim();
