@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     security_phrase_hash VARCHAR(255),
-    rol ENUM('USER', 'ADMIN') DEFAULT 'USER',
+    rol INT DEFAULT 1,
     current_streak INT DEFAULT 0,
     max_streak INT DEFAULT 0,
     last_login_date DATE,
@@ -49,5 +49,5 @@ CREATE INDEX idx_users_email ON Users(email);
 -- Usuario admin y de prueba inicial (La clave es 'password123' usando bcrypt)
 -- Hasheado para demostración: $2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6
 INSERT IGNORE INTO Users (nombre, email, password_hash, rol) VALUES 
-('Administrador', 'admin@quantify.test', '$2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6', 'ADMIN'),
-('Usuario Demo', 'demo@quantify.test', '$2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6', 'USER');
+('Administrador', 'admin@quantify.test', '$2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6', 0),
+('Usuario Demo', 'demo@quantify.test', '$2a$10$3k.wAUMVj28g2eP0s.t8P.D19hUvP/l9/p9yP9N20G8.v/qT/KxG6', 1);
