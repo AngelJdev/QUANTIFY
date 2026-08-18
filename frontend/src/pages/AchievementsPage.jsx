@@ -28,6 +28,16 @@ const ICON_MAP = {
     'alquimista':    { Icon: FiActivity,         color: 'from-teal-400 to-emerald-600', text: 'text-teal-400' },
     'arquitecto':    { Icon: FiGrid,             color: 'from-blue-400 to-indigo-600',  text: 'text-blue-400' },
     'sincronizacion':{ Icon: FiWatch,            color: 'from-fuchsia-500 to-purple-600',text: 'text-fuchsia-400' },
+    'rutina':        { Icon: FiTarget,           color: 'from-emerald-500 to-teal-600',  text: 'text-emerald-400' },
+    'finsemana':     { Icon: FiShield,           color: 'from-indigo-500 to-blue-600',   text: 'text-indigo-400' },
+    'madrugador':    { Icon: GiSparkles,         color: 'from-amber-400 to-rose-500',   text: 'text-amber-400' },
+    'nocturno':      { Icon: GiMoon,             color: 'from-indigo-700 to-purple-900', text: 'text-indigo-300' },
+    'corazon':       { Icon: FiActivity,         color: 'from-rose-500 to-pink-600',    text: 'text-rose-400' },
+    'maraton':       { Icon: GiRun,              color: 'from-yellow-400 to-amber-600', text: 'text-yellow-400' },
+    'tiempo':        { Icon: FiAward,            color: 'from-violet-500 to-indigo-700',text: 'text-violet-400' },
+    'zen':           { Icon: GiBrain,            color: 'from-emerald-400 to-cyan-600', text: 'text-emerald-400' },
+    'comunidad':     { Icon: GiMedal,            color: 'from-blue-400 to-sky-600',     text: 'text-blue-400' },
+    'ingeniero':     { Icon: GiCrown,            color: 'from-purple-600 to-pink-600',  text: 'text-purple-400' },
     'default':       { Icon: GiMedal,            color: 'from-blue-500 to-indigo-600',  text: 'text-blue-400' }
 };
 

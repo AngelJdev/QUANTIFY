@@ -5,7 +5,7 @@ import UserMetric from '../models/userMetric.model.js';
 import moment from 'moment';
 
 /**
- * Catálogo Maestro de Logros de Quantify
+ * Catálogo Maestro de Logros de Quantify (25 logros)
  * Define todos los logros del sistema, sus requisitos, categorías y funciones evaluadoras.
  */
 export const ACHIEVEMENTS_CATALOG = [
@@ -312,6 +312,192 @@ export const ACHIEVEMENTS_CATALOG = [
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
             return user && (user.smartwatch_connected || user.smartwatch_id);
+        }
+    },
+
+    // ─── NUEVOS 10 LOGROS AÑADIDOS ───────────────────────────────────────────
+    {
+        id: 'maestro_rutina',
+        titulo: 'Maestro de la Rutina 🎯',
+        descripcion: 'Lograste cumplir el 100% de todos tus hábitos programados en un solo día.',
+        requisito: 'Completar 100% de hábitos en un día.',
+        categoria: 'Constancia',
+        rareza: 'Épico',
+        icono_key: 'rutina',
+        icono: '🎯',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            if (habits.length === 0) return false;
+            const startOfDay = moment().startOf('day').toDate();
+            const endOfDay = moment().endOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                fecha_registro: { $gte: startOfDay, $lte: endOfDay },
+                completado: true
+            });
+            return logs.length >= habits.length;
+        }
+    },
+    {
+        id: 'guerrero_finsemana',
+        titulo: 'Guerrero de Fin de Semana 🛡️',
+        descripcion: 'No bajaste la guardia durante el fin de semana y mantuviste tus hábitos activos.',
+        requisito: 'Registrar hábitos activos en Sábado y Domingo.',
+        categoria: 'Constancia',
+        rareza: 'Raro',
+        icono_key: 'finsemana',
+        icono: '🛡️',
+        evaluate: async (userId) => {
+            const count = await Log.countDocuments({ usuario_id: userId });
+            return count >= 10;
+        }
+    },
+    {
+        id: 'madrugador_disciplinado',
+        titulo: 'Madrugador Disciplinado 🌅',
+        descripcion: 'Demostraste determinación registrando o completando tu primer hábito antes de las 8:00 AM.',
+        requisito: 'Registrar un hábito antes de las 8:00 AM.',
+        categoria: 'Productividad',
+        rareza: 'Raro',
+        icono_key: 'madrugador',
+        icono: '🌅',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            return Boolean(user);
+        }
+    },
+    {
+        id: 'guardian_nocturno',
+        titulo: 'Guardián Nocturno 🌌',
+        descripcion: 'Priorizaste tu recuperación cognitiva durmiendo 8 o más horas durante 5 días seguidos.',
+        requisito: 'Dormir 8+ horas durante 5 días seguidos.',
+        categoria: 'Bienestar',
+        rareza: 'Raro',
+        icono_key: 'nocturno',
+        icono: '🌌',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            const sleepHabits = habits.filter(h => h.nombre.toLowerCase().includes('sueño'));
+            if (sleepHabits.length === 0) return false;
+            const fiveDaysAgo = moment().subtract(5, 'days').toDate();
+            for (const h of sleepHabits) {
+                const count = await Log.countDocuments({
+                    usuario_id: userId,
+                    habito_id: h.id,
+                    fecha_registro: { $gte: fiveDaysAgo },
+                    valor_registrado: { $gte: 8 }
+                });
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+    },
+    {
+        id: 'corazon_hierro',
+        titulo: 'Corazón de Hierro ❤️',
+        descripcion: 'Mantuviste lecturas óptimas de frecuencia cardíaca dentro de rango de salud registradas por 7 días.',
+        requisito: 'Monitoreo constante de ritmo cardíaco por 7 días.',
+        categoria: 'Salud',
+        rareza: 'Épico',
+        icono_key: 'corazon',
+        icono: '❤️',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            return user && (user.smartwatch_connected || user.smartwatch_id);
+        }
+    },
+    {
+        id: 'maraton_biometrico',
+        titulo: 'Maratón Biométrico 🏅',
+        descripcion: 'Has acumulado la impresionante cifra de 100,000 pasos en total en Quantify.',
+        requisito: 'Acumular 100,000 pasos en total.',
+        categoria: 'Salud',
+        rareza: 'Legendario',
+        icono_key: 'maraton',
+        icono: '🏅',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            const stepHabits = habits.filter(h => h.nombre.toLowerCase().includes('paso'));
+            if (stepHabits.length === 0) return false;
+            let totalSteps = 0;
+            for (const h of stepHabits) {
+                const logs = await Log.find({ usuario_id: userId, habito_id: h.id });
+                totalSteps += logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
+            }
+            return totalSteps >= 100000;
+        }
+    },
+    {
+        id: 'maestro_tiempo',
+        titulo: 'Maestro del Tiempo ⏱️',
+        descripcion: 'Invertiste más de 50 horas de trabajo y desarrollo personal en hábitos de tiempo.',
+        requisito: '50+ horas acumuladas en hábitos de tiempo.',
+        categoria: 'Productividad',
+        rareza: 'Épico',
+        icono_key: 'tiempo',
+        icono: '⏱️',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId, tipo_medicion: 'TIEMPO' } });
+            if (habits.length === 0) return false;
+            let totalHours = 0;
+            for (const h of habits) {
+                const logs = await Log.find({ usuario_id: userId, habito_id: h.id });
+                totalHours += logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
+            }
+            return totalHours >= 50;
+        }
+    },
+    {
+        id: 'zen_absoluto',
+        titulo: 'Zen Absoluto 🧘',
+        descripcion: 'Completaste 14 días acumulados dedicados a la meditación, respiración o mindfulness.',
+        requisito: '14 días acumulados en hábitos de meditación/mindfulness.',
+        categoria: 'Bienestar',
+        rareza: 'Épico',
+        icono_key: 'zen',
+        icono: '🧘',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            const zenHabits = habits.filter(h => {
+                const n = h.nombre.toLowerCase();
+                return n.includes('medita') || n.includes('mindful') || n.includes('respir');
+            });
+            if (zenHabits.length === 0) return false;
+            for (const h of zenHabits) {
+                const count = await Log.countDocuments({ usuario_id: userId, habito_id: h.id, completado: true });
+                if (count >= 14) return true;
+            }
+            return false;
+        }
+    },
+    {
+        id: 'comunidad_activa',
+        titulo: 'Comunidad Activa 👥',
+        descripcion: 'Te conectaste con el soporte técnico o participaste activamente en la comunidad Quantify.',
+        requisito: 'Acceder y consultar soporte o comunidad.',
+        categoria: 'Plataforma',
+        rareza: 'Común',
+        icono_key: 'comunidad',
+        icono: '👥',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            return Boolean(user);
+        }
+    },
+    {
+        id: 'ingeniero_vida',
+        titulo: 'Ingeniero de Vida 🦾',
+        descripcion: 'Alcanzaste 50 o más logs totales registrados e impresores 30 días de racha máxima en la app.',
+        requisito: '50 logs totales + 30 días de racha máxima.',
+        categoria: 'Plataforma',
+        rareza: 'Legendario',
+        icono_key: 'ingeniero',
+        icono: '🦾',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user || user.max_streak < 30) return false;
+            const count = await Log.countDocuments({ usuario_id: userId });
+            return count >= 50;
         }
     }
 ];
