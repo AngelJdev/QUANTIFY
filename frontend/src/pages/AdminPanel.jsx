@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers, FiActivity, FiShield, FiTrendingUp, FiTrash2, FiAlertCircle, FiStar, FiCheckCircle, FiEye, FiX, FiAlertTriangle, FiUserX } from 'react-icons/fi';
@@ -498,121 +499,119 @@ const AdminPanel = () => {
                 </p>
             </div>
 
-            {/* ─── Habits Modal ─── */}
-            <AnimatePresence>
-                {habitsModal.open && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-                        onClick={closeHabitsModal}
-                    >
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="relative w-full max-w-2xl max-h-[80vh] bg-surface dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
-                            onClick={(e) => e.stopPropagation()}
+            {/* ─── Habits Modal Portaled to document.body ─── */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {habitsModal.open && (
+                        <div
+                            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-200"
+                            onClick={closeHabitsModal}
                         >
-                            {/* Modal Header */}
-                            <div className="p-6 border-b border-gray-100 dark:border-white/10 flex items-center justify-between shrink-0">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-primary/10 dark:bg-white/10 rounded-full flex items-center justify-center font-black text-lg text-primary dark:text-white">
-                                        {habitsModal.user?.nombre.charAt(0).toUpperCase()}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 15 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                                className="relative w-full max-w-2xl max-h-[85vh] bg-zinc-900 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Modal Header */}
+                                <div className="p-6 border-b border-white/10 flex items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center font-black text-lg text-white">
+                                            {habitsModal.user?.nombre?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-extrabold text-white">
+                                                Hábitos de {habitsModal.user?.nombre}
+                                            </h3>
+                                            <p className="text-xs text-gray-400 font-medium">{habitsModal.user?.email}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-extrabold text-textPrimary dark:text-white">
-                                            Hábitos de {habitsModal.user?.nombre}
-                                        </h3>
-                                        <p className="text-xs text-textMuted font-medium">{habitsModal.user?.email}</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={closeHabitsModal}
-                                    className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-textMuted hover:text-textPrimary dark:hover:text-white"
-                                >
-                                    <FiX size={20} />
-                                </button>
-                            </div>
-
-                            {/* Modal Body */}
-                            <div className="flex-1 overflow-y-auto p-6">
-                                {habitsModal.loading ? (
-                                    <div className="space-y-3">
-                                        {Array.from({ length: 3 }).map((_, i) => (
-                                            <div key={i} className="h-16 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse"></div>
-                                        ))}
-                                    </div>
-                                ) : habitsModal.habits.length === 0 ? (
-                                    <div className="text-center py-16">
-                                        <FiActivity size={40} className="text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                                        <p className="text-textMuted font-bold">Este usuario no tiene hábitos registrados.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {habitsModal.habits.map((habit) => (
-                                            <motion.div
-                                                key={habit.id}
-                                                layout
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, x: -50 }}
-                                                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-2xl hover:border-gray-200 dark:hover:border-white/10 transition-all group"
-                                            >
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <h4 className="font-bold text-textPrimary dark:text-white truncate">{habit.nombre}</h4>
-                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${habit.activo ? 'bg-success/10 text-success border border-success/20' : 'bg-gray-200/50 dark:bg-white/5 text-textMuted border border-gray-200 dark:border-white/10'}`}>
-                                                            {habit.activo ? 'Activo' : 'Inactivo'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-xs text-textMuted">
-                                                        <span>{habit.tipo_medicion}</span>
-                                                        <span>•</span>
-                                                        <span>{habit.frecuencia}</span>
-                                                        {habit.meta_diaria && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <span>Meta: {habit.meta_diaria} {habit.unidad || ''}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleDeleteSingleHabit(habit.id)}
-                                                    disabled={actionLoading === `habit-${habit.id}`}
-                                                    className="p-2.5 rounded-xl text-gray-400 dark:text-gray-600 hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-30 shrink-0 ml-3"
-                                                    title="Eliminar hábito"
-                                                >
-                                                    <FiTrash2 size={16} />
-                                                </button>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Modal Footer */}
-                            {habitsModal.habits.length > 0 && (
-                                <div className="p-6 border-t border-gray-100 dark:border-white/10 shrink-0">
                                     <button
-                                        onClick={() => handleDeleteAllHabits(habitsModal.user?.id, habitsModal.user?.nombre)}
-                                        disabled={actionLoading === `all-habits-${habitsModal.user?.id}`}
-                                        className="w-full flex items-center justify-center gap-2 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-30"
+                                        onClick={closeHabitsModal}
+                                        className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
                                     >
-                                        <FiAlertTriangle size={16} />
-                                        Eliminar Todos los Hábitos ({habitsModal.habits.length})
+                                        <FiX size={20} />
                                     </button>
                                 </div>
-                            )}
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
+                                {/* Modal Body */}
+                                <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                                    {habitsModal.loading ? (
+                                        <div className="space-y-3">
+                                            {Array.from({ length: 3 }).map((_, i) => (
+                                                <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse"></div>
+                                            ))}
+                                        </div>
+                                    ) : habitsModal.habits.length === 0 ? (
+                                        <div className="text-center py-16">
+                                            <FiActivity size={40} className="text-gray-600 mx-auto mb-4" />
+                                            <p className="text-gray-400 font-bold">Este usuario no tiene hábitos registrados.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {habitsModal.habits.map((habit) => (
+                                                <motion.div
+                                                    key={habit.id}
+                                                    layout
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, x: -50 }}
+                                                    className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl hover:border-white/10 transition-all group"
+                                                >
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h4 className="font-bold text-white truncate">{habit.nombre}</h4>
+                                                            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${habit.activo ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-gray-400 border border-white/10'}`}>
+                                                                {habit.activo ? 'Activo' : 'Inactivo'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-xs text-gray-400 font-medium">
+                                                            <span>{habit.tipo_medicion}</span>
+                                                            <span>•</span>
+                                                            <span>{habit.frecuencia}</span>
+                                                            {habit.meta_diaria && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span>Meta: {habit.meta_diaria} {habit.unidad || ''}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteSingleHabit(habit.id)}
+                                                        disabled={actionLoading === `habit-${habit.id}`}
+                                                        className="p-2.5 rounded-xl text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-30 shrink-0 ml-3"
+                                                        title="Eliminar hábito"
+                                                    >
+                                                        <FiTrash2 size={16} />
+                                                    </button>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Modal Footer */}
+                                {habitsModal.habits.length > 0 && (
+                                    <div className="p-6 border-t border-white/10 shrink-0">
+                                        <button
+                                            onClick={() => handleDeleteAllHabits(habitsModal.user?.id, habitsModal.user?.nombre)}
+                                            disabled={actionLoading === `all-habits-${habitsModal.user?.id}`}
+                                            className="w-full flex items-center justify-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-30"
+                                        >
+                                            <FiAlertTriangle size={16} />
+                                            Eliminar Todos los Hábitos ({habitsModal.habits.length})
+                                        </button>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
 
             <ConfirmModal
                 isOpen={confirmModal.open}
