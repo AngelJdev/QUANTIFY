@@ -70,7 +70,7 @@ const mockLogros = [
     { id: 6, titulo: 'Hábito Forjado', descripcion: '21 días de constancia ininterrumpida. El hábito ya está enraizado.', mes_logro: 'Abril 2026', icono_url: 'shield' },
 ];
 
-const USE_MOCK = true; // Cambia a false para reconectar la API real
+const USE_MOCK = false; // Conectado a la API real de logros
 // ──────────────────────────────────────────────────────────────────────────────
 
 const container = {
@@ -97,7 +97,14 @@ export default function TrophyGallery({ refreshSignal }) {
                 setAchievements(mockLogros);
             } else {
                 const res = await api.get('/achievements');
-                setAchievements(res.data.data?.achievements || []);
+                const data = res.data.data;
+                if (data?.catalog) {
+                    // Mostrar primero los desbloqueados en la galería del dashboard
+                    const unlocked = data.catalog.filter(a => a.unlocked);
+                    setAchievements(unlocked.length > 0 ? unlocked : data.achievements || []);
+                } else {
+                    setAchievements(data?.achievements || []);
+                }
             }
         } catch (err) {
             console.error('Error al cargar galería:', err);
