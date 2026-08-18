@@ -400,9 +400,9 @@ export default function Register() {
                             )}
                         </button>
                     </footer>
-                </div>
+                                </div>
 
-                               <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-textMuted leading-loose">
+                <p className="text-center mt-12 text-[10px] font-black uppercase tracking-[0.3em] text-textMuted leading-loose">
                     ¿Cuenta existente?{' '}
                     <Link
                         to="/login"
@@ -413,6 +413,5 @@ export default function Register() {
                 </p>
             </div>
         </div>
-        
     );
 }
