@@ -33,7 +33,12 @@ const User = sequelize.define('User', {
     },
     password_hash: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+    },
+    google_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
     },
     rol: {
         type: DataTypes.INTEGER,
@@ -43,6 +48,10 @@ const User = sequelize.define('User', {
     preferencias: {
         type: DataTypes.JSON,
         allowNull: true,
+    },
+    is_premium: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
     },
     security_phrase_hash: {
         type: DataTypes.STRING,

@@ -80,13 +80,17 @@ app.use(express.urlencoded({ extended: true }));
 // Database Connections (Trigger sync on start for MySQL)
 Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Note: In production you might want to run migrations instead of sync()
-    const { default: sequelize } = await import('./SQL/config/db.mysql.js');
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database models synchronized (MySQL).');
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+        const { default: sequelize } = await import('./SQL/config/db.mysql.js');
+        await sequelize.sync({ alter: true });
+        console.log('✅ Database models synchronized (MySQL).');
 
-    // Seed admin users
-    const { seedAdmins } = await import('./SQL/seeds/adminSeed.js');
-    await seedAdmins();
+        // Seed admin users
+        const { seedAdmins } = await import('./SQL/seeds/adminSeed.js');
+        await seedAdmins();
+    } else {
+        console.log('✅ Production mode: Skipping DB Sync and Seeding to prevent column drops.');
+    }
 }).catch(err => {
     console.error('Failed to initialize databases:', err);
 });
@@ -130,19 +134,16 @@ const PORT = process.env.PORT || 5000;
 const privateKeyPath = path.join(__dirname, 'ssl', 'server.key');
 const certificatePath = path.join(__dirname, 'ssl', 'server.cert');
 
-let server;
-
 if (fs.existsSync(privateKeyPath) && fs.existsSync(certificatePath)) {
     const credentials = {
         key: fs.readFileSync(privateKeyPath, 'utf8'),
         cert: fs.readFileSync(certificatePath, 'utf8')
     };
-    server = https.createServer(credentials, app);
-    server.listen(PORT, () => {
+    const httpsServer = https.createServer(credentials, app);
+    httpsServer.listen(PORT, () => {
         console.log(`🚀 HTTPS Server running securely on port ${PORT}`);
     });
 } else {
-    server = http.createServer(app);
     server.listen(PORT, () => {
         console.warn('⚠️ SSL certificates not found. Running HTTP Server on port', PORT);
     });
