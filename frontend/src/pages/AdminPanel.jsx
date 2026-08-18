@@ -5,6 +5,7 @@ import { FiUsers, FiActivity, FiShield, FiTrendingUp, FiTrash2, FiAlertCircle, F
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 import { io as socketIO } from 'socket.io-client';
+import ConfirmModal from '../components/ConfirmModal';
 
 const ROL_LABELS = { 0: 'Admin', 1: 'Usuario', 2: 'Moderador' };
 const ROL_BADGES = { 0: 'bg-amber-500/10 border-amber-500/20 text-amber-400', 1: 'bg-blue-500/10 border-blue-500/20 text-blue-400', 2: 'bg-purple-500/10 border-purple-500/20 text-purple-400' };
@@ -16,6 +17,16 @@ const AdminPanel = () => {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [stats, setStats] = useState({ totalUsers: 0, totalHabits: 0 });
+    const [confirmModal, setConfirmModal] = useState({
+        open: false,
+        title: '',
+        message: '',
+        variant: 'danger',
+        confirmText: 'Confirmar',
+        cancelText: 'Cancelar',
+        showCancel: true,
+        onConfirm: null
+    });
     const socketRef = useRef(null);
 
     // Habits modal state
@@ -72,51 +83,97 @@ const AdminPanel = () => {
         setHabitsModal({ open: false, user: null, habits: [], loading: false });
     };
 
-    const handleDeleteSingleHabit = async (habitId) => {
-        if (!window.confirm('¿Eliminar este hábito?')) return;
-        setActionLoading(`habit-${habitId}`);
-        try {
-            await api.delete(`/admin/habits/${habitId}`);
-            setHabitsModal(prev => ({
-                ...prev,
-                habits: prev.habits.filter(h => h.id !== habitId)
-            }));
-        } catch (error) {
-            alert(error.response?.data?.message || 'Error al eliminar hábito.');
-        } finally {
-            setActionLoading(null);
-        }
+    const showAlert = (title, message, variant = 'warning') => {
+        setConfirmModal({
+            open: true,
+            title,
+            message,
+            variant,
+            confirmText: 'Entendido',
+            cancelText: 'Cerrar',
+            showCancel: false,
+            onConfirm: () => setConfirmModal(prev => ({ ...prev, open: false }))
+        });
     };
 
-    const handleDeleteAllHabits = async (userId, userName) => {
-        if (!window.confirm(`¿Eliminar TODOS los hábitos de ${userName}? Esta acción no se puede deshacer.`)) return;
-        setActionLoading(`all-habits-${userId}`);
-        try {
-            await api.delete(`/admin/users/${userId}/habits`);
-            setHabitsModal(prev => ({ ...prev, habits: [] }));
-        } catch (error) {
-            alert(error.response?.data?.message || 'Error al eliminar hábitos.');
-        } finally {
-            setActionLoading(null);
-        }
+    const handleDeleteSingleHabit = (habitId) => {
+        setConfirmModal({
+            open: true,
+            title: '¿Eliminar Hábito?',
+            message: '¿Estás seguro de que deseas eliminar este hábito? Los registros asociados también se eliminarán.',
+            variant: 'danger',
+            confirmText: 'Eliminar Hábito',
+            cancelText: 'Cancelar',
+            showCancel: true,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                setActionLoading(`habit-${habitId}`);
+                try {
+                    await api.delete(`/admin/habits/${habitId}`);
+                    setHabitsModal(prev => ({
+                        ...prev,
+                        habits: prev.habits.filter(h => h.id !== habitId)
+                    }));
+                } catch (error) {
+                    showAlert('Error al Eliminar', error.response?.data?.message || 'Error al eliminar el hábito.', 'warning');
+                } finally {
+                    setActionLoading(null);
+                }
+            }
+        });
     };
 
-    const handleDeleteUser = async (userId, userName) => {
-        if (!window.confirm(`¿ELIMINAR PERMANENTEMENTE la cuenta de ${userName}? Esta acción no se puede deshacer.`)) return;
-        setActionLoading(`user-${userId}`);
-        try {
-            await api.delete(`/admin/users/${userId}`);
-        } catch (error) {
-            alert(error.response?.data?.message || 'Error al eliminar cuenta.');
-        } finally {
-            setActionLoading(null);
-        }
+    const handleDeleteAllHabits = (userId, userName) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Todos los Hábitos',
+            message: `¿Eliminar TODOS los hábitos de ${userName}? Esta acción es permanente y no se puede deshacer.`,
+            variant: 'danger',
+            confirmText: 'Eliminar Todos los Hábitos',
+            cancelText: 'Cancelar',
+            showCancel: true,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                setActionLoading(`all-habits-${userId}`);
+                try {
+                    await api.delete(`/admin/users/${userId}/habits`);
+                    setHabitsModal(prev => ({ ...prev, habits: [] }));
+                } catch (error) {
+                    showAlert('Error al Eliminar', error.response?.data?.message || 'Error al eliminar los hábitos.', 'warning');
+                } finally {
+                    setActionLoading(null);
+                }
+            }
+        });
+    };
+
+    const handleDeleteUser = (userId, userName) => {
+        setConfirmModal({
+            open: true,
+            title: 'Eliminar Cuenta de Usuario',
+            message: `¿ELIMINAR PERMANENTEMENTE la cuenta de ${userName}? Esta acción eliminará su perfil, estadísticas y hábitos de forma irreversible.`,
+            variant: 'danger',
+            confirmText: 'Eliminar Cuenta',
+            cancelText: 'Cancelar',
+            showCancel: true,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                setActionLoading(`user-${userId}`);
+                try {
+                    await api.delete(`/admin/users/${userId}`);
+                } catch (error) {
+                    showAlert('Error al Eliminar', error.response?.data?.message || 'Error al eliminar la cuenta.', 'warning');
+                } finally {
+                    setActionLoading(null);
+                }
+            }
+        });
     };
 
     const handleRoleChange = async (userId, newRole) => {
         const targetUser = users.find(u => u.id === userId);
         if (targetUser && SUPER_ADMINS.includes(targetUser.email.toLowerCase())) {
-            alert('Acción denegada: El Creador y Super Admin es inamovible.');
+            showAlert('Acción Denegada', 'El Creador y Super Admin es inamovible del sistema.', 'warning');
             return;
         }
 
@@ -125,7 +182,7 @@ const AdminPanel = () => {
             await api.patch(`/admin/users/${userId}/role`, { rol: newRole });
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, rol: newRole } : u));
         } catch (error) {
-            alert(error.response?.data?.message || 'Error al cambiar rol');
+            showAlert('Error al Cambiar Rol', error.response?.data?.message || 'Error al cambiar el rol del usuario.', 'warning');
         } finally {
             setActionLoading(null);
         }
@@ -137,7 +194,7 @@ const AdminPanel = () => {
             await api.patch(`/admin/users/${userId}/premium`, { is_premium: !currentState });
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_premium: !currentState } : u));
         } catch (error) {
-            alert(error.response?.data?.message || 'Error al cambiar estado premium');
+            showAlert('Error al Cambiar Estado', error.response?.data?.message || 'Error al actualizar estado premium.', 'warning');
         } finally {
             setActionLoading(null);
         }
@@ -556,6 +613,18 @@ const AdminPanel = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfirmModal
+                isOpen={confirmModal.open}
+                onClose={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                variant={confirmModal.variant}
+                confirmText={confirmModal.confirmText}
+                cancelText={confirmModal.cancelText}
+                showCancel={confirmModal.showCancel}
+            />
         </div>
     );
 };
