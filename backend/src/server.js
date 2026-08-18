@@ -19,6 +19,7 @@ import onboardingRoutes from './routes/onboarding.routes.js';
 import achievementRoutes from './routes/achievement.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import aiRoutes from './routes/ai.routes.js';
+import smarttvRoutes from './routes/smarttv.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './models/user.model.js';
@@ -66,6 +67,7 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/smarttv', smarttvRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });

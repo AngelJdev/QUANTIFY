@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiActivity, FiBookOpen, FiWatch, FiHelpCircle, FiAward, FiPieChart, FiSettings, FiUsers } from 'react-icons/fi';
+import { FiLogOut, FiActivity, FiBookOpen, FiWatch, FiTv, FiHelpCircle, FiAward, FiPieChart, FiSettings, FiUsers } from 'react-icons/fi';
 import { LuShield, LuUser } from 'react-icons/lu';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
@@ -92,6 +92,13 @@ const Sidebar = () => {
                         : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
                         }`}>
                     <FiWatch size={16} /> Smartwatch
+                </Link>
+                <Link to="/smarttv"
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-colors font-bold text-sm border ${location.pathname === '/smarttv'
+                        ? 'bg-black/10 dark:bg-white/5 dark:border-white/10 dark:text-white'
+                        : 'border-transparent text-gray-300 hover:text-white hover:bg-black/10'
+                        }`}>
+                    <FiTv size={16} /> Smart TV
                 </Link>
                 <Link to="/"
                     className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-transparent text-gray-300 hover:text-white hover:bg-black/10 transition-colors font-bold text-sm">
