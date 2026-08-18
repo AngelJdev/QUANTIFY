@@ -33,7 +33,7 @@ const User = sequelize.define('User', {
     },
     password_hash: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     rol: {
         type: DataTypes.INTEGER,
