@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { verifyToken } from '../middleware/auth.middleware.js';
+import { isAdmin } from '../middleware/role.middleware.js';
 import {
     populateSQLHandler,
     deleteSQLHandler,
@@ -7,6 +9,10 @@ import {
 } from '../controllers/populate.controller.js';
 
 const router = Router();
+
+// Proteger todas las rutas de población: requiere token y rol ADMIN (0)
+router.use(verifyToken);
+router.use(isAdmin);
 
 /**
  * @swagger
