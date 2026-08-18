@@ -86,6 +86,17 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Temporary endpoint to safely sync the db without deadlocks
+app.get('/api/sys/sync-db', async (req, res) => {
+    try {
+        const { default: sequelize } = await import('./config/db.mysql.js');
+        await sequelize.sync({ alter: true });
+        res.status(200).json({ success: true, message: 'Database synced successfully on Vercel DB' });
+    } catch(e) {
+        res.status(500).json({ success: false, error: String(e) });
+    }
+});
+
 // Error Handling
 app.use(notFound);
 app.use(errorHandler);
