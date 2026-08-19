@@ -8,7 +8,7 @@ export const verifyToken = (req, res, next) => {
     let token = req.headers['authorization'];
 
     if (!token) {
-        return sendError(res, 403, 'No token provided.');
+        return sendError(res, 401, 'No token provided.');
     }
 
     if (token.startsWith('Bearer ')) {
