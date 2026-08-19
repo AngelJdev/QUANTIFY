@@ -1,8 +1,6 @@
 package com.example.smarttv_quantify.ui.achievements
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,12 +25,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.smarttv_quantify.data.remote.dto.AchievementDto
+import com.example.smarttv_quantify.data.remote.dto.CatalogAchievementDto
 import com.example.smarttv_quantify.data.remote.isAuthenticationFailure
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
 import com.example.smarttv_quantify.ui.components.AmbientBackground
@@ -50,7 +49,6 @@ import com.example.smarttv_quantify.ui.components.ErrorPanel
 import com.example.smarttv_quantify.ui.components.FocusableCard
 import com.example.smarttv_quantify.ui.components.NavButton
 import com.example.smarttv_quantify.ui.components.QuantifyLogo
-import com.example.smarttv_quantify.ui.components.SectionTitle
 import com.example.smarttv_quantify.ui.theme.QuantifyBorder
 import com.example.smarttv_quantify.ui.theme.QuantifyCyan
 import com.example.smarttv_quantify.ui.theme.QuantifySurface
@@ -69,17 +67,21 @@ fun AchievementsScreen(
 
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
-    var achievements by remember { mutableStateOf<List<AchievementDto>>(emptyList()) }
-    var total by remember { mutableStateOf(0) }
-    var refreshKey by remember { mutableStateOf(0) }
+    var achievements by remember { mutableStateOf<List<CatalogAchievementDto>>(emptyList()) }
+    var selectedAchievement by remember { mutableStateOf<CatalogAchievementDto?>(null) }
+    var unlockedCount by remember { mutableIntStateOf(0) }
+    var total by remember { mutableIntStateOf(0) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(repository, refreshKey) {
         loading = true
         error = null
         runCatching { repository.getAchievements() }
             .onSuccess { env ->
-                achievements = env.data?.achievements ?: emptyList()
-                total = env.data?.unlockedCount ?: achievements.size
+                val data = env.data
+                achievements = data?.catalog.orEmpty()
+                unlockedCount = data?.unlockedCount ?: achievements.count { it.unlocked }
+                total = data?.totalCatalogCount ?: achievements.size
                 loading = false
             }
             .onFailure {
@@ -90,6 +92,10 @@ fun AchievementsScreen(
                 error = it.message ?: "Error de conexión"
                 loading = false
             }
+    }
+
+    BackHandler(enabled = selectedAchievement != null) {
+        selectedAchievement = null
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -142,14 +148,17 @@ fun AchievementsScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("TOTAL", color = QuantifyTextMuted, fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                    Text("DESBLOQUEADOS", color = QuantifyTextMuted, fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(999.dp))
                             .background(QuantifyCyan.copy(alpha = 0.14f))
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                     ) {
-                        CountUpText(target = total, fontSize = 26.dp, color = QuantifyCyan)
+                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            CountUpText(target = unlockedCount, fontSize = 26.dp, color = QuantifyCyan)
+                            Text("/ $total", color = QuantifyTextMuted, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -180,20 +189,29 @@ fun AchievementsScreen(
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(achievements, key = { it.id ?: it.titulo.orEmpty() }) { a ->
-                        AchievementCard(a)
+                        AchievementCard(a, onClick = { selectedAchievement = a })
                     }
                 }
             }
+        }
+
+
+        selectedAchievement?.let { achievement ->
+            AchievementDetailDialog(
+                achievement = achievement,
+                onClose = { selectedAchievement = null }
+            )
         }
     }
 }
 
 @Composable
-private fun AchievementCard(achievement: AchievementDto) {
-    val accent = accentFor(achievement.id)
+private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> Unit) {
+    val accent = accentFor(achievement.rareza)
     FocusableCard(
-        onClick = {},
-        contentPadding = 0.dp
+        onClick = onClick,
+        contentPadding = 0.dp,
+        showSelectionBadge = false
     ) {
         Column(
             modifier = Modifier
@@ -213,28 +231,41 @@ private fun AchievementCard(achievement: AchievementDto) {
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = achievement.mes_logro ?: "Desbloqueado",
+                        text = if (achievement.unlocked) achievement.mes_logro ?: "DESBLOQUEADO" else "BLOQUEADO",
                         color = accent,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
                 }
-                Icon(Icons.Filled.Star, contentDescription = null, tint = accent, modifier = Modifier.scale(1.4f))
+                Text(
+                    text = achievement.icono ?: if (achievement.unlocked) "🏆" else "🔒",
+                    fontSize = 34.sp,
+                    modifier = Modifier.alpha(if (achievement.unlocked) 1f else 0.55f)
+                )
             }
             Text(
-                text = achievement.titulo ?: "Logro",
-                color = QuantifyTextPrimary,
+                text = achievement.titulo.ifBlank { "Logro" },
+                color = if (achievement.unlocked) QuantifyTextPrimary else QuantifyTextMuted,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Black,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = achievement.descripcion ?: "",
+                text = if (achievement.unlocked) achievement.descripcion else achievement.requisito,
                 color = QuantifyTextMuted,
                 fontSize = 16.sp,
-                maxLines = 3,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${achievement.categoria.uppercase()} · ${achievement.rareza.uppercase()}",
+                color = accent,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(2.dp))
@@ -249,8 +280,82 @@ private fun AchievementCard(achievement: AchievementDto) {
     }
 }
 
-private fun accentFor(id: Int?): Color = when ((id ?: 1) % 3) {
-    0 -> QuantifyCyan
-    1 -> QuantifyWarning
-    else -> QuantifySuccess
+@Composable
+private fun AchievementDetailDialog(
+    achievement: CatalogAchievementDto,
+    onClose: () -> Unit
+) {
+    val accent = accentFor(achievement.rareza)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.9f))
+            .padding(56.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.72f)
+                .clip(RoundedCornerShape(32.dp))
+                .background(QuantifySurface)
+                .border(2.dp, accent, RoundedCornerShape(32.dp))
+                .padding(36.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Text(
+                text = achievement.icono ?: if (achievement.unlocked) "🏆" else "🔒",
+                fontSize = 62.sp
+            )
+            Text(
+                text = achievement.titulo,
+                color = QuantifyTextPrimary,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = if (achievement.unlocked) "LOGRO DESBLOQUEADO" else "AÚN BLOQUEADO",
+                color = accent,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.sp
+            )
+            Text(
+                text = achievement.descripcion,
+                color = QuantifyTextMuted,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
+            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(accent.copy(alpha = 0.1f))
+                    .padding(18.dp)
+            ) {
+                Text(
+                    text = "OBJETIVO: ${achievement.requisito}",
+                    color = accent,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            NavButton(
+                label = "CERRAR",
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                onClick = onClose,
+                requestInitialFocus = true
+            )
+        }
+    }
+}
+
+private fun accentFor(rarity: String): Color = when (rarity.lowercase()) {
+    "legendario", "legendaria" -> QuantifyWarning
+    "épico", "épica" -> Color(0xFFA855F7)
+    "raro", "rara" -> QuantifySuccess
+    else -> QuantifyCyan
 }

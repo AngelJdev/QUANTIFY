@@ -193,33 +193,33 @@ fun PairingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 96.dp, vertical = 72.dp),
+                .padding(horizontal = 96.dp, vertical = 44.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             QuantifyLogo(subtitle = "SMART TV")
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "Conecta tu Smart TV",
                 color = QuantifyTextPrimary,
-                fontSize = 54.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = (-1).sp
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = "Abre Quantify en tu teléfono, entra a \"Conectar TV\"\ny escribe el siguiente código:",
                 color = QuantifyTextMuted,
-                fontSize = 21.sp,
+                fontSize = 19.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(28.dp))
 
             // Código de 6 dígitos
             if (code != null && error == null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     code!!.forEachIndexed { i, digit ->
                         AnimatedVisibility(
                             visible = i < visibleDigits,
@@ -227,7 +227,7 @@ fun PairingScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(104.dp)
+                                    .size(90.dp)
                                     .clip(RoundedCornerShape(24.dp))
                                     .background(
                                         Brush.verticalGradient(listOf(QuantifySurface, Color(0xFF0D0D0D)))
@@ -238,7 +238,7 @@ fun PairingScreen(
                                 Text(
                                     text = digit.toString(),
                                     color = QuantifyTextPrimary,
-                                    fontSize = 58.sp,
+                                    fontSize = 50.sp,
                                     fontWeight = FontWeight.Black,
                                     fontFamily = Monospace,
                                     letterSpacing = 0.sp
@@ -249,7 +249,7 @@ fun PairingScreen(
                 }
             }
 
-            Spacer(Modifier.height(44.dp))
+            Spacer(Modifier.height(24.dp))
 
             if (isRequesting) {
                 Text("GENERANDO CÓDIGO", color = QuantifyCyan.copy(alpha = pulse), fontWeight = FontWeight.Bold, letterSpacing = 4.sp, fontSize = 15.sp)
@@ -268,18 +268,19 @@ fun PairingScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text = "El código caduca en ${formatCountdown(remainingSeconds)}",
                     color = QuantifyTextMuted,
                     fontSize = 15.sp
                 )
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
                 FocusableCard(
                     onClick = { requestKey++ },
                     cornerRadius = 999.dp,
                     contentPadding = 14.dp,
-                    requestInitialFocus = true
+                    requestInitialFocus = true,
+                    showSelectionBadge = false
                 ) {
                     Text(
                         text = "GENERAR NUEVO CÓDIGO",
@@ -298,14 +299,25 @@ fun PairingScreen(
                     fontSize = 18.sp,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
-                Spacer(Modifier.height(28.dp))
-                FocusableCard(
-                    onClick = { requestKey++ },
-                    cornerRadius = 999.dp,
-                    contentPadding = 14.dp,
-                    requestInitialFocus = true
-                ) {
-                    Text("REINTENTAR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(Modifier.height(18.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    FocusableCard(
+                        onClick = { requestKey++ },
+                        cornerRadius = 999.dp,
+                        contentPadding = 14.dp,
+                        requestInitialFocus = true,
+                        showSelectionBadge = false
+                    ) {
+                        Text("REINTENTAR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                    }
+                    FocusableCard(
+                        onClick = onOpenSettings,
+                        cornerRadius = 999.dp,
+                        contentPadding = 14.dp,
+                        showSelectionBadge = false
+                    ) {
+                        Text("CAMBIAR SERVIDOR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 16.dp))
+                    }
                 }
             }
         }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,8 +86,8 @@ fun DashboardScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var stats by remember { mutableStateOf(GlobalStatsData()) }
     var habits by remember { mutableStateOf<List<HabitDto>>(emptyList()) }
-    var streak by remember { mutableStateOf(0) }
-    var refreshKey by remember { mutableStateOf(0) }
+    var streak by remember { mutableIntStateOf(0) }
+    var refreshKey by remember { mutableIntStateOf(0) }
     var connected by remember { mutableStateOf(false) }
     var lastSync by remember { mutableStateOf<String?>(null) }
 
@@ -308,7 +308,8 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
     FocusableCard(
         onClick = onClick,
         modifier = Modifier.width(280.dp),
-        contentPadding = 24.dp
+        contentPadding = 24.dp,
+        showSelectionBadge = false
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

@@ -1,8 +1,6 @@
 package com.example.smarttv_quantify.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -106,24 +103,15 @@ fun FocusableCard(
     cornerRadius: Dp = 28.dp,
     contentPadding: Dp = 24.dp,
     requestInitialFocus: Boolean = false,
+    showSelectionBadge: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val scale by animateFloatAsState(
-        targetValue = if (focused) 1.07f else 1f,
-        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
-        label = "cardScale"
-    )
     val borderColor by animateColorAsState(
         targetValue = if (focused) QuantifyCyan else QuantifyBorder,
         animationSpec = tween(180),
         label = "cardBorder"
-    )
-    val glow by animateFloatAsState(
-        targetValue = if (focused) 0.35f else 0f,
-        animationSpec = tween(260),
-        label = "cardGlow"
     )
     val shape = RoundedCornerShape(cornerRadius)
 
@@ -131,56 +119,50 @@ fun FocusableCard(
         if (requestInitialFocus) focusRequester.requestFocus()
     }
 
-    Box(
+    Column(
         modifier = modifier
-            .scale(scale)
             .clip(shape)
             .background(if (focused) QuantifySurfaceElevated else QuantifySurface)
             .border(if (focused) 3.dp else 1.dp, borderColor, shape)
             .focusRequester(focusRequester)
             .onFocusChanged { focused = it.isFocused }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(contentPadding)
     ) {
-        if (glow > 0.01f) {
+        if (showSelectionBadge) {
             Box(
                 Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(QuantifyCyan.copy(alpha = glow), Color.Transparent)
-                        )
-                    )
-            )
-        }
-        Column(Modifier.padding(contentPadding)) {
-            content()
-        }
-        if (focused) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(10.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(Color(0xE60A0A0A))
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .fillMaxWidth()
+                    .height(24.dp),
+                contentAlignment = Alignment.TopEnd
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(7.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(QuantifyCyan)
-                )
-                Text(
-                    text = "SELECCIONADO",
-                    color = QuantifyCyan,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.2.sp
-                )
+                if (focused) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color(0xE60A0A0A))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(QuantifyCyan)
+                        )
+                        Text(
+                            text = "SELECCIONADO",
+                            color = QuantifyCyan,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.2.sp
+                        )
+                    }
+                }
             }
         }
+        content()
     }
 }
 
@@ -239,11 +221,6 @@ fun NavButton(
 ) {
     var focused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val scale by animateFloatAsState(
-        targetValue = if (focused) 1.08f else 1f,
-        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
-        label = "navScale"
-    )
     val bg by animateColorAsState(
         targetValue = when {
             focused -> QuantifyCyan.copy(alpha = 0.35f)
@@ -261,7 +238,6 @@ fun NavButton(
 
     Row(
         modifier = modifier
-            .scale(scale)
             .clip(shape)
             .background(bg)
             .border(if (focused) 3.dp else 1.dp, if (focused) QuantifyCyan else QuantifyBorder, shape)
@@ -326,7 +302,12 @@ fun ErrorPanel(message: String, onRetry: () -> Unit, modifier: Modifier = Modifi
             fontWeight = FontWeight.Bold
         )
         Text(text = message, color = QuantifyTextMuted, fontSize = 17.sp)
-        FocusableCard(onClick = onRetry, cornerRadius = 999.dp, contentPadding = 16.dp) {
+        FocusableCard(
+            onClick = onRetry,
+            cornerRadius = 999.dp,
+            contentPadding = 16.dp,
+            showSelectionBadge = false
+        ) {
             Text("REINTENTAR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
         }
     }

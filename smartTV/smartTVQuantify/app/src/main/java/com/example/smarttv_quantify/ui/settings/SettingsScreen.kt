@@ -1,8 +1,6 @@
 package com.example.smarttv_quantify.ui.settings
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,8 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -119,8 +116,8 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 64.dp, vertical = 48.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
+                .padding(horizontal = 64.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // ===== Top bar =====
             Row(
@@ -156,7 +153,9 @@ fun SettingsScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.Top
             ) {
@@ -164,11 +163,12 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .weight(1.5f)
+                        .fillMaxHeight()
                         .clip(RoundedCornerShape(28.dp))
                         .background(QuantifySurface)
                         .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                        .padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(
@@ -197,7 +197,7 @@ fun SettingsScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         UrlPreset("Producción", BuildConfig.API_BASE_URL, urlInput) { guardarYProbar(it) }
                         UrlPreset("Emulador", "http://10.0.2.2:5000/", urlInput) { guardarYProbar(it) }
-                        UrlPreset("Dispositivo físico", "http://192.168.1.100:5000/", urlInput) { guardarYProbar(it) }
+                        UrlPreset("Físico", "http://192.168.1.100:5000/", urlInput) { guardarYProbar(it) }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         ActionButton(
@@ -221,11 +221,12 @@ fun SettingsScreen(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .fillMaxHeight()
                         .clip(RoundedCornerShape(28.dp))
                         .background(QuantifySurface)
                         .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                        .padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(
@@ -297,14 +298,6 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Quantify TV · Vinculación por código estilo Netflix · PUENTE HACKATON 2026",
-                color = QuantifyTextMuted,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
         }
     }
 }
@@ -333,7 +326,7 @@ private fun UrlInputField(value: String, onValueChange: (String) -> Unit) {
             .background(QuantifySurfaceElevated)
             .border(2.dp, borderColor, RoundedCornerShape(16.dp))
             .onFocusChanged { focused = it.isFocused }
-            .padding(horizontal = 18.dp, vertical = 16.dp)
+            .padding(horizontal = 18.dp, vertical = 6.dp)
     )
 }
 
@@ -364,21 +357,15 @@ private fun ActionButton(
         animationSpec = tween(180),
         label = "actionBg"
     )
-    val scale by animateFloatAsState(
-        targetValue = if (focused && enabled) 1.06f else 1f,
-        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
-        label = "btnScale"
-    )
     val shape = RoundedCornerShape(if (compact) 999.dp else 16.dp)
     Row(
         modifier = Modifier
-            .scale(scale)
             .clip(shape)
             .background(bg)
             .border(if (focused) 3.dp else 1.dp, if (focused) accent else accent.copy(alpha = if (active) 0.9f else 0.25f), shape)
             .onFocusChanged { focused = it.isFocused }
             .clickableNoRipple(enabled, onClick)
-            .padding(horizontal = if (compact) 18.dp else 24.dp, vertical = if (compact) 12.dp else 16.dp),
+            .padding(horizontal = if (compact) 16.dp else 22.dp, vertical = if (compact) 10.dp else 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
