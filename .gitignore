@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 backend/admin_credentials.txt
 backend/users_dataset.json
+
+# SmartTV Android Studio project
+smartTV/

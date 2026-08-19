@@ -6,6 +6,7 @@ import { getIO } from '../utils/socket.js';
 // Almacenamiento en memoria para códigos de vinculación de Smart TV
 // Estructura: Map<code, { createdAt, status: 'pending'|'linked', userId, token, userDetails }>
 const pendingTVCodes = new Map();
+const linkedTVUsers = new Set();
 
 // Limpiar códigos expirados cada 2 minutos (códigos duran 5 minutos)
 setInterval(() => {
@@ -29,8 +30,8 @@ export const requestPairingCode = async (req, res) => {
             code += characters.charAt(Math.floor(Math.random() * characters.length));
         }
 
-        pendingTVCodes.set(code, {
-            code,
+        pendingTVCodes.set(code.toUpperCase(), {
+            code: code.toUpperCase(),
             createdAt: Date.now(),
             status: 'pending',
             userId: null,
@@ -78,15 +79,19 @@ export const checkPairingStatus = async (req, res) => {
             pendingTVCodes.delete(code.toUpperCase());
             return res.status(200).json({
                 success: true,
-                status: 'linked',
-                token: data.token,
-                user: data.userDetails
+                data: {
+                    status: 'linked',
+                    token: data.token,
+                    user: data.userDetails
+                }
             });
         }
 
         res.status(200).json({
             success: true,
-            status: 'pending'
+            data: {
+                status: 'pending'
+            }
         });
     } catch (error) {
         console.error('Error al verificar estado de Smart TV:', error);
@@ -124,7 +129,7 @@ export const verifyPairingCode = async (req, res) => {
         }
 
         const user = await User.findByPk(userId, {
-            attributes: ['id', 'nombre', 'email', 'avatar', 'is_premium', 'rol']
+            attributes: ['id', 'nombre', 'email', 'avatar_url', 'is_premium', 'rol']
         });
 
         if (!user) {
@@ -138,6 +143,9 @@ export const verifyPairingCode = async (req, res) => {
             { expiresIn: '30d' }
         );
 
+        // Registrar usuario con Smart TV vinculada
+        linkedTVUsers.add(userId);
+
         // Actualizar el estado en memoria para que la TV lo reciba en la siguiente petición de polling
         data.status = 'linked';
         data.userId = user.id;
@@ -146,7 +154,7 @@ export const verifyPairingCode = async (req, res) => {
             id: user.id,
             nombre: user.nombre,
             email: user.email,
-            avatar: user.avatar,
+            avatar: user.avatar_url,
             is_premium: user.is_premium
         };
 
@@ -160,6 +168,7 @@ export const verifyPairingCode = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            is_linked: true,
             message: '¡Smart TV vinculada exitosamente con tu cuenta!',
             data: {
                 deviceName: 'QUANTIFY Smart TV',
@@ -187,6 +196,15 @@ export const getSmartTVDashboard = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
 
+        const isLinked = linkedTVUsers.has(userId) || req.user.device === 'smarttv';
+        if (!isLinked) {
+            return res.status(200).json({
+                success: true,
+                is_linked: false,
+                data: null
+            });
+        }
+
         const habits = await Habit.findAll({
             where: { usuario_id: userId, activo: true },
             order: [['fecha_creacion', 'DESC']]
@@ -199,12 +217,13 @@ export const getSmartTVDashboard = async (req, res) => {
 
         res.status(200).json({
             success: true,
+            is_linked: true,
             data: {
                 user: {
                     id: user.id,
                     nombre: user.nombre,
                     email: user.email,
-                    avatar: user.avatar,
+                    avatar: user.avatar_url,
                     current_streak: user.current_streak || 0,
                     max_streak: user.max_streak || 0,
                     is_premium: user.is_premium
@@ -241,6 +260,8 @@ export const getSmartTVDashboard = async (req, res) => {
 export const unlinkSmartTV = async (req, res) => {
     try {
         const userId = req.user.id;
+        linkedTVUsers.delete(userId);
+
         const io = getIO();
         if (io) {
             io.to(`user_${userId}`).emit('smarttv_unlinked');

@@ -52,12 +52,18 @@ const SmartTVPage = () => {
     const checkLinkedDevice = async () => {
         try {
             const data = await getSmartTVDashboard();
-            if (data.success && data.data) {
+            if (data.success && data.is_linked && data.data) {
                 setLinkedDevice({ nombre: 'QUANTIFY Smart TV' });
                 setDashboardData(data.data);
                 setStatus('linked');
+            } else {
+                setLinkedDevice(null);
+                setDashboardData(null);
+                setStatus('idle');
             }
         } catch {
+            setLinkedDevice(null);
+            setDashboardData(null);
             setStatus('idle');
         }
     };
