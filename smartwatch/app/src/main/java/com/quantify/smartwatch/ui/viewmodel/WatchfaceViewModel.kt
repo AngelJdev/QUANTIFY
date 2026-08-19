@@ -61,7 +61,9 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             while (true) {
                 kotlinx.coroutines.delay(5000) // Check every 5s for real-time sync / unlinking
-                fetchRemoteDashboard()
+                if (RetrofitClient.hasToken()) {
+                    fetchRemoteDashboard()
+                }
             }
         }
     }
@@ -78,11 +80,14 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
             // Pending sync count
             _pendingActions.value = db.actionQueueDao().getPendingCount()
 
-            fetchRemoteDashboard()
+            if (RetrofitClient.hasToken()) {
+                fetchRemoteDashboard()
+            }
         }
     }
 
     private suspend fun fetchRemoteDashboard() {
+        if (!RetrofitClient.hasToken()) return
         try {
             val response = RetrofitClient.apiService.getDashboard()
             if (response.isSuccessful && response.body()?.success == true) {
@@ -115,7 +120,7 @@ class WatchfaceViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                 }
                 _isOnline.value = true
-            } else if (response.code() == 401) {
+            } else if ((response.code() == 401 || response.code() == 403) && RetrofitClient.hasToken()) {
                 RetrofitClient.onUnauthorized?.invoke()
             }
         } catch (e: Exception) {
