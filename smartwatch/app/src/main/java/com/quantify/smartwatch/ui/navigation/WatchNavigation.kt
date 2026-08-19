@@ -75,7 +75,8 @@ fun WatchNavigation() {
         RetrofitClient.onUnauthorized = {
             authVm.unlinkLocal()
             navController.navigate(Routes.NOT_CONFIGURED) {
-                popUpTo(0) { inclusive = true }
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
@@ -267,10 +268,17 @@ fun WatchNavigation() {
         }
 
         composable(Routes.HABIT_FEEDBACK) {
+            val allCompleted by habitVm.allCompleted.collectAsState()
             HabitFeedbackScreen(
                 onFinished = {
-                    navController.navigate(Routes.HABIT_LIST) {
-                        popUpTo(Routes.HABIT_LIST) { inclusive = true }
+                    if (allCompleted) {
+                        navController.navigate(Routes.DAY_COMPLETE) {
+                            popUpTo(Routes.HABIT_LIST) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Routes.HABIT_LIST) {
+                            popUpTo(Routes.HABIT_LIST) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -280,7 +288,8 @@ fun WatchNavigation() {
             DayCompleteScreen(
                 onContinue = {
                     navController.navigate(Routes.WATCHFACE) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(Routes.WATCHFACE) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
