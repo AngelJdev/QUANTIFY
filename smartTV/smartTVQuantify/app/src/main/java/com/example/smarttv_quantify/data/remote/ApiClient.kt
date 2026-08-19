@@ -1,5 +1,7 @@
 package com.example.smarttv_quantify.data.remote
 
+import com.example.smarttv_quantify.BuildConfig
+import com.example.smarttv_quantify.data.remote.dto.FlexibleDoubleJsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -10,21 +12,18 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val DEFAULT_BASE_URL = "http://10.0.2.2:5000/api/"
-
     private var cachedService: ApiService? = null
     private var cachedUrl: String? = null
 
     // Normaliza la URL ingresada por el usuario (agrega esquema y "/api/" final si falta)
     fun normalizeBaseUrl(input: String?): String {
         var url = input?.trim().orEmpty()
-        if (url.isEmpty() || url.contains("vercel.app")) return DEFAULT_BASE_URL
+        if (url.isEmpty()) url = BuildConfig.API_BASE_URL
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             url = "http://$url"
         }
-        if (!url.endsWith("/")) url = "$url/"
-        if (!url.endsWith("api/")) url = "${url}api/"
-        return url
+        url = url.trimEnd('/')
+        return if (url.endsWith("/api")) "$url/" else "$url/api/"
     }
 
     @Synchronized
@@ -57,6 +56,7 @@ object ApiClient {
             .build()
 
         val moshi = Moshi.Builder()
+            .add(FlexibleDoubleJsonAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 

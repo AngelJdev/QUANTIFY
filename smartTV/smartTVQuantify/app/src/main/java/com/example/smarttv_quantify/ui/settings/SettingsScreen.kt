@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.BasicTextField
 import com.example.smarttv_quantify.data.local.SessionStore
+import com.example.smarttv_quantify.BuildConfig
 import com.example.smarttv_quantify.data.remote.ApiClient
 import com.example.smarttv_quantify.data.remote.TokenHolder
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
@@ -189,6 +190,7 @@ fun SettingsScreen(
                     )
                     UrlInputField(value = urlInput, onValueChange = { urlInput = it })
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        UrlPreset("Producción", BuildConfig.API_BASE_URL, urlInput) { guardarYProbar(it) }
                         UrlPreset("Emulador", "http://10.0.2.2:5000/", urlInput) { guardarYProbar(it) }
                         UrlPreset("Dispositivo físico", "http://192.168.1.100:5000/", urlInput) { guardarYProbar(it) }
                     }

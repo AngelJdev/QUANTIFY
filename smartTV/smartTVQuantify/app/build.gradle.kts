@@ -6,7 +6,9 @@ plugins {
 android {
     namespace = "com.example.smarttv_quantify"
     compileSdk {
-        version = release(37)
+        version = release(36) {
+            minorApiLevel = 1
+        }
     }
 
     defaultConfig {
@@ -21,7 +23,7 @@ android {
         // URL por defecto de la API Quantify (backend hosteado en Vercel).
         // Para pruebas locales con el emulador usa el preset "Emulador" en Ajustes
         // (http://10.0.2.2:5000/) apuntando a un backend corriendo en tu PC.
-        buildConfigField("String", "API_BASE_URL", "\"https://quantify-zeta-hazel.vercel.app/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://quantify-zeta-hazel.vercel.app/api/\"")
     }
 
     buildTypes {

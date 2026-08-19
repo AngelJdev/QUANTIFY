@@ -100,7 +100,7 @@ fun DashboardScreen(
         }.onSuccess { (profile, global, habitsEnv) ->
             stats = global.data ?: GlobalStatsData()
             habits = habitsEnv.data.orEmpty()
-            streak = profile.data?.current_streak ?: 0
+            streak = profile.data?.user?.current_streak ?: 0
             loading = false
         }.onFailure {
             error = it.message ?: "Error de conexión con el servidor"

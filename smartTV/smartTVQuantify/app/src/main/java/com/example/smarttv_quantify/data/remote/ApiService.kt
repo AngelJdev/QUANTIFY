@@ -13,7 +13,7 @@ import com.example.smarttv_quantify.data.remote.dto.GlobalStatsData
 import com.example.smarttv_quantify.data.remote.dto.HabitDto
 import com.example.smarttv_quantify.data.remote.dto.PairRequestData
 import com.example.smarttv_quantify.data.remote.dto.PairStatusData
-import com.example.smarttv_quantify.data.remote.dto.UserSummary
+import com.example.smarttv_quantify.data.remote.dto.ProfileData
 
 import com.example.smarttv_quantify.data.remote.dto.CheckStatusRequest
 
@@ -32,7 +32,7 @@ interface ApiService {
 
     // ===== Datos del usuario (requieren token) =====
     @GET("auth/profile")
-    suspend fun getProfile(): ApiEnvelope<UserSummary>
+    suspend fun getProfile(): ApiEnvelope<ProfileData>
 
     @GET("logs/global-stats")
     suspend fun getGlobalStats(): ApiEnvelope<GlobalStatsData>

@@ -12,7 +12,7 @@ import com.example.smarttv_quantify.data.remote.dto.GlobalStatsData
 import com.example.smarttv_quantify.data.remote.dto.HabitDto
 import com.example.smarttv_quantify.data.remote.dto.PairRequestData
 import com.example.smarttv_quantify.data.remote.dto.PairStatusData
-import com.example.smarttv_quantify.data.remote.dto.UserSummary
+import com.example.smarttv_quantify.data.remote.dto.ProfileData
 
 import com.example.smarttv_quantify.data.remote.dto.CheckStatusRequest
 
@@ -30,7 +30,7 @@ class QuantifyRepository(private val baseUrl: String) {
     suspend fun disconnect(): ApiEnvelope<DisconnectData> =
         api.disconnect()
 
-    suspend fun getProfile(): ApiEnvelope<UserSummary> =
+    suspend fun getProfile(): ApiEnvelope<ProfileData> =
         api.getProfile()
 
     suspend fun getGlobalStats(): ApiEnvelope<GlobalStatsData> =

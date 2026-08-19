@@ -77,7 +77,7 @@ fun AchievementsScreen(
         runCatching { repository.getAchievements() }
             .onSuccess { env ->
                 achievements = env.data?.achievements ?: emptyList()
-                total = env.data?.total ?: achievements.size
+                total = env.data?.unlockedCount ?: achievements.size
                 loading = false
             }
             .onFailure {
