@@ -234,10 +234,24 @@ fun PairingScreen(
                 }
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "El código caduca en 10 minutos",
+                    text = "El código caduca en 5 minutos",
                     color = QuantifyTextMuted,
                     fontSize = 15.sp
                 )
+                Spacer(Modifier.height(24.dp))
+                FocusableCard(
+                    onClick = { requestKey++ },
+                    cornerRadius = 999.dp,
+                    contentPadding = 14.dp
+                ) {
+                    Text(
+                        text = "GENERAR NUEVO CÓDIGO",
+                        color = QuantifyCyan,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
             }
 
             if (error != null) {
@@ -249,7 +263,7 @@ fun PairingScreen(
                 )
                 Spacer(Modifier.height(28.dp))
                 FocusableCard(onClick = { requestKey++ }, cornerRadius = 999.dp, contentPadding = 14.dp) {
-                    Text("REINTENTAR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 12.dp))
+                    Text("REINTENTAR", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
         }

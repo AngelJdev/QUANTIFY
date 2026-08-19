@@ -12,6 +12,9 @@ object ApiClient {
 
     private const val DEFAULT_BASE_URL = "http://10.0.2.2:5000/api/"
 
+    private var cachedService: ApiService? = null
+    private var cachedUrl: String? = null
+
     // Normaliza la URL ingresada por el usuario (agrega esquema y "/api/" final si falta)
     fun normalizeBaseUrl(input: String?): String {
         var url = input?.trim().orEmpty()

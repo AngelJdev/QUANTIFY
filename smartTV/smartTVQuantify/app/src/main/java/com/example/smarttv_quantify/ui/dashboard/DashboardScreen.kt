@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -54,6 +55,7 @@ import com.example.smarttv_quantify.ui.components.NavButton
 import com.example.smarttv_quantify.ui.components.QuantifyLogo
 import com.example.smarttv_quantify.ui.components.SectionTitle
 import com.example.smarttv_quantify.ui.components.StatCard
+import com.example.smarttv_quantify.ui.theme.Monospace
 import com.example.smarttv_quantify.ui.theme.QuantifyBorder
 import com.example.smarttv_quantify.ui.theme.QuantifyCyan
 import com.example.smarttv_quantify.ui.theme.QuantifySurface
@@ -62,6 +64,8 @@ import com.example.smarttv_quantify.ui.theme.QuantifyTextMuted
 import com.example.smarttv_quantify.ui.theme.QuantifyTextPrimary
 import com.example.smarttv_quantify.ui.theme.QuantifyWarning
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -99,219 +103,165 @@ fun DashboardScreen(
             streak = profile.data?.current_streak ?: 0
             loading = false
         }.onFailure {
-            error = it.message ?: "Error de conexión"
+            error = it.message ?: "Error de conexión con el servidor"
             loading = false
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        AmbientBackground()
+    Box(Modifier.fillMaxSize()) {
+        AmbientBackground(Modifier.fillMaxSize())
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 64.dp, vertical = 48.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
-        ) {
-            // ===== Top bar =====
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                QuantifyLogo(subtitle = "SMART TV")
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    NavButton("Logros", Icons.Filled.EmojiEvents, onOpenAchievements)
-                    NavButton("Ajustes", Icons.Filled.Settings, onOpenSettings)
+        if (loading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    QuantifyLogo(modifier = Modifier.size(100.dp))
+                    Spacer(Modifier.height(20.dp))
+                    Text("CARGANDO TU UNIVERSO DE DATOS...", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 }
             }
-
-            // ===== Greeting =====
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "Panel de control",
-                    color = QuantifyCyan,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 4.sp
-                )
-                Text(
-                    text = "Buenas métricas, ${userName ?: "usuario"}",
-                    color = QuantifyTextPrimary,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-1).sp
-                )
-                Text(
-                    text = fechaHoy(),
-                    color = QuantifyTextMuted,
-                    fontSize = 17.sp
+        } else if (error != null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                ErrorPanel(
+                    message = error!!,
+                    onRetry = { refreshKey++ }
                 )
             }
-
-            when {
-                loading -> LoadingDashboard()
-                error != null -> ErrorPanel(message = error!!, onRetry = { refreshKey++ })
-                else -> {
-                    // ===== Stat cards =====
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        StatCard(
-                            title = "Adherencia Global",
-                            icon = Icons.AutoMirrored.Filled.TrendingUp,
-                            modifier = Modifier.weight(1f)
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(40.dp),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
+                // Header: Perfil y Reloj
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(QuantifyCyan.copy(alpha = 0.15f))
+                                .border(2.dp, QuantifyCyan, RoundedCornerShape(20.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            CountUpText(target = stats.globalScore, fontSize = 44.dp, suffix = "")
+                            Icon(Icons.Default.Layers, contentDescription = null, tint = QuantifyCyan, modifier = Modifier.size(35.dp))
                         }
-                        StatCard(
-                            title = "Racha Actual",
-                            icon = Icons.Filled.LocalFireDepartment,
-                            accent = QuantifyWarning,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            CountUpText(target = streak, fontSize = 44.dp, suffix = "", color = QuantifyWarning)
-                            Text("días", color = QuantifyTextMuted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
-                        StatCard(
-                            title = "Hábitos Activos",
-                            icon = Icons.Filled.Layers,
-                            accent = QuantifySuccess,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            CountUpText(target = stats.totalHabits, fontSize = 44.dp, suffix = "", color = QuantifySuccess)
-                            Text("total", color = QuantifyTextMuted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
-                        StatCard(
-                            title = "Cumplimiento Hoy",
-                            icon = Icons.Filled.CheckCircle,
-                            accent = QuantifyCyan,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            CountUpText(target = stats.dailyCompletion, fontSize = 44.dp, suffix = "")
+                        Column {
+                            Text(
+                                text = "BIENVENIDO, ${userName?.uppercase() ?: "EXPLORADOR"}",
+                                color = QuantifyTextPrimary,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.sp
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(Icons.Default.LocalFireDepartment, "Racha", tint = Color(0xFFFF9F00), modifier = Modifier.size(18.dp))
+                                Text(
+                                    text = "RACHA ACTUAL: $streak DÍAS",
+                                    color = QuantifyTextMuted,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(fechaHoy(), color = QuantifyTextMuted.copy(alpha = 0.6f), fontSize = 14.sp)
+                            }
                         }
                     }
 
-                    // ===== Chart card =====
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(2f)
-                                .clip(RoundedCornerShape(28.dp))
-                                .background(QuantifySurface)
-                                .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-                                .padding(28.dp),
-                            verticalArrangement = Arrangement.spacedBy(18.dp)
+                    LiveClockDisplay()
+                }
+
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+                    // Panel Izquierdo: Estadísticas y Gráfico
+                    Column(modifier = Modifier.weight(0.65f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
+                            StatCard(
+                                title = "CUMPLIMIENTO",
+                                icon = Icons.Default.CheckCircle,
+                                modifier = Modifier.weight(1f),
+                                accent = QuantifyCyan
+                            ) {
+                                Text("${stats.globalScore}%", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                            StatCard(
+                                title = "COMPLETADOS",
+                                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                modifier = Modifier.weight(1f),
+                                accent = QuantifySuccess
+                            ) {
+                                Text("${stats.dailyCompletion}", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                            StatCard(
+                                title = "TOTAL HÁBITOS",
+                                icon = Icons.Default.Leaderboard,
+                                modifier = Modifier.weight(1f),
+                                accent = QuantifyWarning
+                            ) {
+                                Text("${stats.totalHabits}", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+
+                        FocusableCard(
+                            onClick = {},
+                            modifier = Modifier.weight(1f),
+                            cornerRadius = 32.dp
+                        ) {
+                            Column(Modifier.padding(28.dp)) {
+                                SectionTitle("RENDIMIENTO DIARIO", "PORCENTAJE DE CUMPLIMIENTO")
+                                Spacer(Modifier.height(24.dp))
+                                AnimatedBarChart(
+                                    data = stats.dailyPerformance.map { it.porcentaje.toFloat() },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+
+                    // Panel Derecho: Hábitos y Acceso Rápido
+                    Column(modifier = Modifier.weight(0.35f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                        FocusableCard(
+                            onClick = onOpenAchievements,
+                            cornerRadius = 28.dp,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                modifier = Modifier.padding(20.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                SectionTitle("Rendimiento", "30 días")
-                                Box(
-                                    Modifier
-                                        .clip(RoundedCornerShape(999.dp))
-                                        .background(QuantifyCyan.copy(alpha = 0.14f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                ) {
-                                    Text(
-                                        "ADHERENCIA GLOBAL ${stats.globalScore}%",
-                                        color = QuantifyCyan,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.5.sp
-                                    )
-                                }
-                            }
-                            AnimatedBarChart(
-                                data = stats.dailyPerformance.map { it.porcentaje.toFloat() },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                            )
-                            Row(Modifier.fillMaxWidth()) {
-                                val labels = stats.dailyPerformance.takeLast(7).map { p ->
-                                    p.fecha?.takeLast(5) ?: ""
-                                }
-                                labels.forEach { l ->
-                                    Text(
-                                        text = l,
-                                        color = QuantifyTextMuted,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFFFD700), modifier = Modifier.size(30.dp))
+                                Column {
+                                    Text("LOGROS DESBLOQUEADOS", color = QuantifyTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text("VER TU VITRINA DE TROFEOS", color = QuantifyTextMuted, fontSize = 12.sp)
                                 }
                             }
                         }
 
-                        // ===== Habits summary =====
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(28.dp))
-                                .background(QuantifySurface)
-                                .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-                                .padding(28.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            SectionTitle("Hábitos", "${habits.size} en tu plan")
-                            habits.take(3).forEach { h ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .width(6.dp)
-                                            .height(34.dp)
-                                            .clip(RoundedCornerShape(3.dp))
-                                            .background(QuantifyCyan)
-                                    )
-                                    Column(Modifier.weight(1f)) {
-                                        Text(
-                                            text = h.nombre,
-                                            color = QuantifyTextPrimary,
-                                            fontSize = 19.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = h.tipo_medicion ?: "BOOLEANO",
-                                            color = QuantifyTextMuted,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            letterSpacing = 1.sp
-                                        )
-                                    }
+                        Column(modifier = Modifier.weight(1f)) {
+                            SectionTitle("TUS HÁBITOS")
+                            Spacer(Modifier.height(16.dp))
+                            LazyRow(
+                                contentPadding = PaddingValues(end = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(habits) { habit ->
+                                    HabitCard(habit = habit, onClick = { onOpenHabit(habit.id, habit.nombre) })
                                 }
                             }
-                            if (habits.isEmpty()) {
-                                Text("Aún no tienes hábitos creados.", color = QuantifyTextMuted, fontSize = 17.sp)
-                            }
                         }
-                    }
 
-                    // ===== Habits carousel =====
-                    SectionTitle("Explora tus hábitos", "Selecciona para ver sus analíticas")
-                    LazyRow(
-                        contentPadding = PaddingValues(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        items(habits, key = { it.id }) { habit ->
-                            HabitCard(habit) {
-                                onOpenHabit(habit.id, habit.nombre)
-                            }
-                        }
+                        NavButton(
+                            label = "CONFIGURACIÓN",
+                            icon = Icons.Default.Settings,
+                            onClick = onOpenSettings,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
@@ -335,64 +285,62 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
                 Modifier
                     .clip(RoundedCornerShape(999.dp))
                     .background(QuantifyCyan.copy(alpha = 0.14f))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .padding(8.dp)
             ) {
-                Text(
-                    text = habit.tipo_medicion ?: "BOOLEANO",
-                    color = QuantifyCyan,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                Icon(Icons.Default.Layers, null, tint = QuantifyCyan, modifier = Modifier.size(20.dp))
             }
-            Icon(
-                Icons.Filled.Leaderboard,
-                contentDescription = null,
-                tint = QuantifyTextMuted
-            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(QuantifyCyan.copy(alpha = 0.12f))
+                    .border(1.dp, QuantifyCyan.copy(alpha = 0.4f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(QuantifyCyan)
+                    )
+                    Text(
+                        text = "EN VIVO",
+                        color = QuantifyCyan,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp
+                    )
+                }
+            }
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(20.dp))
         Text(
-            text = habit.nombre,
+            text = habit.nombre.uppercase(),
             color = QuantifyTextPrimary,
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Black,
-            maxLines = 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(Modifier.height(8.dp))
-        val meta = habit.meta_diaria?.let { "Meta: $it ${habit.unidad ?: ""}".trim() }
         Text(
-            text = meta ?: (habit.descripcion ?: "Hábito sin meta definida"),
-            color = QuantifyTextMuted,
-            fontSize = 16.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            text = (habit.tipo_medicion ?: "Hábito").uppercase(),
+            color = QuantifyCyan,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
         )
-    }
-}
-
-@Composable
-private fun LoadingDashboard() {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            repeat(4) {
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(150.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(QuantifySurface)
-                )
-            }
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            CountUpText(
+                target = 10,
+                color = QuantifyTextPrimary,
+                fontSize = 24.dp
+            )
+            Text("SESIONES", color = QuantifyTextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(360.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(QuantifySurface)
-        )
     }
 }
 
@@ -401,5 +349,36 @@ private fun fechaHoy(): String {
         SimpleDateFormat("EEEE, d 'de' MMMM yyyy", Locale.forLanguageTag("es-MX")).format(Date()).replaceFirstChar { it.titlecase(Locale.forLanguageTag("es-MX")) }
     } catch (e: Exception) {
         ""
+    }
+}
+
+@Composable
+private fun LiveClockDisplay() {
+    var timeString by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        val sdf = SimpleDateFormat("hh:mm:ss a", Locale.US)
+        while (isActive) {
+            timeString = sdf.format(Date())
+            delay(1000)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(QuantifySurface)
+            .border(1.dp, QuantifyBorder, RoundedCornerShape(20.dp))
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = timeString.ifEmpty { "--:--:-- --" },
+            color = QuantifyCyan,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Black,
+            fontFamily = Monospace,
+            letterSpacing = 2.sp
+        )
     }
 }

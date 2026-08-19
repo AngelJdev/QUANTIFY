@@ -107,8 +107,8 @@ fun FocusableCard(
 ) {
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.05f else 1f,
-        animationSpec = spring(stiffness = 320f, dampingRatio = 0.7f),
+        targetValue = if (focused) 1.07f else 1f,
+        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
         label = "cardScale"
     )
     val borderColor by animateColorAsState(
@@ -117,7 +117,7 @@ fun FocusableCard(
         label = "cardBorder"
     )
     val glow by animateFloatAsState(
-        targetValue = if (focused) 0.16f else 0f,
+        targetValue = if (focused) 0.35f else 0f,
         animationSpec = tween(260),
         label = "cardGlow"
     )
@@ -127,8 +127,8 @@ fun FocusableCard(
         modifier = modifier
             .scale(scale)
             .clip(shape)
-            .background(QuantifySurface)
-            .border(2.dp, borderColor, shape)
+            .background(if (focused) QuantifySurfaceElevated else QuantifySurface)
+            .border(if (focused) 3.dp else 1.dp, borderColor, shape)
             .focusable(true)
             .onFocusChanged { focused = it.isFocused }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
@@ -144,7 +144,30 @@ fun FocusableCard(
                     )
             )
         }
-        Column(Modifier.padding(contentPadding), content = content)
+        Column(Modifier.padding(contentPadding)) {
+            if (focused) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(QuantifyCyan)
+                    )
+                    Text(
+                        text = "SELECCIONADO",
+                        color = QuantifyCyan,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.5.sp
+                    )
+                }
+            }
+            content()
+        }
     }
 }
 
@@ -201,11 +224,16 @@ fun NavButton(
     selected: Boolean = false
 ) {
     var focused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (focused) 1.08f else 1f,
+        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
+        label = "navScale"
+    )
     val bg by animateColorAsState(
         targetValue = when {
-            focused -> QuantifyCyan.copy(alpha = 0.25f)
+            focused -> QuantifyCyan.copy(alpha = 0.35f)
             selected -> QuantifySurfaceElevated
-            else -> Color.Transparent
+            else -> QuantifySurface
         },
         animationSpec = tween(180),
         label = "navBg"
@@ -213,9 +241,10 @@ fun NavButton(
     val shape = RoundedCornerShape(18.dp)
     Row(
         modifier = modifier
+            .scale(scale)
             .clip(shape)
             .background(bg)
-            .border(1.dp, if (focused) QuantifyCyan else QuantifyBorder, shape)
+            .border(if (focused) 3.dp else 1.dp, if (focused) QuantifyCyan else QuantifyBorder, shape)
             .focusable(true)
             .onFocusChanged { focused = it.isFocused }
             .clickable(
@@ -223,15 +252,15 @@ fun NavButton(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 26.dp, vertical = 18.dp),
+            .padding(horizontal = 24.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = if (focused) QuantifyCyan else QuantifyTextMuted, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = null, tint = if (focused) QuantifyCyan else QuantifyTextMuted, modifier = Modifier.size(22.dp))
         Text(
             text = label,
             color = if (focused) QuantifyTextPrimary else QuantifyTextMuted,
-            fontSize = 18.sp,
+            fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
     }

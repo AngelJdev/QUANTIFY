@@ -1,5 +1,7 @@
 package com.example.smarttv_quantify.ui.habit
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +46,7 @@ import com.example.smarttv_quantify.ui.components.AmbientBackground
 import com.example.smarttv_quantify.ui.components.AnimatedLineChart
 import com.example.smarttv_quantify.ui.components.CountUpText
 import com.example.smarttv_quantify.ui.components.ErrorPanel
+import com.example.smarttv_quantify.ui.components.FocusableCard
 import com.example.smarttv_quantify.ui.components.NavButton
 import com.example.smarttv_quantify.ui.components.QuantifyLogo
 import com.example.smarttv_quantify.ui.components.RadialGauge
@@ -89,9 +92,12 @@ fun HabitDetailScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         AmbientBackground()
 
+        val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 64.dp, vertical = 48.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
@@ -194,7 +200,7 @@ fun HabitDetailScreen(
                             }
                         }
 
-                        // ===== Stats + Chart =====
+                        // ===== Stats + Chart + AI Video Recommendations =====
                         Column(
                             modifier = Modifier.weight(2f),
                             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -229,15 +235,15 @@ fun HabitDetailScreen(
                                     .clip(RoundedCornerShape(28.dp))
                                     .background(QuantifySurface)
                                     .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-                                    .padding(28.dp),
-                                verticalArrangement = Arrangement.spacedBy(18.dp)
+                                    .padding(24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 SectionTitle("Esfuerzo diario", "últimos 7 días")
                                 AnimatedLineChart(
                                     data = adherence.chartData.map { it.valor.toFloat() },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(230.dp)
+                                        .height(180.dp)
                                 )
                                 Row(Modifier.fillMaxWidth()) {
                                     adherence.chartData.forEach { p ->
@@ -252,8 +258,308 @@ fun HabitDetailScreen(
                                     }
                                 }
                             }
+
+                            // ===== RECOMENDACIONES DE VIDEOS POR IA =====
+                            AiVideoRecommendationsSection(habitName = habitName)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+data class RecommendedVideo(
+    val id: String,
+    val title: String,
+    val channel: String,
+    val duration: String,
+    val relevance: String,
+    val description: String,
+    val categoryBadge: String,
+    val gradientColors: List<Color>
+)
+
+@Composable
+fun AiVideoRecommendationsSection(habitName: String?) {
+    var selectedVideo by remember { mutableStateOf<RecommendedVideo?>(null) }
+
+    val videos = remember(habitName) {
+        val name = (habitName ?: "").lowercase()
+        when {
+            name.contains("medit") || name.contains("mente") || name.contains("relax") || name.contains("sueño") -> listOf(
+                RecommendedVideo(
+                    id = "1",
+                    title = "Meditación Guiada de 10 Min para Calmar la Mente",
+                    channel = "Mindful Life AI",
+                    duration = "10:15",
+                    relevance = "99% Coincidencia Bio-Rítmica",
+                    description = "Una sesión diseñada por neurocientíficos para desacelerar las ondas cerebrales Beta a Alfa en menos de 5 minutos.",
+                    categoryBadge = "MEDITACIÓN & MINDFULNESS 🧘‍♂️",
+                    gradientColors = listOf(Color(0xFF0284C7), Color(0xFF0F172A))
+                ),
+                RecommendedVideo(
+                    id = "2",
+                    title = "Música Binaural Theta: Enfoque y Relajación Profunda",
+                    channel = "Bio-Focus Soundlabs",
+                    duration = "20:00",
+                    relevance = "96% Relevancia",
+                    description = "Frecuencia de 432Hz optimizada para reducir el cortisol y restaurar la atención plena.",
+                    categoryBadge = "ONDAS BINAURALES 🧠",
+                    gradientColors = listOf(Color(0xFF7C3AED), Color(0xFF0F172A))
+                ),
+                RecommendedVideo(
+                    id = "3",
+                    title = "Técnica de Respiración 4-7-8 contra el Estrés",
+                    channel = "Wellness AI Labs",
+                    duration = "08:30",
+                    relevance = "94% Relevancia",
+                    description = "Ejercicio respiratorio para activar el sistema parasimpático de forma instantánea.",
+                    categoryBadge = "RESPIRACIÓN CONSCIENTE 🌬️",
+                    gradientColors = listOf(Color(0xFF059669), Color(0xFF0F172A))
+                )
+            )
+            name.contains("ejercici") || name.contains("gym") || name.contains("cardio") || name.contains("correr") || name.contains("fuerza") -> listOf(
+                RecommendedVideo(
+                    id = "1",
+                    title = "Rutina HIIT Cardio de 15 Minutos Sin Equipo",
+                    channel = "Quantify Fitness AI",
+                    duration = "15:00",
+                    relevance = "98% Coincidencia Bio-Rítmica",
+                    description = "Circuito de alta intensidad para elevar el consumo máximo de oxígeno (VO2 Max) en casa.",
+                    categoryBadge = "ENTRENAMIENTO HIIT 🏋️‍♂️",
+                    gradientColors = listOf(Color(0xFFE11D48), Color(0xFF0F172A))
+                ),
+                RecommendedVideo(
+                    id = "2",
+                    title = "Estiramientos Dinámicos Post-Entrenamiento",
+                    channel = "Bio-Movement Studio",
+                    duration = "07:45",
+                    relevance = "95% Relevancia",
+                    description = "Movilidad articular para prevenir dolores musculares y acelerar la recuperación.",
+                    categoryBadge = "RECUPERACIÓN & MOVILIDAD 🧘‍♀️",
+                    gradientColors = listOf(Color(0xFFD97706), Color(0xFF0F172A))
+                )
+            )
+            name.contains("estudi") || name.contains("lectur") || name.contains("leer") || name.contains("codig") || name.contains("focus") -> listOf(
+                RecommendedVideo(
+                    id = "1",
+                    title = "Técnica Pomodoro 25/5 con Lo-Fi Beats & Lluvia",
+                    channel = "Deep Focus Hub",
+                    duration = "25:00",
+                    relevance = "99% Coincidencia Bio-Rítmica",
+                    description = "Sesión de estudio inmersivo con temporizador de alta productividad integrativo.",
+                    categoryBadge = "DEEP WORK & ESTUDIO 📚",
+                    gradientColors = listOf(Color(0xFF2563EB), Color(0xFF0F172A))
+                ),
+                RecommendedVideo(
+                    id = "2",
+                    title = "La Ciencia Neuroplástica de la Lectura Diaria",
+                    channel = "NeuroScience AI",
+                    duration = "12:20",
+                    relevance = "93% Relevancia",
+                    description = "Descubre cómo leer 15 minutos diarios transforma la densidad de sustancia gris cerebral.",
+                    categoryBadge = "NEUROCIENCIA 🧠",
+                    gradientColors = listOf(Color(0xFF9333EA), Color(0xFF0F172A))
+                )
+            )
+            else -> listOf(
+                RecommendedVideo(
+                    id = "1",
+                    title = "La Ciencia de Construir Hábitos Atómicos Sostenibles",
+                    channel = "Quantify AI Academy",
+                    duration = "14:10",
+                    relevance = "97% Relevancia IA",
+                    description = "Principios biológicos de la formación de surcos neuronales para automatizar metas.",
+                    categoryBadge = "CRECIMIENTO PERSONAL ⚡",
+                    gradientColors = listOf(Color(0xFF0D9488), Color(0xFF0F172A))
+                ),
+                RecommendedVideo(
+                    id = "2",
+                    title = "Dopamina & Alto Rendimiento: Optimiza tu Rutina",
+                    channel = "Bio-Hacking Labs",
+                    duration = "18:30",
+                    relevance = "95% Relevancia IA",
+                    description = "Cómo estructurar recompensas sanas para mantener rachas de hábitos sin agotamiento.",
+                    categoryBadge = "OPTIMIZACIÓN DE BIENESTAR 🧪",
+                    gradientColors = listOf(Color(0xFF4F46E5), Color(0xFF0F172A))
+                )
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(QuantifySurface)
+            .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SectionTitle("Sugerencias de la IA", "Videos recomendados para este hábito")
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(QuantifyCyan.copy(alpha = 0.15f))
+                    .border(1.dp, QuantifyCyan.copy(alpha = 0.4f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "RECOMENDADO POR QUANTIFY AI 🤖",
+                    color = QuantifyCyan,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            videos.forEach { video ->
+                FocusableCard(
+                    onClick = { selectedVideo = video },
+                    modifier = Modifier.weight(1f),
+                    cornerRadius = 20.dp,
+                    contentPadding = 0.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Brush.verticalGradient(video.gradientColors))
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Thumbnail Header con botón de Play
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.Black.copy(alpha = 0.4f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("▶️", fontSize = 32.sp)
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(6.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color.Black.copy(alpha = 0.8f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = video.duration,
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontFamily = Monospace,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = video.categoryBadge,
+                            color = QuantifyCyan,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+
+                        Text(
+                            text = video.title,
+                            color = QuantifyTextPrimary,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = "${video.channel} • ${video.relevance}",
+                            color = QuantifyTextMuted,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal de Vista Previa de Video Interactivo para Smart TV
+    if (selectedVideo != null) {
+        val v = selectedVideo!!
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.92f))
+                .padding(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(QuantifySurface)
+                    .border(2.dp, QuantifyCyan, RoundedCornerShape(32.dp))
+                    .padding(36.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "REPRODUCCIÓN DEMO EN TV 📺",
+                        color = QuantifyCyan,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                    NavButton(label = "Cerrar [X]", icon = Icons.AutoMirrored.Filled.ArrowBack, onClick = { selectedVideo = null })
+                }
+
+                // Mock Video Player Display
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Brush.verticalGradient(v.gradientColors)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("🎬 Reproduciendo en Smart TV...", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                        Text(v.title, color = QuantifyCyan, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        Text("Canal: ${v.channel} | Duración: ${v.duration}", color = QuantifyTextMuted, fontSize = 14.sp)
+                    }
+                }
+
+                Text(
+                    text = v.description,
+                    color = QuantifyTextPrimary,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+
+                FocusableCard(
+                    onClick = { selectedVideo = null },
+                    cornerRadius = 999.dp,
+                    contentPadding = 14.dp
+                ) {
+                    Text("VOLVER AL ANÁLISIS", color = QuantifyCyan, fontWeight = FontWeight.Bold, letterSpacing = 2.sp, modifier = Modifier.padding(horizontal = 20.dp))
                 }
             }
         }

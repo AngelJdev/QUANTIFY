@@ -1,6 +1,8 @@
 package com.example.smarttv_quantify.ui.settings
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,8 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -298,7 +303,7 @@ private fun UrlInputField(value: String, onValueChange: (String) -> Unit) {
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = androidx.compose.ui.text.TextStyle(
+        textStyle = TextStyle(
             color = QuantifyTextPrimary,
             fontSize = 18.sp,
             fontFamily = Monospace,
@@ -323,7 +328,7 @@ private fun UrlPreset(label: String, url: String, current: String, onApply: (Str
 @Composable
 private fun ActionButton(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     danger: Boolean = false,
     compact: Boolean = false,
@@ -340,12 +345,19 @@ private fun ActionButton(
         animationSpec = tween(180),
         label = "actionBg"
     )
+    val scale by animateFloatAsState(
+        targetValue = if (focused) 1.06f else 1f,
+        animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
+        label = "btnScale"
+    )
     val shape = RoundedCornerShape(if (compact) 999.dp else 16.dp)
     Row(
         modifier = Modifier
+            .scale(scale)
             .clip(shape)
             .background(bg)
-            .border(2.dp, if (focused) accent else accent.copy(alpha = if (active) 0.9f else 0.25f), shape)
+            .border(if (focused) 3.dp else 1.dp, if (focused) accent else accent.copy(alpha = if (active) 0.9f else 0.25f), shape)
+            .focusable(true)
             .onFocusChanged { focused = it.isFocused }
             .clickableNoRipple(onClick)
             .padding(horizontal = if (compact) 18.dp else 24.dp, vertical = if (compact) 12.dp else 16.dp),
