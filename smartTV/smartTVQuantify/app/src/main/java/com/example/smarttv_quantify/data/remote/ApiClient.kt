@@ -7,6 +7,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.HttpException
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
@@ -71,3 +72,9 @@ object ApiClient {
         return cachedService!!
     }
 }
+
+fun Throwable.isAuthenticationFailure(): Boolean =
+    this is HttpException && (code() == 401 || code() == 403)
+
+fun Throwable.isPairingCodeExpired(): Boolean =
+    this is HttpException && code() == 404

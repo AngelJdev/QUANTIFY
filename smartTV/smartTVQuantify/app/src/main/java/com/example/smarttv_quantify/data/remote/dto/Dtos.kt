@@ -14,6 +14,11 @@ data class ApiEnvelope<T>(
     val data: T? = null
 )
 
+data class HealthResponse(
+    val status: String = "",
+    val message: String? = null
+)
+
 // ===== Pairing (Smart TV) =====
 
 data class DeviceRequest(

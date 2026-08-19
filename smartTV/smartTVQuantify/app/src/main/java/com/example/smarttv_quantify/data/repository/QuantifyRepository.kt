@@ -10,6 +10,7 @@ import com.example.smarttv_quantify.data.remote.dto.DeviceRequest
 import com.example.smarttv_quantify.data.remote.dto.DisconnectData
 import com.example.smarttv_quantify.data.remote.dto.GlobalStatsData
 import com.example.smarttv_quantify.data.remote.dto.HabitDto
+import com.example.smarttv_quantify.data.remote.dto.HealthResponse
 import com.example.smarttv_quantify.data.remote.dto.PairRequestData
 import com.example.smarttv_quantify.data.remote.dto.PairStatusData
 import com.example.smarttv_quantify.data.remote.dto.ProfileData
@@ -20,6 +21,8 @@ import com.example.smarttv_quantify.data.remote.dto.CheckStatusRequest
 class QuantifyRepository(private val baseUrl: String) {
 
     private val api: ApiService = ApiClient.service(baseUrl)
+
+    suspend fun health(): HealthResponse = api.health()
 
     suspend fun requestPair(): ApiEnvelope<PairRequestData> =
         api.requestPair(DeviceRequest("Smart TV"))

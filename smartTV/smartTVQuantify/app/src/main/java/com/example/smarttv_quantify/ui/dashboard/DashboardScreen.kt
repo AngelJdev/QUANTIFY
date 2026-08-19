@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smarttv_quantify.data.remote.dto.GlobalStatsData
 import com.example.smarttv_quantify.data.remote.dto.HabitDto
+import com.example.smarttv_quantify.data.remote.isAuthenticationFailure
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
 import com.example.smarttv_quantify.ui.components.AmbientBackground
 import com.example.smarttv_quantify.ui.components.AnimatedBarChart
@@ -77,7 +78,8 @@ fun DashboardScreen(
     serverUrl: String,
     onOpenHabit: (Long, String?) -> Unit,
     onOpenAchievements: () -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onSessionExpired: () -> Unit
 ) {
     val repository = remember(serverUrl) { QuantifyRepository(serverUrl) }
     val scope = rememberCoroutineScope()
@@ -103,6 +105,10 @@ fun DashboardScreen(
             streak = profile.data?.user?.current_streak ?: 0
             loading = false
         }.onFailure {
+            if (it.isAuthenticationFailure()) {
+                onSessionExpired()
+                return@onFailure
+            }
             error = it.message ?: "Error de conexión con el servidor"
             loading = false
         }

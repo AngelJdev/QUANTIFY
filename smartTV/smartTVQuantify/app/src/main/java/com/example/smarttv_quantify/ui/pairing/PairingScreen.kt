@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,9 +42,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smarttv_quantify.data.local.SessionStore
 import com.example.smarttv_quantify.data.remote.TokenHolder
+import com.example.smarttv_quantify.data.remote.isPairingCodeExpired
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
 import com.example.smarttv_quantify.ui.components.AmbientBackground
 import com.example.smarttv_quantify.ui.components.FocusableCard
+import com.example.smarttv_quantify.ui.components.NavButton
 import com.example.smarttv_quantify.ui.components.QuantifyLogo
 import com.example.smarttv_quantify.ui.theme.Monospace
 import com.example.smarttv_quantify.ui.theme.QuantifyBorder
@@ -57,13 +61,15 @@ import kotlinx.coroutines.isActive
 fun PairingScreen(
     serverUrl: String,
     sessionStore: SessionStore,
-    onConnected: () -> Unit
+    onConnected: () -> Unit,
+    onOpenSettings: () -> Unit
 ) {
     var code by remember { mutableStateOf<String?>(null) }
     var visibleDigits by remember { mutableIntStateOf(0) }
     var error by remember { mutableStateOf<String?>(null) }
     var isRequesting by remember { mutableStateOf(true) }
     var requestKey by remember { mutableIntStateOf(0) }
+    var remainingSeconds by remember { mutableIntStateOf(0) }
 
     val repository = remember(serverUrl) { QuantifyRepository(serverUrl) }
 
@@ -78,6 +84,7 @@ fun PairingScreen(
                 val c = env.data?.code
                 if (c != null) {
                     code = c
+                    remainingSeconds = env.data?.expiresIn ?: 300
                     isRequesting = false
                 } else {
                     error = env.message ?: "No se pudo generar el código."
@@ -88,6 +95,19 @@ fun PairingScreen(
                 error = "No se pudo conectar con el servidor.\nRevisa la URL en Ajustes."
                 isRequesting = false
             }
+    }
+
+    // Cuenta regresiva basada en el TTL que devuelve el backend
+    LaunchedEffect(code) {
+        if (code == null) return@LaunchedEffect
+        while (remainingSeconds > 0 && isActive) {
+            delay(1000)
+            remainingSeconds--
+        }
+        if (code != null && remainingSeconds == 0) {
+            code = null
+            error = "El código expiró. Genera uno nuevo."
+        }
     }
 
     // Muestra los dígitos de uno en uno
@@ -123,6 +143,13 @@ fun PairingScreen(
                     }
                 }
             }
+            result.onFailure { throwable ->
+                if (throwable.isPairingCodeExpired()) {
+                    code = null
+                    error = "El código expiró. Genera uno nuevo."
+                    return@LaunchedEffect
+                }
+            }
             // Si falla la red, seguimos reintentando sin romper la pantalla
         }
     }
@@ -144,6 +171,15 @@ fun PairingScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         AmbientBackground()
+
+        NavButton(
+            label = "SERVIDOR",
+            icon = Icons.Default.Settings,
+            onClick = onOpenSettings,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 36.dp, end = 48.dp)
+        )
 
         // Resplandor central pulsante detrás del código
         Box(
@@ -234,7 +270,7 @@ fun PairingScreen(
                 }
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "El código caduca en 5 minutos",
+                    text = "El código caduca en ${formatCountdown(remainingSeconds)}",
                     color = QuantifyTextMuted,
                     fontSize = 15.sp
                 )
@@ -268,4 +304,9 @@ fun PairingScreen(
             }
         }
     }
+}
+
+private fun formatCountdown(totalSeconds: Int): String {
+    val safeSeconds = totalSeconds.coerceAtLeast(0)
+    return "%d:%02d".format(safeSeconds / 60, safeSeconds % 60)
 }

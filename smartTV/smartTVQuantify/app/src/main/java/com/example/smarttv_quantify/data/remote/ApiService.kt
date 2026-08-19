@@ -11,6 +11,7 @@ import com.example.smarttv_quantify.data.remote.dto.AdherenceData
 import com.example.smarttv_quantify.data.remote.dto.DisconnectData
 import com.example.smarttv_quantify.data.remote.dto.GlobalStatsData
 import com.example.smarttv_quantify.data.remote.dto.HabitDto
+import com.example.smarttv_quantify.data.remote.dto.HealthResponse
 import com.example.smarttv_quantify.data.remote.dto.PairRequestData
 import com.example.smarttv_quantify.data.remote.dto.PairStatusData
 import com.example.smarttv_quantify.data.remote.dto.ProfileData
@@ -19,6 +20,9 @@ import com.example.smarttv_quantify.data.remote.dto.CheckStatusRequest
 
 // Endpoints de la API Quantify (backend/server.js)
 interface ApiService {
+
+    @GET("health")
+    suspend fun health(): HealthResponse
 
     // ===== Pairing Smart TV =====
     @POST("smarttv/request-code")

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smarttv_quantify.data.remote.dto.AdherenceData
+import com.example.smarttv_quantify.data.remote.isAuthenticationFailure
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
 import com.example.smarttv_quantify.ui.components.AmbientBackground
 import com.example.smarttv_quantify.ui.components.AnimatedLineChart
@@ -66,7 +67,8 @@ fun HabitDetailScreen(
     habitId: Long,
     habitName: String?,
     serverUrl: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSessionExpired: () -> Unit
 ) {
     val repository = remember(serverUrl) { QuantifyRepository(serverUrl) }
 
@@ -84,6 +86,10 @@ fun HabitDetailScreen(
                 loading = false
             }
             .onFailure {
+                if (it.isAuthenticationFailure()) {
+                    onSessionExpired()
+                    return@onFailure
+                }
                 error = it.message ?: "Error de conexión"
                 loading = false
             }

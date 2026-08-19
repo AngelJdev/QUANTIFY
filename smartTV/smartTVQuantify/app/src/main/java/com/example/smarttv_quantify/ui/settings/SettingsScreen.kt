@@ -73,6 +73,7 @@ fun SettingsScreen(
     serverUrl: String,
     userName: String?,
     userEmail: String?,
+    isLinked: Boolean,
     sessionStore: SessionStore,
     onBack: () -> Unit,
     onDisconnected: () -> Unit
@@ -94,8 +95,8 @@ fun SettingsScreen(
             sessionStore.setServerUrl(normalized)
             val ok = runCatching {
                 val probe = QuantifyRepository(normalized)
-                probe.getProfile()
-            }.getOrNull()?.success == true
+                probe.health()
+            }.getOrNull()?.status == "OK"
             testOk = ok
             testResult = if (ok) "Conexión correcta. Servidor guardado." else "No se pudo conectar con ese servidor."
             urlInput = normalized
@@ -267,17 +268,26 @@ fun SettingsScreen(
                             )
                         }
                     }
-                    Text(
-                        text = "Al desconectar, esta TV deja de mostrar tus métricas hasta vincularla de nuevo con un código.",
-                        color = QuantifyTextMuted,
-                        fontSize = 15.sp
-                    )
-                    ActionButton(
-                        label = if (disconnecting) "DESCONECTANDO…" else "DESCONECTAR TV",
-                        icon = Icons.Filled.PowerSettingsNew,
-                        danger = true,
-                        onClick = ::desconectar
-                    )
+                    if (isLinked) {
+                        Text(
+                            text = "Al desconectar, esta TV deja de mostrar tus métricas hasta vincularla de nuevo con un código.",
+                            color = QuantifyTextMuted,
+                            fontSize = 15.sp
+                        )
+                        ActionButton(
+                            label = if (disconnecting) "DESCONECTANDO…" else "DESCONECTAR TV",
+                            icon = Icons.Filled.PowerSettingsNew,
+                            danger = true,
+                            onClick = ::desconectar
+                        )
+                    } else {
+                        Text(
+                            text = "Selecciona y prueba un servidor, luego vuelve para generar tu código.",
+                            color = QuantifyCyan,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
