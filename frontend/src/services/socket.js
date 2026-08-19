@@ -1,6 +1,14 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:5000';
+const getSocketUrl = () => {
+    if (typeof window === 'undefined') return 'http://localhost:5000';
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+    return window.location.origin;
+};
+
+const SOCKET_URL = getSocketUrl();
 let socket = null;
 
 /**

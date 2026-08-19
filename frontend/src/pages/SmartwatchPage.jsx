@@ -25,6 +25,11 @@ const SmartwatchPage = () => {
     useEffect(() => {
         checkLinkedDevice();
 
+        // Polling fallback for real-time updates in serverless environments
+        const interval = setInterval(() => {
+            checkLinkedDevice();
+        }, 4000);
+
         let socketInstance;
         import('../services/api').then(({ default: apiInstance }) => {
             apiInstance.get('/auth/profile').then(res => {
@@ -47,6 +52,7 @@ const SmartwatchPage = () => {
         });
 
         return () => {
+            clearInterval(interval);
             socketInstance?.off('smartwatch_unlinked');
             socketInstance?.off('smartwatch_linked');
             socketInstance?.off('habit_updated');
