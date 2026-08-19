@@ -151,7 +151,11 @@ QUANTIFY/
 │   └── vite.config.js   # Empaquetador y dev-server
 └── docs/
     ├── arquitectura.md          # Detalles de arquitectura de software
-    ├── modelo-datos.md          # Diagramas de Entidad-Relación y Colecciones
+    ├── etapa1/                  # Documentos Fundacionales de Datos y ML (Etapas 1-4)
+    │   ├── contexto.md          # Contexto y planteamiento
+    │   ├── metodologia-datos.md # CRISP-DM Framework
+    │   ├── proposals.md         # 20 Propuestas de aplicación ML
+    │   └── modelo-datos.md      # Diagramas ERD y Atributos ML
     ├── manual-despliegue-api.md # Guía para Ops/DevOps
     ├── vision-producto.md       # Product Scope
     ├── roadmap.md               # Sprints y planificación a futuro
