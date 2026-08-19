@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -129,7 +128,12 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NavButton("Volver", Icons.AutoMirrored.Filled.ArrowBack, onBack)
+                NavButton(
+                    label = "Volver",
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    onClick = onBack,
+                    requestInitialFocus = true
+                )
                 QuantifyLogo(subtitle = "AJUSTES")
             }
 
@@ -199,7 +203,8 @@ fun SettingsScreen(
                         ActionButton(
                             label = if (saving) "PROBANDO…" else "GUARDAR Y PROBAR",
                             icon = Icons.Filled.Save,
-                            onClick = { guardarYProbar(urlInput) }
+                            onClick = { guardarYProbar(urlInput) },
+                            enabled = !saving
                         )
                         if (testResult != null) {
                             Text(
@@ -278,7 +283,8 @@ fun SettingsScreen(
                             label = if (disconnecting) "DESCONECTANDO…" else "DESCONECTAR TV",
                             icon = Icons.Filled.PowerSettingsNew,
                             danger = true,
-                            onClick = ::desconectar
+                            onClick = ::desconectar,
+                            enabled = !disconnecting
                         )
                     } else {
                         Text(
@@ -344,7 +350,8 @@ private fun ActionButton(
     onClick: () -> Unit,
     danger: Boolean = false,
     compact: Boolean = false,
-    active: Boolean = false
+    active: Boolean = false,
+    enabled: Boolean = true
 ) {
     var focused by remember { mutableStateOf(false) }
     val accent = if (danger) Color(0xFFEF4444) else QuantifyCyan
@@ -358,7 +365,7 @@ private fun ActionButton(
         label = "actionBg"
     )
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.06f else 1f,
+        targetValue = if (focused && enabled) 1.06f else 1f,
         animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
         label = "btnScale"
     )
@@ -369,9 +376,8 @@ private fun ActionButton(
             .clip(shape)
             .background(bg)
             .border(if (focused) 3.dp else 1.dp, if (focused) accent else accent.copy(alpha = if (active) 0.9f else 0.25f), shape)
-            .focusable(true)
             .onFocusChanged { focused = it.isFocused }
-            .clickableNoRipple(onClick)
+            .clickableNoRipple(enabled, onClick)
             .padding(horizontal = if (compact) 18.dp else 24.dp, vertical = if (compact) 12.dp else 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -388,9 +394,10 @@ private fun ActionButton(
 }
 
 @Composable
-private fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier =
+private fun Modifier.clickableNoRipple(enabled: Boolean, onClick: () -> Unit): Modifier =
     clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
+        enabled = enabled,
         onClick = onClick
     )

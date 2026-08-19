@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -113,7 +114,12 @@ fun HabitDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NavButton("Volver", Icons.AutoMirrored.Filled.ArrowBack, onBack)
+                NavButton(
+                    label = "Volver",
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    onClick = onBack,
+                    requestInitialFocus = true
+                )
                 QuantifyLogo(subtitle = "DETALLE")
             }
 
@@ -289,6 +295,10 @@ data class RecommendedVideo(
 @Composable
 fun AiVideoRecommendationsSection(habitName: String?) {
     var selectedVideo by remember { mutableStateOf<RecommendedVideo?>(null) }
+
+    BackHandler(enabled = selectedVideo != null) {
+        selectedVideo = null
+    }
 
     val videos = remember(habitName) {
         val name = (habitName ?: "").lowercase()
@@ -533,7 +543,12 @@ fun AiVideoRecommendationsSection(habitName: String?) {
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     )
-                    NavButton(label = "Cerrar [X]", icon = Icons.AutoMirrored.Filled.ArrowBack, onClick = { selectedVideo = null })
+                    NavButton(
+                        label = "Cerrar",
+                        icon = Icons.AutoMirrored.Filled.ArrowBack,
+                        onClick = { selectedVideo = null },
+                        requestInitialFocus = true
+                    )
                 }
 
                 // Mock Video Player Display

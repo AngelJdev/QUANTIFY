@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -103,9 +105,11 @@ fun FocusableCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 28.dp,
     contentPadding: Dp = 24.dp,
+    requestInitialFocus: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
     val scale by animateFloatAsState(
         targetValue = if (focused) 1.07f else 1f,
         animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
@@ -123,13 +127,17 @@ fun FocusableCard(
     )
     val shape = RoundedCornerShape(cornerRadius)
 
+    LaunchedEffect(requestInitialFocus) {
+        if (requestInitialFocus) focusRequester.requestFocus()
+    }
+
     Box(
         modifier = modifier
             .scale(scale)
             .clip(shape)
             .background(if (focused) QuantifySurfaceElevated else QuantifySurface)
             .border(if (focused) 3.dp else 1.dp, borderColor, shape)
-            .focusable(true)
+            .focusRequester(focusRequester)
             .onFocusChanged { focused = it.isFocused }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
     ) {
@@ -145,28 +153,33 @@ fun FocusableCard(
             )
         }
         Column(Modifier.padding(contentPadding)) {
-            if (focused) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(bottom = 6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(QuantifyCyan)
-                    )
-                    Text(
-                        text = "SELECCIONADO",
-                        color = QuantifyCyan,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.5.sp
-                    )
-                }
-            }
             content()
+        }
+        if (focused) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xE60A0A0A))
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(QuantifyCyan)
+                )
+                Text(
+                    text = "SELECCIONADO",
+                    color = QuantifyCyan,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.2.sp
+                )
+            }
         }
     }
 }
@@ -221,9 +234,11 @@ fun NavButton(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    selected: Boolean = false
+    selected: Boolean = false,
+    requestInitialFocus: Boolean = false
 ) {
     var focused by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
     val scale by animateFloatAsState(
         targetValue = if (focused) 1.08f else 1f,
         animationSpec = spring(stiffness = 380f, dampingRatio = 0.7f),
@@ -239,13 +254,18 @@ fun NavButton(
         label = "navBg"
     )
     val shape = RoundedCornerShape(18.dp)
+
+    LaunchedEffect(requestInitialFocus) {
+        if (requestInitialFocus) focusRequester.requestFocus()
+    }
+
     Row(
         modifier = modifier
             .scale(scale)
             .clip(shape)
             .background(bg)
             .border(if (focused) 3.dp else 1.dp, if (focused) QuantifyCyan else QuantifyBorder, shape)
-            .focusable(true)
+            .focusRequester(focusRequester)
             .onFocusChanged { focused = it.isFocused }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -262,6 +282,12 @@ fun NavButton(
             color = if (focused) QuantifyTextPrimary else QuantifyTextMuted,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
+        )
+        Box(
+            Modifier
+                .size(7.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(if (focused) QuantifyCyan else Color.Transparent)
         )
     }
 }

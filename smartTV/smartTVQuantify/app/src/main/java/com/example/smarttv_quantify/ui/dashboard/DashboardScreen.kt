@@ -233,7 +233,8 @@ fun DashboardScreen(
                         FocusableCard(
                             onClick = onOpenAchievements,
                             cornerRadius = 28.dp,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            requestInitialFocus = true
                         ) {
                             Row(
                                 modifier = Modifier.padding(20.dp),

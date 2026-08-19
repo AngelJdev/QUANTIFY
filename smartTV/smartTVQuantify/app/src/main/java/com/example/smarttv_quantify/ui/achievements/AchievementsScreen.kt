@@ -107,7 +107,12 @@ fun AchievementsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                NavButton("Volver", Icons.AutoMirrored.Filled.ArrowBack, onBack)
+                NavButton(
+                    label = "Volver",
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
+                    onClick = onBack,
+                    requestInitialFocus = true
+                )
                 QuantifyLogo(subtitle = "LOGROS")
             }
 
