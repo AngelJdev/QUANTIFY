@@ -33,7 +33,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +48,7 @@ import com.example.smarttv_quantify.data.remote.isAuthenticationFailure
 import com.example.smarttv_quantify.data.repository.QuantifyRepository
 import com.example.smarttv_quantify.ui.components.AmbientBackground
 import com.example.smarttv_quantify.ui.components.AnimatedBarChart
-import com.example.smarttv_quantify.ui.components.CountUpText
+import com.example.smarttv_quantify.ui.components.ChartLabels
 import com.example.smarttv_quantify.ui.components.ErrorPanel
 import com.example.smarttv_quantify.ui.components.FocusableCard
 import com.example.smarttv_quantify.ui.components.NavButton
@@ -67,7 +66,6 @@ import com.example.smarttv_quantify.ui.theme.QuantifyWarning
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -82,35 +80,49 @@ fun DashboardScreen(
     onSessionExpired: () -> Unit
 ) {
     val repository = remember(serverUrl) { QuantifyRepository(serverUrl) }
-    val scope = rememberCoroutineScope()
 
     var loading by remember { mutableStateOf(true) }
+    var hasLoaded by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var stats by remember { mutableStateOf(GlobalStatsData()) }
     var habits by remember { mutableStateOf<List<HabitDto>>(emptyList()) }
     var streak by remember { mutableStateOf(0) }
     var refreshKey by remember { mutableStateOf(0) }
+    var connected by remember { mutableStateOf(false) }
+    var lastSync by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(repository, refreshKey) {
-        loading = true
-        error = null
-        runCatching {
-            val p = async { repository.getProfile() }
-            val g = async { repository.getGlobalStats() }
-            val h = async { repository.getHabits() }
-            Triple(p.await(), g.await(), h.await())
-        }.onSuccess { (profile, global, habitsEnv) ->
-            stats = global.data ?: GlobalStatsData()
-            habits = habitsEnv.data.orEmpty()
-            streak = profile.data?.user?.current_streak ?: 0
-            loading = false
-        }.onFailure {
-            if (it.isAuthenticationFailure()) {
-                onSessionExpired()
-                return@onFailure
+        while (isActive) {
+            if (!hasLoaded) {
+                loading = true
+                error = null
             }
-            error = it.message ?: "Error de conexión con el servidor"
-            loading = false
+            runCatching {
+                val p = async { repository.getProfile() }
+                val g = async { repository.getGlobalStats() }
+                val h = async { repository.getHabits() }
+                Triple(p.await(), g.await(), h.await())
+            }.onSuccess { (profile, global, habitsEnv) ->
+                stats = global.data ?: GlobalStatsData()
+                habits = habitsEnv.data.orEmpty().filter { it.activo }
+                streak = profile.data?.user?.current_streak ?: 0
+                connected = true
+                lastSync = horaActual()
+                error = null
+                hasLoaded = true
+                loading = false
+            }.onFailure {
+                if (it.isAuthenticationFailure()) {
+                    onSessionExpired()
+                    return@onFailure
+                }
+                connected = false
+                if (!hasLoaded) {
+                    error = it.message ?: "Error de conexión con el servidor"
+                    loading = false
+                }
+            }
+            delay(30_000)
         }
     }
 
@@ -164,15 +176,8 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 1.sp
                             )
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Icon(Icons.Default.LocalFireDepartment, "Racha", tint = Color(0xFFFF9F00), modifier = Modifier.size(18.dp))
-                                Text(
-                                    text = "RACHA ACTUAL: $streak DÍAS",
-                                    color = QuantifyTextMuted,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                ConnectionBadge(connected = connected, lastSync = lastSync)
                                 Spacer(Modifier.width(10.dp))
                                 Text(fechaHoy(), color = QuantifyTextMuted.copy(alpha = 0.6f), fontSize = 14.sp)
                             }
@@ -187,44 +192,64 @@ fun DashboardScreen(
                     Column(modifier = Modifier.weight(0.65f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
                             StatCard(
-                                title = "CUMPLIMIENTO",
-                                icon = Icons.Default.CheckCircle,
+                                title = "RACHA",
+                                icon = Icons.Default.LocalFireDepartment,
+                                modifier = Modifier.weight(1f),
+                                accent = Color(0xFFFF9F00)
+                            ) {
+                                Text("$streak", color = QuantifyTextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                                Text("días", color = QuantifyTextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                            StatCard(
+                                title = "ADHERENCIA",
+                                icon = Icons.AutoMirrored.Filled.TrendingUp,
                                 modifier = Modifier.weight(1f),
                                 accent = QuantifyCyan
                             ) {
-                                Text("${stats.globalScore}%", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                                Text("${stats.globalScore}%", color = QuantifyTextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
                             }
                             StatCard(
-                                title = "COMPLETADOS",
-                                icon = Icons.AutoMirrored.Filled.TrendingUp,
-                                modifier = Modifier.weight(1f),
-                                accent = QuantifySuccess
-                            ) {
-                                Text("${stats.dailyCompletion}", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                            }
-                            StatCard(
-                                title = "TOTAL HÁBITOS",
+                                title = "ACTIVOS",
                                 icon = Icons.Default.Leaderboard,
                                 modifier = Modifier.weight(1f),
                                 accent = QuantifyWarning
                             ) {
-                                Text("${stats.totalHabits}", color = QuantifyTextPrimary, fontSize = 34.sp, fontWeight = FontWeight.Black)
+                                Text("${stats.totalHabits}", color = QuantifyTextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
+                            }
+                            StatCard(
+                                title = "HOY",
+                                icon = Icons.Default.CheckCircle,
+                                modifier = Modifier.weight(1f),
+                                accent = QuantifySuccess
+                            ) {
+                                Text("${stats.dailyCompletion}%", color = QuantifyTextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
                             }
                         }
 
-                        FocusableCard(
-                            onClick = {},
-                            modifier = Modifier.weight(1f),
-                            cornerRadius = 32.dp
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(32.dp))
+                                .background(QuantifySurface)
+                                .border(1.dp, QuantifyBorder, RoundedCornerShape(32.dp))
+                                .padding(28.dp)
                         ) {
-                            Column(Modifier.padding(28.dp)) {
-                                SectionTitle("RENDIMIENTO DIARIO", "PORCENTAJE DE CUMPLIMIENTO")
-                                Spacer(Modifier.height(24.dp))
+                            val weeklyData = stats.dailyPerformance.takeLast(7)
+                            SectionTitle("RENDIMIENTO SEMANAL", "PORCENTAJE DE CUMPLIMIENTO")
+                            Spacer(Modifier.height(20.dp))
+                            Box(Modifier.weight(1f)) {
                                 AnimatedBarChart(
-                                    data = stats.dailyPerformance.map { it.porcentaje.toFloat() },
+                                    data = weeklyData.map { it.porcentaje.toFloat() },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
+                            Spacer(Modifier.height(10.dp))
+                            ChartLabels(
+                                labels = weeklyData.map { etiquetaDia(it.fecha) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(22.dp)
+                            )
                         }
                     }
 
@@ -278,6 +303,8 @@ fun DashboardScreen(
 
 @Composable
 private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
+    val statusColor = if (habit.completado_hoy) QuantifySuccess else QuantifyWarning
+    val statusLabel = if (habit.completado_hoy) "COMPLETADO" else "PENDIENTE"
     FocusableCard(
         onClick = onClick,
         modifier = Modifier.width(280.dp),
@@ -299,8 +326,8 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(QuantifyCyan.copy(alpha = 0.12f))
-                    .border(1.dp, QuantifyCyan.copy(alpha = 0.4f), RoundedCornerShape(999.dp))
+                    .background(statusColor.copy(alpha = 0.12f))
+                    .border(1.dp, statusColor.copy(alpha = 0.4f), RoundedCornerShape(999.dp))
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
@@ -311,11 +338,11 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
                         modifier = Modifier
                             .size(10.dp)
                             .clip(RoundedCornerShape(5.dp))
-                            .background(QuantifyCyan)
+                            .background(statusColor)
                     )
                     Text(
-                        text = "EN VIVO",
-                        color = QuantifyCyan,
+                        text = statusLabel,
+                        color = statusColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 2.sp
@@ -340,16 +367,65 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
             letterSpacing = 1.sp
         )
         Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            CountUpText(
-                target = 10,
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = habitGoal(habit),
                 color = QuantifyTextPrimary,
-                fontSize = 24.dp
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            Text("SESIONES", color = QuantifyTextMuted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = (habit.frecuencia ?: "DIARIO").uppercase(),
+                color = QuantifyTextMuted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
+
+@Composable
+private fun ConnectionBadge(connected: Boolean, lastSync: String?) {
+    val color = if (connected) QuantifySuccess else QuantifyWarning
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(color.copy(alpha = 0.12f))
+            .border(1.dp, color.copy(alpha = 0.45f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(color))
+        Text(
+            text = if (connected) "EN LÍNEA · ${lastSync ?: "AHORA"}" else "RECONECTANDO",
+            color = color,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.sp
+        )
+    }
+}
+
+private fun habitGoal(habit: HabitDto): String {
+    val goal = habit.meta_diaria ?: return "META ABIERTA"
+    val formatted = if (goal % 1.0 == 0.0) goal.toInt().toString() else "%.1f".format(goal)
+    return listOfNotNull(formatted, habit.unidad?.takeIf { it.isNotBlank() }).joinToString(" ")
+}
+
+private fun etiquetaDia(date: String?): String {
+    if (date.isNullOrBlank()) return "—"
+    return runCatching {
+        val parser = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val formatter = SimpleDateFormat("EEE", Locale.forLanguageTag("es-MX"))
+        formatter.format(parser.parse(date) ?: return@runCatching date.takeLast(5)).uppercase()
+    }.getOrDefault(date.takeLast(5))
+}
+
+private fun horaActual(): String =
+    SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
 
 private fun fechaHoy(): String {
     return try {
