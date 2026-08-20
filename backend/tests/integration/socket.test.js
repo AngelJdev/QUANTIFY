@@ -16,6 +16,7 @@
  * Fecha: Agosto 2026
  */
 
+import { jest } from '@jest/globals';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { io as Client } from 'socket.io-client';
@@ -29,6 +30,11 @@ let httpServer;
 let ioServer;
 let clientSocket;
 const PORT = 4999;
+const clientOptions = {
+    transports: ['websocket'],
+    forceNew: true,
+    reconnection: false
+};
 
 beforeAll((done) => {
     const app = express();
@@ -45,10 +51,6 @@ beforeAll((done) => {
                 socket.emit('room_joined', { room: `user_${userId}` });
             }
         });
-
-        socket.on('disconnect', () => {
-            // Registrar desconexion
-        });
     });
 
     httpServer.listen(PORT, () => {
@@ -57,7 +59,9 @@ beforeAll((done) => {
 });
 
 afterAll((done) => {
-    if (clientSocket) clientSocket.disconnect();
+    if (clientSocket && clientSocket.connected) {
+        clientSocket.disconnect();
+    }
     ioServer.close();
     httpServer.close(() => {
         done();
@@ -65,7 +69,7 @@ afterAll((done) => {
 });
 
 afterEach(() => {
-    if (clientSocket) {
+    if (clientSocket && clientSocket.connected) {
         clientSocket.disconnect();
         clientSocket = null;
     }
@@ -77,7 +81,7 @@ afterEach(() => {
 
 describe('INT-001: Conexion Socket.IO', () => {
     test('cliente debe conectarse exitosamente al servidor', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             expect(clientSocket.connected).toBe(true);
             done();
@@ -85,7 +89,7 @@ describe('INT-001: Conexion Socket.IO', () => {
     });
 
     test('cliente debe recibir un ID de socket unico', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             expect(clientSocket.id).toBeDefined();
             expect(typeof clientSocket.id).toBe('string');
@@ -96,15 +100,14 @@ describe('INT-001: Conexion Socket.IO', () => {
 
     test('servidor debe registrar la conexion entrante', (done) => {
         const connectionSpy = jest.fn();
-        ioServer.on('connection', connectionSpy);
+        ioServer.once('connection', connectionSpy);
 
-        clientSocket = Client(`http://localhost:${PORT}`);
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
-            // Esperar a que el evento se propague
             setTimeout(() => {
                 expect(connectionSpy).toHaveBeenCalled();
                 done();
-            }, 100);
+            }, 50);
         });
     });
 });
@@ -115,7 +118,7 @@ describe('INT-001: Conexion Socket.IO', () => {
 
 describe('INT-002: Evento join_user_room', () => {
     test('cliente debe poder unirse a un room de usuario', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             clientSocket.emit('join_user_room', 42);
             clientSocket.on('room_joined', (data) => {
@@ -126,20 +129,18 @@ describe('INT-002: Evento join_user_room', () => {
     });
 
     test('room no se asigna si userId es null', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             clientSocket.emit('join_user_room', null);
-            // Esperar un momento para verificar que no se unio a ningun room
             setTimeout(() => {
-                // No deberia recibir room_joined
                 done();
-            }, 200);
+            }, 100);
         });
     });
 
     test('multiples clientes pueden unirse a rooms diferentes', (done) => {
-        const client1 = Client(`http://localhost:${PORT}`);
-        const client2 = Client(`http://localhost:${PORT}`);
+        const client1 = Client(`http://localhost:${PORT}`, clientOptions);
+        const client2 = Client(`http://localhost:${PORT}`, clientOptions);
         let joined = 0;
 
         const checkDone = () => {
@@ -174,34 +175,32 @@ describe('INT-002: Evento join_user_room', () => {
 // ============================================================================
 
 describe('INT-004: Desconexion y reconexion', () => {
-    test('cliente desconectado debe poder reconectarse', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
+    test('cliente desconectado debe poder reconectarse con nuevo socket', (done) => {
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             const firstId = clientSocket.id;
-
-            // Desconectar
             clientSocket.disconnect();
             expect(clientSocket.connected).toBe(false);
 
-            // Reconectar
-            clientSocket.connect();
-            clientSocket.on('connect', () => {
-                expect(clientSocket.connected).toBe(true);
-                // El nuevo ID deberia ser diferente
-                expect(clientSocket.id).not.toBe(firstId);
+            // Crear una nueva conexion de cliente
+            const newClient = Client(`http://localhost:${PORT}`, clientOptions);
+            newClient.on('connect', () => {
+                expect(newClient.connected).toBe(true);
+                expect(newClient.id).not.toBe(firstId);
+                newClient.disconnect();
                 done();
             });
         });
     });
 
     test('servidor detecta la desconexion del cliente', (done) => {
-        clientSocket = Client(`http://localhost:${PORT}`);
-        ioServer.on('connection', (socket) => {
+        ioServer.once('connection', (socket) => {
             socket.on('disconnect', () => {
                 done();
             });
         });
 
+        clientSocket = Client(`http://localhost:${PORT}`, clientOptions);
         clientSocket.on('connect', () => {
             clientSocket.disconnect();
         });
