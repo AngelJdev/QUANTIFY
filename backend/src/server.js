@@ -14,6 +14,10 @@ import { jwtConfig } from './config/jwt.config.js';
 import { registerCommunityHandlers } from './sockets/community.socket.js';
 import { registerChallengeHandlers } from './sockets/challenge.socket.js';
 import { registerFeedHandlers } from './sockets/feed.socket.js';
+import {
+    configureCommunityScaling,
+    initializeCommunitySchema
+} from './services/communityRuntime.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -61,6 +65,7 @@ Promise.all([connectMySQL(), connectMongo()]).then(async () => {
         await seedAdmins();
     } else {
         console.log('✅ Production mode: Skipping DB Sync and Seeding to prevent deadlocks.');
+        await initializeCommunitySchema();
     }
 }).catch(err => {
     console.error('Failed to initialize databases:', err);
@@ -89,10 +94,19 @@ const PORT = process.env.PORT || 5000;
 
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE'] }
+    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+    connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000,
+        skipMiddlewares: false
+    }
 });
 setIO(io);
 app.set('io', io);
+
+// Redis es opcional: cualquier error conserva el adaptador local y no detiene la API.
+configureCommunityScaling(io).catch((error) => {
+    console.error('⚠️ Community socket scaling could not be enabled:', error.message);
+});
 
 const onlineUsers = new Map();
 
@@ -152,4 +166,6 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     });
 }
 
-export default app;
+// Vercel necesita el servidor HTTP para conservar la actualizacion a WebSocket.
+// Express sigue atendiendo las rutas /api mediante este mismo servidor.
+export default httpServer;
