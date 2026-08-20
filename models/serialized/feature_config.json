@@ -1,0 +1,56 @@
+[
+  {
+    "numeric_features":[
+      "edad",
+      "dias_activo",
+      "tasa_adherencia",
+      "friccion_promedio",
+      "racha_maxima",
+      "frecuencia_fallo_semanal",
+      "tendencia_crecimiento",
+      "horas_sueno",
+      "pasos_diarios",
+      "fc_media",
+      "spo2_promedio",
+      "nivel_estres",
+      "indice_riesgo_compuesto",
+      "ratio_adherencia_friccion",
+      "eficiencia_racha"
+    ],
+    "categorical_features":[
+      "genero_Femenino",
+      "genero_Masculino",
+      "genero_No Binario",
+      "disp_Smartwatch",
+      "disp_Web",
+      "disp_Web+Smartwatch"
+    ],
+    "all_features":[
+      "edad",
+      "dias_activo",
+      "tasa_adherencia",
+      "friccion_promedio",
+      "racha_maxima",
+      "frecuencia_fallo_semanal",
+      "tendencia_crecimiento",
+      "horas_sueno",
+      "pasos_diarios",
+      "fc_media",
+      "spo2_promedio",
+      "nivel_estres",
+      "indice_riesgo_compuesto",
+      "ratio_adherencia_friccion",
+      "eficiencia_racha",
+      "genero_Femenino",
+      "genero_Masculino",
+      "genero_No Binario",
+      "disp_Smartwatch",
+      "disp_Web",
+      "disp_Web+Smartwatch"
+    ],
+    "target":"riesgo_abandono",
+    "target_coded":"riesgo_abandono_cod",
+    "seed":2026,
+    "split_ratio":"70\/15\/15"
+  }
+]

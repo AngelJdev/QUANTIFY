@@ -7,7 +7,7 @@ export const getAchievements = async (req, res, next) => {
     try {
         const usuario_id = req.user.id;
 
-        // 1. Evaluar automáticamente el catálogo para otorgar nuevos logros al usuario si califica
+        // 1. Evaluar automáticamente el catálogo para otorgar nuevos logros o revocar no meritorios
         for (const item of ACHIEVEMENTS_CATALOG) {
             try {
                 if (item.evaluate) {
@@ -20,6 +20,11 @@ export const getAchievements = async (req, res, next) => {
                                 mes_logro: moment().format('MMMM YYYY'),
                                 icono_url: item.icono_key || item.icono
                             }
+                        });
+                    } else {
+                        // Revocar logros otorgados previamente por error si ya no se cumple el requisito real
+                        await Achievement.destroy({
+                            where: { usuario_id, titulo: item.titulo }
                         });
                     }
                 }
@@ -34,21 +39,18 @@ export const getAchievements = async (req, res, next) => {
             order: [['fecha_obtencion', 'DESC']]
         });
 
-        // Crear mapa para búsqueda rápida por título normalizado
-        const unlockedMap = new Map();
-        userAchievements.forEach(ach => {
-            const cleanTitle = ach.titulo.trim().toLowerCase();
-            unlockedMap.set(cleanTitle, ach);
-        });
+        // Función para normalizar títulos quitando emojis y espacios
+        const normalizeTitle = (str) => str ? str.toLowerCase().replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim() : '';
 
         // 3. Construir el catálogo fusionado con estado desbloqueado vs bloqueado
         const catalog = ACHIEVEMENTS_CATALOG.map(item => {
-            const cleanCatalogTitle = item.titulo.trim().toLowerCase();
-            // Buscar si coincide con algún logro obtenido por el usuario
-            const matchedDb = Array.from(unlockedMap.values()).find(u => {
-                const uTitle = u.titulo.trim().toLowerCase();
-                return uTitle.includes(item.icono_key) || cleanCatalogTitle.includes(uTitle) || uTitle.includes(cleanCatalogTitle.split(' ')[0]);
-            }) || unlockedMap.get(cleanCatalogTitle);
+            const catalogClean = normalizeTitle(item.titulo);
+            
+            // Coincidencia exacta de título (evita que 'Arquitecto de Hábitos' active 'Hábito Forjado')
+            const matchedDb = userAchievements.find(u => {
+                const uClean = normalizeTitle(u.titulo);
+                return uClean === catalogClean || u.titulo.trim().toLowerCase() === item.titulo.trim().toLowerCase();
+            });
 
             const isUnlocked = Boolean(matchedDb);
 

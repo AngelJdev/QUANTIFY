@@ -24,6 +24,8 @@ object RetrofitClient {
         token = jwt
     }
 
+    fun hasToken(): Boolean = !token.isNullOrEmpty()
+
     fun setBaseUrl(url: String) {
         baseUrl = url
     }
@@ -42,9 +44,11 @@ object RetrofitClient {
             addHeader("Content-Type", "application/json")
         }.build()
         val response = chain.proceed(request)
-        if (response.code == 401 && token != null) {
+        if ((response.code == 401 || response.code == 403) && token != null) {
             token = null
-            onUnauthorized?.invoke()
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                onUnauthorized?.invoke()
+            }
         }
         response
     }

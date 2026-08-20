@@ -164,7 +164,7 @@ export const isUserLinked = (userId) => {
  * @param {number} userId
  */
 export const isUserUnlinked = (userId) => {
-    return unlinkedUsers.has(userId) || !activeLinkedUsers.has(userId);
+    return unlinkedUsers.has(userId);
 };
 
 /**

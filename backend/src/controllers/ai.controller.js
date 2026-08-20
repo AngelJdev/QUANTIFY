@@ -62,6 +62,24 @@ No respondas con saludos ni markdown. SOLO envia texto JSON puro.
             return res.status(500).json({ success: false, message: 'Respuesta de IA inválida.' });
         }
 
+        if (req.user && req.user.id) {
+            try {
+                const User = (await import('../models/user.model.js')).default;
+                const { analyzeAchievements } = await import('../services/gamificationEngine.js');
+                const user = await User.findByPk(req.user.id);
+                if (user) {
+                    const prefs = user.preferencias || {};
+                    prefs.used_ai = true;
+                    user.preferencias = prefs;
+                    await user.changed('preferencias', true);
+                    await user.save();
+                    analyzeAchievements(user.id, null, 1).catch(console.error);
+                }
+            } catch (err) {
+                console.error('Error registrando uso de IA en perfil:', err);
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: recommendation

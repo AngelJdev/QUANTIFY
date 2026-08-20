@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiActivity, FiShield, FiTrendingUp, FiTrash2, FiAlertCircle, FiStar, FiCheckCircle, FiEye, FiX, FiAlertTriangle, FiUserX } from 'react-icons/fi';
+import { FiUsers, FiActivity, FiShield, FiTrendingUp, FiTrash2, FiAlertCircle, FiStar, FiCheckCircle, FiEye, FiX, FiAlertTriangle, FiUserX, FiMessageSquare, FiSend, FiClock, FiSearch, FiRefreshCw, FiFilter } from 'react-icons/fi';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 import { io as socketIO } from 'socket.io-client';
@@ -33,10 +33,22 @@ const AdminPanel = () => {
     // Habits modal state
     const [habitsModal, setHabitsModal] = useState({ open: false, user: null, habits: [], loading: false });
 
+    // Support Tickets state
+    const [adminTickets, setAdminTickets] = useState([]);
+    const [ticketCounts, setTicketCounts] = useState({ total: 0, abiertos: 0, enProceso: 0, resueltos: 0, cerrados: 0 });
+    const [loadingAdminTickets, setLoadingAdminTickets] = useState(false);
+    const [ticketStatusFilter, setTicketStatusFilter] = useState('TODOS');
+    const [ticketSearch, setTicketSearch] = useState('');
+    const [respondingTicket, setRespondingTicket] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [replyStatus, setReplyStatus] = useState('Resuelto');
+    const [replyLoading, setReplyLoading] = useState(false);
+
     const SUPER_ADMINS = ['angelcangel282@gmail.com', 'angel@quantify.ai', 'tellescangel282@gmail.com'];
 
     useEffect(() => {
         loadData();
+        fetchAdminTickets();
 
         // Connect to Socket.IO for real-time updates
         const socket = socketIO('/');
@@ -46,10 +58,57 @@ const AdminPanel = () => {
             loadData();
         });
 
+        socket.on('support:ticket-created', () => {
+            fetchAdminTickets();
+        });
+
+        socket.on('support:ticket-updated', () => {
+            fetchAdminTickets();
+        });
+
         return () => {
             socket.disconnect();
         };
     }, []);
+
+    const fetchAdminTickets = async (statusOverride, searchOverride) => {
+        setLoadingAdminTickets(true);
+        try {
+            const status = statusOverride !== undefined ? statusOverride : ticketStatusFilter;
+            const search = searchOverride !== undefined ? searchOverride : ticketSearch;
+            const res = await api.get('/support/admin/tickets', {
+                params: { status, search }
+            });
+            if (res.data?.data) {
+                setAdminTickets(res.data.data.tickets || []);
+                setTicketCounts(res.data.data.counts || {});
+            }
+        } catch (err) {
+            console.error('Error al cargar tickets de soporte:', err);
+        } finally {
+            setLoadingAdminTickets(false);
+        }
+    };
+
+    const handleReplyTicketSubmit = async (e) => {
+        e.preventDefault();
+        if (!respondingTicket || !replyText.trim()) return;
+
+        setReplyLoading(true);
+        try {
+            await api.patch(`/support/admin/tickets/${respondingTicket.ticketId}`, {
+                respuesta_admin: replyText.trim(),
+                status: replyStatus
+            });
+            setRespondingTicket(null);
+            setReplyText('');
+            fetchAdminTickets();
+        } catch (err) {
+            console.error('Error al responder ticket:', err);
+        } finally {
+            setReplyLoading(false);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -485,6 +544,186 @@ const AdminPanel = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Support Tickets Section */}
+            <div className="glass-card dark:border-white/5 dark:bg-surface overflow-hidden mt-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-gray-100 dark:border-white/10 pb-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-textPrimary flex items-center gap-2">
+                            <span className="w-2 h-6 rounded bg-amber-500"></span>
+                            Gestión de Tickets de Soporte Técnico
+                        </h2>
+                        <p className="text-xs text-textMuted font-medium mt-1">
+                            Atiende incidencias, consultas y solicitudes de usuarios en tiempo real.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                        <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl text-xs font-black">
+                            Abiertos: {ticketCounts.abiertos || 0}
+                        </span>
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl text-xs font-black">
+                            En Proceso: {ticketCounts.enProceso || 0}
+                        </span>
+                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-xs font-black">
+                            Resueltos: {ticketCounts.resueltos || 0}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Filtros y Buscador de Tickets */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                        {['TODOS', 'Abierto', 'En Proceso', 'Resuelto', 'Cerrado'].map(st => (
+                            <button
+                                key={st}
+                                onClick={() => { setTicketStatusFilter(st); fetchAdminTickets(st, ticketSearch); }}
+                                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                                    ticketStatusFilter === st
+                                        ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/30'
+                                        : 'bg-gray-100 dark:bg-white/5 text-textMuted dark:text-gray-400 border-gray-200 dark:border-white/10 hover:border-amber-500/40'
+                                }`}
+                            >
+                                {st}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="relative w-full md:w-72">
+                        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-textMuted" size={16} />
+                        <input
+                            value={ticketSearch}
+                            onChange={(e) => { setTicketSearch(e.target.value); fetchAdminTickets(ticketStatusFilter, e.target.value); }}
+                            placeholder="Buscar por ID, email o asunto..."
+                            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-medium text-textPrimary dark:text-white focus:outline-none focus:border-amber-500 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* Lista de Tickets */}
+                {loadingAdminTickets ? (
+                    <div className="p-8 text-center text-textMuted text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                        <FiRefreshCw className="animate-spin text-amber-500" size={18} /> Cargando solicitudes de soporte...
+                    </div>
+                ) : adminTickets.length === 0 ? (
+                    <div className="p-8 text-center text-textMuted dark:text-gray-400 text-sm font-bold border border-dashed border-gray-200 dark:border-white/10 rounded-2xl">
+                        No hay tickets registrados con el filtro seleccionado.
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {adminTickets.map(ticket => {
+                            const isResponding = respondingTicket?.ticketId === ticket.ticketId;
+                            return (
+                                <div key={ticket.ticketId} className="p-5 bg-gray-50/60 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-2xl space-y-3">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-mono font-black text-xs text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                                                #{ticket.ticketId}
+                                            </span>
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gray-200 dark:bg-white/10 text-textMuted dark:text-gray-300">
+                                                {ticket.email}
+                                            </span>
+                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                                {ticket.prioridad}
+                                            </span>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                ticket.status === 'Resuelto' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                                                ticket.status === 'En Proceso' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                                                ticket.status === 'Cerrado' ? 'bg-gray-500/10 text-gray-400 border-gray-500/30' :
+                                                'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                            }`}>
+                                                {ticket.status}
+                                            </span>
+                                        </div>
+
+                                        <span className="text-[11px] font-medium text-textMuted dark:text-gray-400">
+                                            {new Date(ticket.createdAt).toLocaleString('es-MX')}
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-base font-extrabold text-textPrimary dark:text-white mb-1">{ticket.asunto}</h4>
+                                        <p className="text-xs font-medium text-textMuted dark:text-gray-300 bg-surface dark:bg-[#151515] p-3 rounded-xl border border-gray-200 dark:border-white/5 whitespace-pre-wrap">
+                                            {ticket.mensaje}
+                                        </p>
+                                    </div>
+
+                                    {ticket.respuesta_admin && !isResponding && (
+                                        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
+                                            <div className="flex justify-between items-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                                                <span>Respuesta enviada por {ticket.respondido_por || 'Soporte'}</span>
+                                                <span>{ticket.fecha_respuesta ? new Date(ticket.fecha_respuesta).toLocaleString('es-MX') : ''}</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-emerald-950 dark:text-emerald-100 whitespace-pre-wrap">{ticket.respuesta_admin}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Botón para Responder */}
+                                    {!isResponding ? (
+                                        <button
+                                            onClick={() => {
+                                                setRespondingTicket(ticket);
+                                                setReplyText(ticket.respuesta_admin || '');
+                                                setReplyStatus(ticket.status === 'Abierto' ? 'Resuelto' : ticket.status);
+                                            }}
+                                            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                                        >
+                                            <FiSend size={14} /> {ticket.respuesta_admin ? 'Editar Respuesta' : 'Responder Ticket'}
+                                        </button>
+                                    ) : (
+                                        <form onSubmit={handleReplyTicketSubmit} className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-xs font-black uppercase tracking-widest text-amber-400">
+                                                    Respuesta Oficial de Soporte
+                                                </label>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => setRespondingTicket(null)}
+                                                    className="text-xs font-bold text-gray-400 hover:text-white"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+
+                                            <textarea
+                                                rows={3}
+                                                value={replyText}
+                                                onChange={(e) => setReplyText(e.target.value)}
+                                                placeholder="Escribe la solución o instrucciones para el usuario..."
+                                                className="w-full p-3 bg-surface dark:bg-[#111] border border-amber-500/40 rounded-xl text-xs font-medium text-textPrimary dark:text-white focus:outline-none focus:border-amber-400"
+                                            />
+
+                                            <div className="flex flex-wrap justify-between items-center gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-textMuted dark:text-gray-400">Actualizar Estado:</span>
+                                                    <select
+                                                        value={replyStatus}
+                                                        onChange={(e) => setReplyStatus(e.target.value)}
+                                                        className="px-3 py-1.5 bg-surface dark:bg-[#111] border border-gray-300 dark:border-white/10 rounded-xl text-xs font-bold text-textPrimary dark:text-white"
+                                                    >
+                                                        <option value="En Proceso">En Proceso</option>
+                                                        <option value="Resuelto">Resuelto</option>
+                                                        <option value="Cerrado">Cerrado</option>
+                                                        <option value="Abierto">Abierto</option>
+                                                    </select>
+                                                </div>
+
+                                                <button
+                                                    type="submit"
+                                                    disabled={replyLoading || !replyText.trim()}
+                                                    className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                                >
+                                                    {replyLoading ? <FiRefreshCw className="animate-spin" size={14} /> : <FiCheckCircle size={14} />}
+                                                    Enviar Respuesta
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Info Banner */}

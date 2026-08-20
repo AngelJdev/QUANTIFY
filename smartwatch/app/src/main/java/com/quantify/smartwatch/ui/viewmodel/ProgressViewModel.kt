@@ -35,6 +35,7 @@ class ProgressViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun loadWeeklyData() {
+        if (!RetrofitClient.hasToken()) return
         viewModelScope.launch {
             try {
                 val response = api.getGlobalStats()

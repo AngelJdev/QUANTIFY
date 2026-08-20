@@ -49,6 +49,17 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             habitRepo.markCompletedLocally(habitId)
             logRepo.enqueueHabitComplete(habitId)
             checkAllCompleted()
+            
+            // Immediate real-time sync to backend
+            try {
+                val syncRepo = com.quantify.smartwatch.data.repository.SyncRepository(
+                    db.actionQueueDao(),
+                    db.telemetryDao(),
+                    prefs
+                )
+                syncRepo.performSync()
+            } catch (_: Exception) {}
+            
             SyncWorker.syncNow(getApplication())
         }
     }
@@ -64,6 +75,17 @@ class HabitViewModel(application: Application) : AndroidViewModel(application) {
             habitRepo.markCompletedLocally(habitId, value)
             logRepo.enqueueHabitLogValue(habitId, value)
             checkAllCompleted()
+            
+            // Immediate real-time sync to backend
+            try {
+                val syncRepo = com.quantify.smartwatch.data.repository.SyncRepository(
+                    db.actionQueueDao(),
+                    db.telemetryDao(),
+                    prefs
+                )
+                syncRepo.performSync()
+            } catch (_: Exception) {}
+            
             SyncWorker.syncNow(getApplication())
         }
     }

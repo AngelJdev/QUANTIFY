@@ -143,3 +143,9 @@ backend/users_dataset.json
 
 # SmartTV Android Studio project
 smartTV/
+
+# Python & Pytest Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/

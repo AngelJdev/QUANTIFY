@@ -14,9 +14,9 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-
-        // Backend API URL — uses localhost with adb reverse tcp:5000 tcp:5000
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5000/api\"")
+        
+        // FORZADO A PRODUCCIÓN SIEMPRE
+        buildConfigField("String", "API_BASE_URL", "\"https://quantify-zeta-hazel.vercel.app/api\"")
     }
 
     buildTypes {
@@ -26,6 +26,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        getByName("debug") {
+            // Vacío, hereda de defaultConfig
         }
     }
 
