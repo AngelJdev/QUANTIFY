@@ -55,7 +55,7 @@ QUANTIFY es una plataforma avanzada de seguimiento de habitos personales, la cua
 
 ### DIAGRAMA DE GANNT
 
-<img src="https://dummyimage.com/1000x300/a3a3a3/ffffff.png&text=Espacio+para+Gantt" width="100%" />
+<img src="docs/assets/images/quantify_gantt_2026.png" width="100%" />
 
 ---
 
