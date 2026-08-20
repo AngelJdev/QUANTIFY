@@ -7,12 +7,28 @@
 ## LOGOTIPOS
 
 <table>
-   <td>Logo de la Aplicacion</td>
   <tr>
-    <td>  <img src="QUANTIFY.png" width="30%" style="padding: 10px;" />  </td>
-
+    <td>Logo de la Aplicacion</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="QUANTIFY.png" width="30%" style="padding: 10px;" />
+    </td>
   </tr>
 </table>
+
+## INDICE DE CONTENIDOS
+1. [Descripción](#descripcion)
+2. [Planteamiento del Problema](#planteamiento-del-problema)
+3. [Propuesta de Solución](#propuesta-de-solucion)
+4. [Objetivo General](#objetivo-general)
+5. [Objetivos Específicos](#objetivos-especificos)
+6. [Diagrama de Gantt](#diagrama-de-gantt)
+7. [Organigrama de Trabajo](#organigrama-de-trabajo)
+8. [Evidencia y Capturas](#evidencia-y-capturas)
+9. [Lista de Tecnologías](#lista-de-tecnologias)
+
+---
 
 ### DESCRIPCION
 
@@ -53,42 +69,163 @@ QUANTIFY es una plataforma avanzada de seguimiento de habitos personales, la cua
 
 ---
 
-### DIAGRAMA DE GANNT
+### DIAGRAMA DE GANTT
 
 <img src="docs/assets/images/quantify_gantt_2026.png" width="100%" />
 
 ---
 
-### TABLA DE COLABORADORES
+### ORGANIGRAMA DE TRABAJO
 
-| Nombre                        | Usuario             | Puesto |
-|-------------------------------|---------------------|--------|
-| Angel de Jesus Baños Tellez   | [angelJesus13](https://github.com/angelJesus13)        | Tech Lead, Planeación y Arquitectura |
-| Francisco Garcia Garcia       | [F-Anks](https://github.com/F-Anks)          | Modelado de Machine Learning y Python |
-| Al Farias Leyva               | [fariasdgs](https://github.com/fariasdgs)          | Frontend UX/UI & Sistema de Sockets |
-| Brian Jesus Mendoza Marquez   | [Brian](https://github.)             | Integración de APIs y Backend |
-| Jesus Alejandro Artiaga Morales | [JesuuusArt](https://github.com/JesuuusArt)           | Ingeniería de Datos, ETL y Datasets |
+<div align="center">
+  <table>
+    <tr>
+      <th align="center" colspan="5">Distribución del Equipo de Ingeniería</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <div style="font-size: 50px;">👤</div><br>
+        <strong>Angel de Jesus B.</strong><br>
+        <em>1. Tech Lead & Arquitectura</em>
+      </td>
+      <td align="center">
+        <div style="font-size: 50px;">👤</div><br>
+        <strong>Francisco Garcia</strong><br>
+        <em>2. Machine Learning / Python</em>
+      </td>
+      <td align="center">
+        <div style="font-size: 50px;">👤</div><br>
+        <strong>Al Farias Leyva</strong><br>
+        <em>3. Frontend UX/UI & Sockets</em>
+      </td>
+      <td align="center">
+        <div style="font-size: 50px;">👤</div><br>
+        <strong>Brian Jesus M.</strong><br>
+        <em>4. Backend & API</em>
+      </td>
+      <td align="center">
+        <div style="font-size: 50px;">👤</div><br>
+        <strong>Alejandro Artiaga</strong><br>
+        <em>5. Data QA y Simulaciones</em>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-### ORGANIGRAMA DEL EQUIPO
+### EVIDENCIA Y CAPTURAS
 
-```mermaid
-graph TD
-    A[Angel de Jesus B.<br>Tech Lead y Arquitectura]:::leader
-    B[Francisco Garcia<br>Machine Learning / Python]:::dev
-    C[Al Farias Leyva<br>Frontend & Sockets UI]:::dev
-    D[Brian Jesus M.<br>Integración API / Backend]:::dev
-    E[Alejandro Artiaga<br>Data QA y Simulaciones]:::dev
-    
-    A --> B
-    A --> C
-    A --> D
-    A --> E
-    
-    classDef leader fill:#20232A,stroke:#61DAFB,stroke-width:2px,color:#fff;
-    classDef dev fill:#333333,stroke:#cccccc,stroke-width:1px,color:#fff;
-```
+> *Galería de Interfaces y Plataforma de Mando.*
+
+#### Entorno Web (Dashboard & Analítica)
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/dash1.png" width="400" alt="Dashboard 1" /><br>
+        <em>Dashboard Principal</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/dash2.png" width="400" alt="Dashboard 2" /><br>
+        <em>Módulo de Analítica Avanzada</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/dash3.png" width="400" alt="Dashboard 3" /><br>
+        <em>Comunidad y Logros</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/dash4.png" width="400" alt="Dashboard 4" /><br>
+        <em>Panel Administrativo</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/web.jpeg" width="400" alt="Web App" /><br>
+        <em>Página Informativa</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/2.jpeg" width="400" alt="App 2" /><br>
+        <em>Autenticación y Captura</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/3.jpeg" width="400" alt="App 3" /><br>
+        <em>Asistente de Onboarding</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/4.jpeg" width="400" alt="App 4" /><br>
+        <em>Mi Perfil</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/5.jpeg" width="400" alt="App 5" /><br>
+        <em>Mapa del Sitio y Exploración</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/7.jpeg" width="400" alt="App 7" /><br>
+        <em>Centro de Soporte</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/8.jpeg" width="400" alt="App 8" /><br>
+        <em>Configuraciones del Sistema</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/9.jpeg" width="400" alt="App 9" /><br>
+        <em>Sincronización de Componentes</em>
+      </td>
+    </tr>
+  </table>
+</div>
+
+#### Entorno WearOS (Aplicación Smartwatch)
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src="docs/assets/images/smartwatch_00_main.jpeg" width="150" alt="WearOS 1" /></td>
+      <td align="center"><img src="docs/assets/images/smartwatch_01_init.jpeg" width="150" alt="WearOS 2" /></td>
+      <td align="center"><img src="docs/assets/images/smartwatch_02_otp.jpeg" width="150" alt="WearOS 3" /></td>
+      <td align="center"><img src="docs/assets/images/smartwatch_03_habits.jpeg" width="150" alt="WearOS 4" /></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/assets/images/smartwatch_04_settings.jpeg" width="150" alt="WearOS 5" /></td>
+      <td align="center"><img src="docs/assets/images/smartwatch_05_timer.jpeg" width="150" alt="WearOS 6" /></td>
+      <td align="center"><img src="docs/assets/images/smartwatch_06_registered.jpeg" width="150" alt="WearOS 7" /></td>
+      <td align="center"></td>
+    </tr>
+  </table>
+</div>
+
+#### Entorno Smart TV (App Android TV)
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/images/tv.jpeg" width="400" alt="Vista TV 1" /><br>
+        <em>Sincronización de Avances Globales</em>
+      </td>
+      <td align="center">
+        <img src="docs/assets/images/tv1.jpeg" width="400" alt="Vista TV 2" /><br>
+        <em>Lectura de Métricas a Distancia</em>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="2">
+        <img src="docs/assets/images/tv3.jpeg" width="500" alt="Vista TV 3" /><br>
+        <em>Entorno Integrado en Pantalla Grande</em>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
@@ -100,17 +237,14 @@ graph TD
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Socket.io](https://img.shields.io/badge/Socket_IO-black?style=for-the-badge&logo=socketdotio&logoColor=white)
 
-
 *Backend y Base de Datos (Estandar Hibrido):*
 
 ![Node.js](https://img.shields.io/badge/Node_JS-43853D?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
 
-
 *Inteligencia Artificial y DevOps:*
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
-

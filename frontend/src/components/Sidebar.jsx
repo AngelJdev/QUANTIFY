@@ -118,9 +118,13 @@ const Sidebar = () => {
             {/* Profile & Logout */}
             <div className="p-6 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-transparent shrink-0">
                 <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 bg-accent text-gray-900 rounded-full flex items-center justify-center font-black text-lg shadow-md border border-black/10">
-                        {user.nombre.charAt(0).toUpperCase()}
-                    </div>
+                    {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full object-cover shadow-md border border-black/10" />
+                    ) : (
+                        <div className="w-10 h-10 bg-accent text-gray-900 rounded-full flex items-center justify-center font-black text-lg shadow-md border border-black/10">
+                            {user.nombre.charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <div className="overflow-hidden">
                         <p className="text-sm font-extrabold truncate dark:text-white">{user.nombre}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-500 truncate font-medium">{user.email}</p>
