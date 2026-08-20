@@ -27,3 +27,15 @@ export const respondToFriendRequest = (friendshipId, action) => (
 export const removeFriendship = (friendshipId) => (
     emitWithAck('community:friend_remove', { friendshipId })
 );
+
+export const getCommunityChallenges = () => emitWithAck('community:challenges_get');
+export const createCommunityChallenge = (challenge) => emitWithAck('community:challenge_create', challenge);
+export const respondToChallenge = (challengeId, action) => (
+    emitWithAck('community:challenge_respond', { challengeId, action })
+);
+export const addChallengeProgress = (challengeId, amount) => (
+    emitWithAck('community:challenge_progress', { challengeId, amount })
+);
+export const cancelCommunityChallenge = (challengeId) => (
+    emitWithAck('community:challenge_cancel', { challengeId })
+);

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     FiCheck, FiClock, FiRefreshCw, FiSearch, FiUserMinus,
-    FiUserPlus, FiUsers, FiWifi, FiWifiOff, FiX
+    FiTarget, FiUserPlus, FiUsers, FiWifi, FiWifiOff, FiX
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import ChallengesPanel from '../components/community/ChallengesPanel';
 import { initSocket } from '../services/socket';
 import {
     getCommunityState, removeFriendship, respondToFriendRequest,
@@ -46,6 +47,7 @@ const PersonInfo = ({ user, showEmail = true }) => (
 
 const CommunityPage = () => {
     const { user: currentUser } = useAuth();
+    const [activeTab, setActiveTab] = useState('friends');
     const [community, setCommunity] = useState(EMPTY_STATE);
     const [query, setQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -189,13 +191,32 @@ const CommunityPage = () => {
                     </div>
                     <p className="font-medium text-textMuted">Conecta con otros Quantifiers y avancen juntos, sin recargar la página.</p>
                 </div>
-                <button onClick={() => loadState()} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-surface px-5 py-3 text-sm font-extrabold text-textPrimary hover:border-accent disabled:opacity-50 dark:border-white/10">
-                    <FiRefreshCw className={loading ? 'animate-spin' : ''} /> Sincronizar
-                </button>
+                {activeTab === 'friends' && (
+                    <button onClick={() => loadState()} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-surface px-5 py-3 text-sm font-extrabold text-textPrimary hover:border-accent disabled:opacity-50 dark:border-white/10">
+                        <FiRefreshCw className={loading ? 'animate-spin' : ''} /> Sincronizar
+                    </button>
+                )}
             </header>
 
             {notice && <div className={`fixed right-6 top-6 z-50 max-w-sm rounded-2xl border px-5 py-4 text-sm font-bold shadow-2xl ${notice.type === 'error' ? 'border-red-500/30 bg-red-950 text-red-100' : 'border-emerald-500/30 bg-emerald-950 text-emerald-100'}`}>{notice.text}</div>}
 
+            <nav className="inline-flex w-full gap-2 rounded-2xl border border-gray-200 bg-surface p-2 dark:border-white/10 sm:w-auto">
+                <button
+                    onClick={() => setActiveTab('friends')}
+                    className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${activeTab === 'friends' ? 'bg-primary text-surface shadow-sm dark:bg-white dark:text-black' : 'text-textMuted hover:bg-gray-500/10'}`}
+                >
+                    <FiUsers /> Amigos
+                </button>
+                <button
+                    onClick={() => setActiveTab('challenges')}
+                    className={`relative inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${activeTab === 'challenges' ? 'bg-primary text-surface shadow-sm dark:bg-white dark:text-black' : 'text-textMuted hover:bg-gray-500/10'}`}
+                >
+                    <FiTarget /> Retos
+                </button>
+            </nav>
+
+            {activeTab === 'friends' ? (
+                <>
             <section className="grid gap-4 sm:grid-cols-3">
                 {[
                     { icon: <FiUsers size={24} />, value: community.friends.length, label: 'Amigos', color: 'text-blue-500 bg-blue-500/15' },
@@ -287,6 +308,10 @@ const CommunityPage = () => {
                     </div>
                 )}
             </section>
+                </>
+            ) : (
+                <ChallengesPanel friends={community.friends} showNotice={showNotice} />
+            )}
 
             <p className="text-center text-xs text-textMuted">Sesión activa como <span className="font-black text-textPrimary">{currentUser?.nombre}</span>. Sincronización mediante Socket.IO.</p>
         </div>
