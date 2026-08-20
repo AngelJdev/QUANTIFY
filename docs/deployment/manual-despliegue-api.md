@@ -63,8 +63,7 @@ MAILTRAP_HOST=sandbox.smtp.mailtrap.io
 MAILTRAP_PORT=2525
 MAILTRAP_USER=tu_usuario_smtp
 MAILTRAP_PASS=tu_password_smtp
-MAILTRAP_FROM=Quantify <no-reply@quantify.app>
-```
+MAILTRAP_FROM=Quantify <no-reply@quantify.app>```
 
 ### 3.2. Descripción Detallada de las Variables
 
