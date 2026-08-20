@@ -29,6 +29,7 @@ import supportRoutes from './API/routes/support.routes.js';
 import populateRoutes from './API/routes/populate.routes.js';
 import externalRoutes from './API/routes/external.routes.js'; // Servicio Web Externo
 import smartwatchRoutes from './API/routes/smartwatch.routes.js';
+import mlRoutes from './API/routes/ml.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './SQL/models/user.model.js';
@@ -113,6 +114,7 @@ app.use('/api/analytics', analyticsRoutes);
 // Web Services Externos (Ejemplo: GitHub API & IP Geolocation)
 app.use('/api/external', externalRoutes);
 app.use('/api/smartwatch', smartwatchRoutes);
+app.use('/api/ml', mlRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
