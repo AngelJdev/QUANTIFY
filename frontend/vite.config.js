@@ -3,8 +3,10 @@ import react from '@vitejs/plugin-react'
 import mkcert from 'vite-plugin-mkcert'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), mkcert()],
+export default defineConfig(({ command }) => ({
+  // El certificado solo se necesita al abrir el servidor local.
+  // Evita que la compilacion de Vercel intente instalar certificados.
+  plugins: [react(), ...(command === 'serve' ? [mkcert()] : [])],
   server: {
     https: true,
     proxy: {
@@ -20,4 +22,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))
