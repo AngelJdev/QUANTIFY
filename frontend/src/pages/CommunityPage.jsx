@@ -6,7 +6,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import ChallengesPanel from '../components/community/ChallengesPanel';
 import CommunityFeed from '../components/community/CommunityFeed';
-import { initSocket } from '../services/socket';
+import { initCommunitySocket } from '../services/communitySocket';
 import {
     getCommunityState, removeFriendship, respondToFriendRequest,
     searchCommunityUsers, sendFriendRequest
@@ -80,7 +80,7 @@ const CommunityPage = () => {
     }, [showNotice]);
 
     useEffect(() => {
-        const socket = initSocket();
+        const socket = initCommunitySocket();
         const onConnect = () => { setConnected(true); loadState({ silent: true }); };
         const onDisconnect = () => setConnected(false);
         const onConnectError = () => { setConnected(false); showNotice('No se pudo autenticar la conexión en tiempo real.', 'error'); };

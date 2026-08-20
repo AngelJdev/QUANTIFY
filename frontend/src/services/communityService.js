@@ -1,7 +1,7 @@
-import { initSocket } from './socket';
+import { initCommunitySocket } from './communitySocket';
 
 const emitWithAck = (event, payload = {}) => new Promise((resolve, reject) => {
-    const socket = initSocket();
+    const socket = initCommunitySocket();
 
     socket.timeout(8000).emit(event, payload, (timeoutError, response) => {
         if (timeoutError) {

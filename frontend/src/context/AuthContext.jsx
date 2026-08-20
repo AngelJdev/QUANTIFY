@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { loginUser, registerUser, fetchProfile, googleLoginService } from '../services/authService';
-import { disconnectSocket, initSocket } from '../services/socket';
 
 
 const AuthContext = createContext(null);
@@ -17,12 +16,9 @@ export const AuthProvider = ({ children }) => {
                 try {
                     const res = await fetchProfile();
                     setUser(res.data.user);
-                } catch {
+                } catch (error) {
                     console.error('Session expired or invalid');
-                    disconnectSocket();
-                    setToken(null);
-                    setUser(null);
-                    localStorage.removeItem('token');
+                    logout();
                 }
             }
             setLoading(false);
@@ -31,16 +27,17 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     useEffect(() => {
-        if (!user?.id || !token) return undefined;
-
-        const socket = initSocket();
-        const handleAuthUpdated = (changes) => {
-            setUser((previous) => previous ? { ...previous, ...changes } : null);
-        };
-        socket.on('auth_updated', handleAuthUpdated);
-
-        return () => socket.off('auth_updated', handleAuthUpdated);
-    }, [user?.id, token]);
+        if (user?.id) {
+            import('../services/socket').then(({ initSocket }) => {
+                const socket = initSocket(user.id);
+                const handleAuthUpdated = (changes) => {
+                    updateLocalUser(changes);
+                };
+                socket.on('auth_updated', handleAuthUpdated);
+                return () => socket.off('auth_updated', handleAuthUpdated);
+            });
+        }
+    }, [user?.id]);
 
     const login = async (credentials) => {
         const res = await loginUser(credentials);
@@ -69,7 +66,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await fetchProfile();
             setUser(res.data.user);
-        } catch {
+        } catch (error) {
             console.error('Failed to refresh profile');
         }
     };
@@ -79,7 +76,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        disconnectSocket();
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
@@ -95,5 +91,4 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

@@ -33,7 +33,7 @@ export const initializeCommunitySchema = async () => {
     }
 };
 
-export const configureCommunityScaling = async (io) => {
+export const configureCommunityScaling = async (communityNamespace) => {
     const redisUrl = process.env.REDIS_URL;
     if (!redisUrl) {
         console.warn('⚠️ REDIS_URL is not configured; sockets will use local memory.');
@@ -55,7 +55,9 @@ export const configureCommunityScaling = async (io) => {
         });
 
         await Promise.all([publisher.connect(), subscriber.connect()]);
-        io.adapter(createAdapter(publisher, subscriber));
+        // El adaptador se aplica solo al namespace /community. Los sockets de
+        // administracion, analitica y otros modulos conservan su adaptador.
+        communityNamespace.adapter = createAdapter(publisher, subscriber)(communityNamespace);
         console.log('✅ Community sockets are using Redis.');
         return true;
     } catch (error) {

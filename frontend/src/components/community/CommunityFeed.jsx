@@ -3,7 +3,7 @@ import {
     FiAward, FiChevronDown, FiGlobe, FiHeart, FiMessageCircle,
     FiRefreshCw, FiSend, FiShield, FiTrash2, FiUsers, FiX, FiZap
 } from 'react-icons/fi';
-import { initSocket } from '../../services/socket';
+import { initCommunitySocket } from '../../services/communitySocket';
 import {
     createCommunityComment,
     createCommunityPost,
@@ -90,7 +90,7 @@ const CommunityFeed = ({ currentUser, showNotice }) => {
     }, [showNotice]);
 
     useEffect(() => {
-        const socket = initSocket();
+        const socket = initCommunitySocket();
         const onFeedChanged = () => loadFeed({ silent: true });
         const onPresenceChanged = ({ userId, online }) => {
             setPosts((previous) => previous.map((post) => (

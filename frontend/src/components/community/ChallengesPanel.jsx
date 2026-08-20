@@ -4,7 +4,7 @@ import {
     FiClock, FiFlag, FiPlus, FiRefreshCw, FiTarget, FiTrash2,
     FiTrendingUp, FiUserPlus, FiUsers, FiX
 } from 'react-icons/fi';
-import { initSocket } from '../../services/socket';
+import { initCommunitySocket } from '../../services/communitySocket';
 import {
     addChallengeProgress,
     cancelCommunityChallenge,
@@ -165,7 +165,7 @@ const ChallengesPanel = ({ friends, showNotice }) => {
     }, [showNotice]);
 
     useEffect(() => {
-        const socket = initSocket();
+        const socket = initCommunitySocket();
         const onChanged = () => loadChallenges({ silent: true });
         const initialLoad = window.setTimeout(() => loadChallenges(), 0);
         socket.on('community:challenge_changed', onChanged);

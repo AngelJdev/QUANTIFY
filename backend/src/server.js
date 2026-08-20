@@ -94,23 +94,36 @@ const PORT = process.env.PORT || 5000;
 
 const httpServer = createServer(app);
 const io = new SocketServer(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
-    connectionStateRecovery: {
-        maxDisconnectionDuration: 2 * 60 * 1000,
-        skipMiddlewares: false
-    }
+    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE'] }
 });
 setIO(io);
 app.set('io', io);
 
-// Redis es opcional: cualquier error conserva el adaptador local y no detiene la API.
-configureCommunityScaling(io).catch((error) => {
+// Se conserva el canal principal para los modulos que ya existian.
+io.on('connection', (socket) => {
+    console.log(`🔌 Socket connected: ${socket.id}`);
+
+    socket.on('join_user_room', (userId) => {
+        socket.join(`user_${userId}`);
+        console.log(`👤 User joined room: user_${userId}`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`🔌 Socket disconnected: ${socket.id}`);
+    });
+});
+
+// Comunidad vive en su propio namespace para que sus errores no afecten a
+// administracion, analitica ni a los demas sockets de la aplicacion.
+const communityIO = io.of('/community');
+
+configureCommunityScaling(communityIO).catch((error) => {
     console.error('⚠️ Community socket scaling could not be enabled:', error.message);
 });
 
 const onlineUsers = new Map();
 
-io.use(async (socket, next) => {
+communityIO.use(async (socket, next) => {
     try {
         const token = socket.handshake.auth?.token;
         if (!token) return next(new Error('AUTH_REQUIRED'));
@@ -129,7 +142,7 @@ io.use(async (socket, next) => {
     }
 });
 
-io.on('connection', (socket) => {
+communityIO.on('connection', (socket) => {
     const userId = socket.user.id;
     const existingSockets = onlineUsers.get(userId) || new Set();
     const wasOffline = existingSockets.size === 0;
@@ -139,13 +152,13 @@ io.on('connection', (socket) => {
     socket.join(`user_${userId}`);
     console.log(`🔌 Socket connected: ${socket.id} (user ${userId})`);
 
-    if (wasOffline) io.emit('community:presence_changed', { userId, online: true });
+    if (wasOffline) communityIO.emit('community:presence_changed', { userId, online: true });
 
     // Compatibilidad con clientes anteriores, sin permitir entrar a salas ajenas.
     socket.on('join_user_room', () => socket.join(`user_${userId}`));
-    registerCommunityHandlers(io, socket, onlineUsers);
-    registerChallengeHandlers(io, socket, onlineUsers);
-    registerFeedHandlers(io, socket, onlineUsers);
+    registerCommunityHandlers(communityIO, socket, onlineUsers);
+    registerChallengeHandlers(communityIO, socket, onlineUsers);
+    registerFeedHandlers(communityIO, socket, onlineUsers);
 
     socket.on('disconnect', () => {
         const userSockets = onlineUsers.get(userId);
@@ -153,7 +166,7 @@ io.on('connection', (socket) => {
 
         if (!userSockets?.size) {
             onlineUsers.delete(userId);
-            io.emit('community:presence_changed', { userId, online: false });
+            communityIO.emit('community:presence_changed', { userId, online: false });
         }
 
         console.log(`🔌 Socket disconnected: ${socket.id} (user ${userId})`);
