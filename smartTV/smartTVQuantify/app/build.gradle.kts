@@ -20,13 +20,17 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // URL por defecto de la API Quantify (backend hosteado en Vercel).
-        // Para pruebas locales con el emulador usa el preset "Emulador" en Ajustes
-        // (http://10.0.2.2:5000/) apuntando a un backend corriendo en tu PC.
+        // Servidores disponibles para la app. Android Studio usa el backend local
+        // en debug; los APK de producción continúan apuntando a Vercel.
+        buildConfigField("String", "PRODUCTION_API_BASE_URL", "\"https://quantify-zeta-hazel.vercel.app/api/\"")
+        buildConfigField("String", "LOCAL_API_BASE_URL", "\"http://10.0.2.2:5001/api/\"")
         buildConfigField("String", "API_BASE_URL", "\"https://quantify-zeta-hazel.vercel.app/api/\"")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5001/api/\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

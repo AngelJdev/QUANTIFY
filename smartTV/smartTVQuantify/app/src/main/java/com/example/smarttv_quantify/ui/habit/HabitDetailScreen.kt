@@ -74,6 +74,8 @@ fun HabitDetailScreen(
 ) {
     val repository = remember(serverUrl) { QuantifyRepository(serverUrl) }
 
+    BackHandler(onBack = onBack)
+
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var adherence by remember { mutableStateOf(AdherenceData()) }
@@ -272,13 +274,53 @@ fun HabitDetailScreen(
                                 }
                             }
 
-                            // ===== RECOMENDACIONES DE VIDEOS POR IA =====
-                            AiVideoRecommendationsSection(habitName = habitName)
+                            HabitGuidanceSection(adherence = adherence)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HabitGuidanceSection(adherence: AdherenceData) {
+    val (title, message) = when {
+        adherence.isNewHabit -> "Construye una base" to
+            "Este hábito todavía tiene poco historial. Completa tus días programados para obtener una lectura más precisa."
+        adherence.adherenceScore >= 80 -> "Vas por muy buen camino" to
+            "Tu constancia es alta. Mantén el mismo horario y protege la rutina que ya te está funcionando."
+        adherence.tendenciaSemanal > 0 -> "Tu semana está mejorando" to
+            "La tendencia subió ${adherence.tendenciaSemanal}%. Repite las condiciones de los días que sí cumpliste."
+        adherence.adherenceScore >= 50 -> "Haz la meta más sencilla" to
+            "Tienes una base estable. Reduce la dificultad en días ocupados para evitar romper la continuidad."
+        else -> "Retoma con un paso pequeño" to
+            "No necesitas recuperar todo en un día. Empieza con una versión corta del hábito y vuelve a sumar constancia."
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(QuantifySurface)
+            .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "SIGUIENTE PASO",
+            color = QuantifyCyan,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 2.sp
+        )
+        Text(title, color = QuantifyTextPrimary, fontSize = 25.sp, fontWeight = FontWeight.Black)
+        Text(message, color = QuantifyTextMuted, fontSize = 17.sp)
+        Text(
+            text = "Consejo calculado con tu adherencia y tendencia actuales.",
+            color = QuantifyTextMuted.copy(alpha = 0.7f),
+            fontSize = 13.sp
+        )
     }
 }
 

@@ -15,16 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -148,8 +144,8 @@ fun DashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(40.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp)
+                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(22.dp)
             ) {
                 // Header: Perfil y Reloj
                 Row(
@@ -170,11 +166,12 @@ fun DashboardScreen(
                         }
                         Column {
                             Text(
-                                text = "BIENVENIDO, ${userName?.uppercase() ?: "EXPLORADOR"}",
+                                text = "Hola, ${userName ?: "bienvenido"}",
                                 color = QuantifyTextPrimary,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = 1.sp
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 ConnectionBadge(connected = connected, lastSync = lastSync)
@@ -187,13 +184,12 @@ fun DashboardScreen(
                     LiveClockDisplay()
                 }
 
-                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                     // Panel Izquierdo: Estadísticas y Gráfico
-                    Column(modifier = Modifier.weight(0.65f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(modifier = Modifier.weight(0.65f), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
                             StatCard(
                                 title = "RACHA",
-                                icon = Icons.Default.LocalFireDepartment,
                                 modifier = Modifier.weight(1f),
                                 accent = Color(0xFFFF9F00)
                             ) {
@@ -202,15 +198,13 @@ fun DashboardScreen(
                             }
                             StatCard(
                                 title = "ADHERENCIA",
-                                icon = Icons.AutoMirrored.Filled.TrendingUp,
                                 modifier = Modifier.weight(1f),
                                 accent = QuantifyCyan
                             ) {
                                 Text("${stats.globalScore}%", color = QuantifyTextPrimary, fontSize = 32.sp, fontWeight = FontWeight.Black)
                             }
                             StatCard(
-                                title = "ACTIVOS",
-                                icon = Icons.Default.Leaderboard,
+                                title = "HÁBITOS",
                                 modifier = Modifier.weight(1f),
                                 accent = QuantifyWarning
                             ) {
@@ -218,7 +212,6 @@ fun DashboardScreen(
                             }
                             StatCard(
                                 title = "HOY",
-                                icon = Icons.Default.CheckCircle,
                                 modifier = Modifier.weight(1f),
                                 accent = QuantifySuccess
                             ) {
@@ -235,31 +228,42 @@ fun DashboardScreen(
                                 .padding(28.dp)
                         ) {
                             val weeklyData = stats.dailyPerformance.takeLast(7)
-                            SectionTitle("RENDIMIENTO SEMANAL", "PORCENTAJE DE CUMPLIMIENTO")
-                            Spacer(Modifier.height(20.dp))
-                            Box(Modifier.weight(1f)) {
-                                AnimatedBarChart(
-                                    data = weeklyData.map { it.porcentaje.toFloat() },
-                                    modifier = Modifier.fillMaxSize()
+                            SectionTitle("Tu semana", "Cumplimiento diario de los últimos 7 días")
+                            Spacer(Modifier.height(14.dp))
+                            if (weeklyData.isEmpty()) {
+                                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Text(
+                                        "Aún no hay registros esta semana.",
+                                        color = QuantifyTextMuted,
+                                        fontSize = 17.sp
+                                    )
+                                }
+                            } else {
+                                Box(Modifier.weight(1f)) {
+                                    AnimatedBarChart(
+                                        data = weeklyData.map { it.porcentaje.toFloat() },
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                ChartLabels(
+                                    labels = weeklyData.map { etiquetaDia(it.fecha) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(22.dp)
                                 )
                             }
-                            Spacer(Modifier.height(10.dp))
-                            ChartLabels(
-                                labels = weeklyData.map { etiquetaDia(it.fecha) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(22.dp)
-                            )
                         }
                     }
 
                     // Panel Derecho: Hábitos y Acceso Rápido
-                    Column(modifier = Modifier.weight(0.35f), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(modifier = Modifier.weight(0.35f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         FocusableCard(
                             onClick = onOpenAchievements,
                             cornerRadius = 28.dp,
                             modifier = Modifier.fillMaxWidth(),
-                            requestInitialFocus = true
+                            requestInitialFocus = habits.isEmpty(),
+                            showSelectionBadge = false
                         ) {
                             Row(
                                 modifier = Modifier.padding(20.dp),
@@ -268,28 +272,44 @@ fun DashboardScreen(
                             ) {
                                 Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFFFD700), modifier = Modifier.size(30.dp))
                                 Column {
-                                    Text("LOGROS DESBLOQUEADOS", color = QuantifyTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                    Text("VER TU VITRINA DE TROFEOS", color = QuantifyTextMuted, fontSize = 12.sp)
+                                    Text("TUS LOGROS", color = QuantifyTextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text("REVISA AVANCES Y PRÓXIMOS OBJETIVOS", color = QuantifyTextMuted, fontSize = 12.sp)
                                 }
                             }
                         }
 
                         Column(modifier = Modifier.weight(1f)) {
-                            SectionTitle("TUS HÁBITOS")
-                            Spacer(Modifier.height(16.dp))
+                            SectionTitle("Tus hábitos", "Pulsa OK para ver el detalle")
+                            Spacer(Modifier.height(12.dp))
                             LazyRow(
                                 contentPadding = PaddingValues(end = 20.dp),
                                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                items(habits) { habit ->
-                                    HabitCard(habit = habit, onClick = { onOpenHabit(habit.id, habit.nombre) })
+                                if (habits.isEmpty()) {
+                                    item {
+                                        Text(
+                                            text = "No hay hábitos activos.",
+                                            color = QuantifyTextMuted,
+                                            fontSize = 16.sp,
+                                            maxLines = 1,
+                                            modifier = Modifier.width(300.dp)
+                                        )
+                                    }
+                                } else {
+                                    itemsIndexed(habits, key = { _, habit -> habit.id }) { index, habit ->
+                                        HabitCard(
+                                            habit = habit,
+                                            requestInitialFocus = index == 0,
+                                            onClick = { onOpenHabit(habit.id, habit.nombre) }
+                                        )
+                                    }
                                 }
                             }
                         }
 
                         NavButton(
-                            label = "CONFIGURACIÓN",
+                            label = "AJUSTES Y CONEXIÓN",
                             icon = Icons.Default.Settings,
                             onClick = onOpenSettings,
                             modifier = Modifier.fillMaxWidth()
@@ -302,13 +322,14 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
+private fun HabitCard(habit: HabitDto, requestInitialFocus: Boolean, onClick: () -> Unit) {
     val statusColor = if (habit.completado_hoy) QuantifySuccess else QuantifyWarning
     val statusLabel = if (habit.completado_hoy) "COMPLETADO" else "PENDIENTE"
     FocusableCard(
         onClick = onClick,
         modifier = Modifier.width(280.dp),
         contentPadding = 24.dp,
+        requestInitialFocus = requestInitialFocus,
         showSelectionBadge = false
     ) {
         Row(
@@ -384,6 +405,14 @@ private fun HabitCard(habit: HabitDto, onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
         }
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = "VER DETALLE  ›",
+            color = QuantifyCyan,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.2.sp
+        )
     }
 }
 

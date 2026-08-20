@@ -94,8 +94,8 @@ fun AchievementsScreen(
             }
     }
 
-    BackHandler(enabled = selectedAchievement != null) {
-        selectedAchievement = null
+    BackHandler {
+        if (selectedAchievement != null) selectedAchievement = null else onBack()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -104,8 +104,8 @@ fun AchievementsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 64.dp, vertical = 48.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
+                .padding(horizontal = 48.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             // ===== Top bar =====
             Row(
@@ -119,7 +119,7 @@ fun AchievementsScreen(
                     onClick = onBack,
                     requestInitialFocus = true
                 )
-                QuantifyLogo(subtitle = "LOGROS")
+                QuantifyLogo(subtitle = "TUS LOGROS")
             }
 
             // ===== Header =====
@@ -130,35 +130,49 @@ fun AchievementsScreen(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "COFRES DE HUELLA",
+                        text = "TU PROGRESO",
                         color = QuantifyCyan,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 4.sp
                     )
                     Text(
-                        text = "Logros desbloqueados",
+                        text = "Logros y objetivos",
                         color = QuantifyTextPrimary,
-                        fontSize = 40.sp,
+                        fontSize = 34.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = (-1).sp
                     )
+                    Text(
+                        text = "Explora con el control y pulsa OK para ver cómo conseguir cada logro.",
+                        color = QuantifyTextMuted,
+                        fontSize = 15.sp
+                    )
                 }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("DESBLOQUEADOS", color = QuantifyTextMuted, fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("DESBLOQUEADOS", color = QuantifyTextMuted, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                        CountUpText(target = unlockedCount, fontSize = 26.dp, color = QuantifyCyan)
+                        Text("de $total", color = QuantifyTextMuted, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                     Box(
                         Modifier
+                            .fillMaxWidth(0.22f)
+                            .height(7.dp)
                             .clip(RoundedCornerShape(999.dp))
-                            .background(QuantifyCyan.copy(alpha = 0.14f))
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .background(QuantifyBorder)
                     ) {
-                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            CountUpText(target = unlockedCount, fontSize = 26.dp, color = QuantifyCyan)
-                            Text("/ $total", color = QuantifyTextMuted, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                        }
+                        Box(
+                            Modifier
+                                .fillMaxWidth(
+                                    if (total > 0) (unlockedCount.toFloat() / total).coerceIn(0f, 1f) else 0f
+                                )
+                                .height(7.dp)
+                                .background(QuantifyCyan)
+                        )
                     }
                 }
             }
@@ -185,8 +199,8 @@ fun AchievementsScreen(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(achievements, key = { it.id ?: it.titulo.orEmpty() }) { a ->
                         AchievementCard(a, onClick = { selectedAchievement = a })
@@ -207,7 +221,8 @@ fun AchievementsScreen(
 
 @Composable
 private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> Unit) {
-    val accent = accentFor(achievement.rareza)
+    val rarityAccent = accentFor(achievement.rareza)
+    val accent = if (achievement.unlocked) rarityAccent else QuantifyTextMuted
     FocusableCard(
         onClick = onClick,
         contentPadding = 0.dp,
@@ -216,8 +231,8 @@ private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> U
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -240,14 +255,14 @@ private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> U
                 }
                 Text(
                     text = achievement.icono ?: if (achievement.unlocked) "🏆" else "🔒",
-                    fontSize = 34.sp,
+                    fontSize = 30.sp,
                     modifier = Modifier.alpha(if (achievement.unlocked) 1f else 0.55f)
                 )
             }
             Text(
                 text = achievement.titulo.ifBlank { "Logro" },
                 color = if (achievement.unlocked) QuantifyTextPrimary else QuantifyTextMuted,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Black,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -255,7 +270,7 @@ private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> U
             Text(
                 text = if (achievement.unlocked) achievement.descripcion else achievement.requisito,
                 color = QuantifyTextMuted,
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -272,9 +287,9 @@ private fun AchievementCard(achievement: CatalogAchievementDto, onClick: () -> U
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
+                    .height(5.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(accent)
+                    .background(if (achievement.unlocked) rarityAccent else QuantifyBorder)
             )
         }
     }

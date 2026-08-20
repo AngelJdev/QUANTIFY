@@ -1,6 +1,7 @@
 package com.example.smarttv_quantify.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +36,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -113,56 +115,59 @@ fun FocusableCard(
         animationSpec = tween(180),
         label = "cardBorder"
     )
+    val scale by animateFloatAsState(
+        targetValue = if (focused) 1.025f else 1f,
+        animationSpec = tween(160),
+        label = "cardScale"
+    )
     val shape = RoundedCornerShape(cornerRadius)
 
     LaunchedEffect(requestInitialFocus) {
         if (requestInitialFocus) focusRequester.requestFocus()
     }
 
-    Column(
+    Box(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(shape)
             .background(if (focused) QuantifySurfaceElevated else QuantifySurface)
             .border(if (focused) 3.dp else 1.dp, borderColor, shape)
             .focusRequester(focusRequester)
             .onFocusChanged { focused = it.isFocused }
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
-            .padding(contentPadding)
     ) {
-        if (showSelectionBadge) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(24.dp),
-                contentAlignment = Alignment.TopEnd
+        Column(modifier = Modifier.padding(contentPadding), content = content)
+
+        if (showSelectionBadge && focused) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0xF20A0A0A))
+                    .border(1.dp, QuantifyCyan.copy(alpha = 0.7f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
-                if (focused) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Color(0xE60A0A0A))
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(7.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(QuantifyCyan)
-                        )
-                        Text(
-                            text = "SELECCIONADO",
-                            color = QuantifyCyan,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.2.sp
-                        )
-                    }
-                }
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(QuantifyCyan)
+                )
+                Text(
+                    text = "PULSA OK",
+                    color = QuantifyTextPrimary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.1.sp
+                )
             }
         }
-        content()
     }
 }
 
@@ -179,27 +184,27 @@ fun StatCard(
             .clip(RoundedCornerShape(28.dp))
             .background(QuantifySurface)
             .border(1.dp, QuantifyBorder, RoundedCornerShape(28.dp))
-            .padding(horizontal = 28.dp, vertical = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (icon != null) {
                 Box(
                     Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(accent.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(24.dp))
+                    Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(21.dp))
                 }
             }
             Text(
                 text = title.uppercase(),
                 color = QuantifyTextMuted,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
+                letterSpacing = 1.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -230,6 +235,11 @@ fun NavButton(
         animationSpec = tween(180),
         label = "navBg"
     )
+    val scale by animateFloatAsState(
+        targetValue = if (focused) 1.04f else 1f,
+        animationSpec = tween(160),
+        label = "navScale"
+    )
     val shape = RoundedCornerShape(18.dp)
 
     LaunchedEffect(requestInitialFocus) {
@@ -238,6 +248,10 @@ fun NavButton(
 
     Row(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(shape)
             .background(bg)
             .border(if (focused) 3.dp else 1.dp, if (focused) QuantifyCyan else QuantifyBorder, shape)
@@ -252,10 +266,10 @@ fun NavButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = if (focused) QuantifyCyan else QuantifyTextMuted, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = if (focused) Color.Black else QuantifyTextMuted, modifier = Modifier.size(22.dp))
         Text(
             text = label,
-            color = if (focused) QuantifyTextPrimary else QuantifyTextMuted,
+            color = if (focused) Color.White else QuantifyTextMuted,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )

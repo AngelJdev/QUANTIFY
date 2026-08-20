@@ -1,5 +1,6 @@
 package com.example.smarttv_quantify.ui.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -74,6 +75,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onDisconnected: () -> Unit
 ) {
+    BackHandler(onBack = onBack)
+
     val scope = rememberCoroutineScope()
     var urlInput by remember { mutableStateOf(serverUrl) }
     var saving by remember { mutableStateOf(false) }
@@ -195,9 +198,9 @@ fun SettingsScreen(
                     )
                     UrlInputField(value = urlInput, onValueChange = { urlInput = it })
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        UrlPreset("Producción", BuildConfig.API_BASE_URL, urlInput) { guardarYProbar(it) }
-                        UrlPreset("Emulador", "http://10.0.2.2:5000/", urlInput) { guardarYProbar(it) }
-                        UrlPreset("Físico", "http://192.168.1.100:5000/", urlInput) { guardarYProbar(it) }
+                        UrlPreset("Producción", BuildConfig.PRODUCTION_API_BASE_URL, urlInput) { guardarYProbar(it) }
+                        UrlPreset("Emulador", BuildConfig.LOCAL_API_BASE_URL, urlInput) { guardarYProbar(it) }
+                        UrlPreset("Físico", "http://192.168.1.100:5001/", urlInput) { guardarYProbar(it) }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         ActionButton(
