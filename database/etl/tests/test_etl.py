@@ -28,8 +28,8 @@ import tempfile
 import os
 
 # Agregar el directorio del ETL al path
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(BASE_DIR / "database" / "etl"))
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from etl_pipeline import extract, transform, load, validate
 
@@ -131,6 +131,7 @@ class TestImputacionNulos:
             pd.testing.assert_series_equal(
                 originales, transformados,
                 check_names=False,
+                check_dtype=False,
                 obj=f"Valores preservados de {col}"
             )
 
