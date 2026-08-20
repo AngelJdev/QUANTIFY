@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    FiCheck, FiClock, FiEdit3, FiRefreshCw, FiSearch, FiUserMinus,
-    FiTarget, FiUserPlus, FiUsers, FiWifi, FiWifiOff, FiX
+    FiAlertCircle, FiCheck, FiCheckCircle, FiClock, FiEdit3, FiRefreshCw,
+    FiSearch, FiUserMinus, FiTarget, FiUserPlus, FiUsers, FiWifi, FiWifiOff, FiX
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import ChallengesPanel from '../components/community/ChallengesPanel';
@@ -151,10 +151,11 @@ const CommunityPage = () => {
         }
     };
 
-    const runAction = async (key, action) => {
+    const runAction = async (key, action, onSuccess) => {
         setActionKey(key);
         try {
             const response = await action();
+            onSuccess?.(response);
             showNotice(response.message);
             await loadState({ silent: true });
         } catch (error) {
@@ -164,7 +165,19 @@ const CommunityPage = () => {
         }
     };
 
-    const requestFriend = (targetUserId) => runAction(`request-${targetUserId}`, () => sendFriendRequest(targetUserId));
+    const requestFriend = (targetUserId) => runAction(
+        `request-${targetUserId}`,
+        () => sendFriendRequest(targetUserId),
+        () => {
+            setSearchResults((previous) => previous.map((person) => (
+                person.id === targetUserId ? { ...person, relationship: 'OUTGOING' } : person
+            )));
+            setCommunity((previous) => ({
+                ...previous,
+                discover: previous.discover.filter((person) => person.id !== targetUserId)
+            }));
+        }
+    );
     const respond = (friendshipId, action) => runAction(`${action}-${friendshipId}`, () => respondToFriendRequest(friendshipId, action));
     const remove = (friendship, needsConfirmation = false) => {
         if (needsConfirmation && !window.confirm(`¿Eliminar a ${friendship.user.nombre} de tus amigos?`)) return;
@@ -177,7 +190,8 @@ const CommunityPage = () => {
         if (person.relationship === 'INCOMING') {
             return <button onClick={() => respond(person.friendshipId, 'accept')} disabled={Boolean(actionKey)} className="rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white disabled:opacity-50">Aceptar</button>;
         }
-        return <button onClick={() => requestFriend(person.id)} disabled={Boolean(actionKey)} className="rounded-xl bg-accent px-3 py-2 text-xs font-black text-gray-950 disabled:opacity-50">Agregar</button>;
+        const isSending = actionKey === `request-${person.id}`;
+        return <button onClick={() => requestFriend(person.id)} disabled={Boolean(actionKey)} className="rounded-xl bg-accent px-3 py-2 text-xs font-black text-gray-950 disabled:opacity-50">{isSending ? 'Enviando…' : 'Agregar'}</button>;
     };
 
     return (
@@ -199,8 +213,6 @@ const CommunityPage = () => {
                 )}
             </header>
 
-            {notice && <div className={`fixed right-6 top-6 z-50 max-w-sm rounded-2xl border px-5 py-4 text-sm font-bold shadow-2xl ${notice.type === 'error' ? 'border-red-500/30 bg-red-950 text-red-100' : 'border-emerald-500/30 bg-emerald-950 text-emerald-100'}`}>{notice.text}</div>}
-
             <nav className="inline-flex w-full gap-2 rounded-2xl border border-gray-200 bg-surface p-2 dark:border-white/10 sm:w-auto">
                 <button
                     onClick={() => setActiveTab('friends')}
@@ -221,6 +233,20 @@ const CommunityPage = () => {
                     <FiEdit3 /> Muro
                 </button>
             </nav>
+
+            {notice && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold ${notice.type === 'error' ? 'border-red-500/25 bg-red-500/10 text-red-600 dark:text-red-300' : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'}`}
+                >
+                    {notice.type === 'error' ? <FiAlertCircle className="shrink-0" size={18} /> : <FiCheckCircle className="shrink-0" size={18} />}
+                    <span className="min-w-0 flex-1">{notice.text}</span>
+                    <button type="button" onClick={() => setNotice(null)} className="shrink-0 rounded-lg p-1.5 hover:bg-black/5 dark:hover:bg-white/10" aria-label="Cerrar aviso">
+                        <FiX />
+                    </button>
+                </div>
+            )}
 
             {activeTab === 'friends' ? (
                 <>
@@ -309,7 +335,7 @@ const CommunityPage = () => {
                         {community.discover.map((person) => (
                             <article key={person.id} className="glass-card flex flex-col items-center text-center !p-5">
                                 <Avatar user={person} large /><div className="mt-3 w-full"><PersonInfo user={person} showEmail={false} /></div>
-                                <button onClick={() => requestFriend(person.id)} disabled={Boolean(actionKey)} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-surface disabled:opacity-50 dark:bg-white dark:text-black"><FiUserPlus /> Agregar amigo</button>
+                                <button onClick={() => requestFriend(person.id)} disabled={Boolean(actionKey)} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-xs font-black text-surface disabled:opacity-50 dark:bg-white dark:text-black"><FiUserPlus /> {actionKey === `request-${person.id}` ? 'Enviando…' : 'Agregar amigo'}</button>
                             </article>
                         ))}
                     </div>
@@ -322,7 +348,6 @@ const CommunityPage = () => {
                 <CommunityFeed currentUser={currentUser} showNotice={showNotice} />
             )}
 
-            <p className="text-center text-xs text-textMuted">Sesión activa como <span className="font-black text-textPrimary">{currentUser?.nombre}</span>. Sincronización mediante Socket.IO.</p>
         </div>
     );
 };
