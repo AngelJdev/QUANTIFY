@@ -62,6 +62,7 @@ import com.example.smarttv_quantify.ui.theme.QuantifyWarning
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.supervisorScope
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -94,10 +95,12 @@ fun DashboardScreen(
                 error = null
             }
             runCatching {
-                val p = async { repository.getProfile() }
-                val g = async { repository.getGlobalStats() }
-                val h = async { repository.getHabits() }
-                Triple(p.await(), g.await(), h.await())
+                supervisorScope {
+                    val p = async { repository.getProfile() }
+                    val g = async { repository.getGlobalStats() }
+                    val h = async { repository.getHabits() }
+                    Triple(p.await(), g.await(), h.await())
+                }
             }.onSuccess { (profile, global, habitsEnv) ->
                 stats = global.data ?: GlobalStatsData()
                 habits = habitsEnv.data.orEmpty().filter { it.activo }
