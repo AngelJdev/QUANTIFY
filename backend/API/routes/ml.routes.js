@@ -2,6 +2,7 @@ import express from 'express';
 import { execFile } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { verifyToken } from '../middleware/auth.middleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +48,7 @@ const runPythonPredict = (type, data) => {
  *     description: Retorna el nivel de riesgo de abandono basado en 21 variables predictivas.
  *     tags: [Machine Learning]
  */
-router.post('/predict-burnout', async (req, res) => {
+router.post('/predict-burnout', verifyToken, async (req, res) => {
     try {
         const data = req.body;
         // Basic validation
@@ -56,6 +57,13 @@ router.post('/predict-burnout', async (req, res) => {
         }
 
         const result = await runPythonPredict('burnout', data);
+        
+        // Emitir al socket si existe
+        const io = req.app.get('io');
+        if (io && req.user?.id) {
+            io.to(`user_${req.user.id}`).emit('ml_prediction_updated', result);
+        }
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -70,7 +78,7 @@ router.post('/predict-burnout', async (req, res) => {
  *     description: Segmenta al usuario en un cluster basado en sus variables numéricas.
  *     tags: [Machine Learning]
  */
-router.post('/predict-archetype', async (req, res) => {
+router.post('/predict-archetype', verifyToken, async (req, res) => {
     try {
         const data = req.body;
         if (Object.keys(data).length === 0) {
@@ -78,6 +86,12 @@ router.post('/predict-archetype', async (req, res) => {
         }
 
         const result = await runPythonPredict('archetype', data);
+        
+        const io = req.app.get('io');
+        if (io && req.user?.id) {
+            io.to(`user_${req.user.id}`).emit('ml_prediction_updated', result);
+        }
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -92,7 +106,7 @@ router.post('/predict-archetype', async (req, res) => {
  *     description: Ejecuta ambos modelos simultáneamente.
  *     tags: [Machine Learning]
  */
-router.post('/full-profile', async (req, res) => {
+router.post('/full-profile', verifyToken, async (req, res) => {
     try {
         const data = req.body;
         if (Object.keys(data).length === 0) {
@@ -100,6 +114,12 @@ router.post('/full-profile', async (req, res) => {
         }
 
         const result = await runPythonPredict('full', data);
+
+        const io = req.app.get('io');
+        if (io && req.user?.id) {
+            io.to(`user_${req.user.id}`).emit('ml_prediction_updated', result);
+        }
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
