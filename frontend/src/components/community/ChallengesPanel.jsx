@@ -182,12 +182,18 @@ const ChallengesPanel = ({ friends, showNotice }) => {
     }), [challenges]);
 
     const updateForm = (field, value) => setForm((previous) => ({ ...previous, [field]: value }));
-    const toggleFriend = (friendId) => setForm((previous) => ({
-        ...previous,
-        friendIds: previous.friendIds.includes(friendId)
-            ? previous.friendIds.filter((id) => id !== friendId)
-            : [...previous.friendIds, friendId]
-    }));
+    const toggleFriend = (friendId) => {
+        if (!form.friendIds.includes(friendId) && form.friendIds.length >= 10) {
+            showNotice('Puedes invitar como máximo a 10 amigos.', 'error');
+            return;
+        }
+        setForm((previous) => ({
+            ...previous,
+            friendIds: previous.friendIds.includes(friendId)
+                ? previous.friendIds.filter((id) => id !== friendId)
+                : [...previous.friendIds, friendId]
+        }));
+    };
 
     const runAction = async (key, action) => {
         setActionKey(key);
@@ -263,7 +269,7 @@ const ChallengesPanel = ({ friends, showNotice }) => {
                                 <input required maxLength="24" value={form.unit} onChange={(event) => updateForm('unit', event.target.value)} className="input-field mt-2 text-sm" placeholder="días, km, sesiones…" />
                             </label>
                             <label className="text-xs font-black text-textMuted">Fecha límite
-                                <input required type="date" min={dateAfterDays(1)} value={form.endDate} onChange={(event) => updateForm('endDate', event.target.value)} className="input-field mt-2 text-sm" />
+                                <input required type="date" min={dateAfterDays(1)} max={dateAfterDays(365)} value={form.endDate} onChange={(event) => updateForm('endDate', event.target.value)} className="input-field mt-2 text-sm" />
                             </label>
                         </div>
 

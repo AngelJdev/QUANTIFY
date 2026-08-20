@@ -89,8 +89,11 @@ const getChallengeState = async (currentUserId, isOnline) => {
     const state = { invitations: [], active: [], completed: [] };
     memberships.forEach((membership) => {
         const serialized = serializeChallenge(membership, currentUserId, isOnline);
-        if (membership.invitation_status === 'INVITED') state.invitations.push(serialized);
-        else if (serialized.status === 'COMPLETED') state.completed.push(serialized);
+        if (membership.invitation_status === 'INVITED') {
+            if (serialized.status !== 'COMPLETED') state.invitations.push(serialized);
+            return;
+        }
+        if (serialized.status === 'COMPLETED') state.completed.push(serialized);
         else state.active.push(serialized);
     });
     return state;
@@ -207,7 +210,12 @@ export const registerChallengeHandlers = (io, socket, presence) => {
                 where: { challenge_id: Number(challengeId), user_id: currentUserId },
                 include: [{ model: Challenge, as: 'challenge' }]
             });
-            if (!membership || membership.invitation_status !== 'INVITED' || membership.challenge.status !== 'ACTIVE') {
+            if (
+                !membership
+                || membership.invitation_status !== 'INVITED'
+                || membership.challenge.status !== 'ACTIVE'
+                || membership.challenge.end_date < today()
+            ) {
                 return ack?.({ success: false, message: 'Esta invitación ya no está disponible.' });
             }
 
@@ -244,6 +252,9 @@ export const registerChallengeHandlers = (io, socket, presence) => {
             if (!canAdvance) {
                 return ack?.({ success: false, message: 'Este reto ya no acepta avances.' });
             }
+            if (membership.progress >= membership.challenge.target) {
+                return ack?.({ success: false, message: 'Ya completaste la meta de este reto.' });
+            }
 
             membership.progress = Math.min(membership.challenge.target, membership.progress + increment);
             await membership.save();
@@ -257,7 +268,12 @@ export const registerChallengeHandlers = (io, socket, presence) => {
     socket.on('community:challenge_cancel', async ({ challengeId } = {}, ack) => {
         try {
             const challenge = await Challenge.findByPk(Number(challengeId));
-            if (!challenge || challenge.creator_id !== currentUserId || challenge.status !== 'ACTIVE') {
+            if (
+                !challenge
+                || challenge.creator_id !== currentUserId
+                || challenge.status !== 'ACTIVE'
+                || challenge.end_date < today()
+            ) {
                 return ack?.({ success: false, message: 'No puedes cancelar este reto.' });
             }
             challenge.status = 'CANCELLED';
