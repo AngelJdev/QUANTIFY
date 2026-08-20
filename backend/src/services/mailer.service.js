@@ -1,20 +1,32 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const getTransporter = () => {
+    // 1. Prioridad: Gmail SMTP configurado con App Password
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+    }
+    // 2. Prioridad: Mailtrap Sandbox
+    if (process.env.MAILTRAP_USER && process.env.MAILTRAP_PASS) {
+        return nodemailer.createTransport({
+            host: process.env.MAILTRAP_HOST || 'sandbox.smtp.mailtrap.io',
+            port: parseInt(process.env.MAILTRAP_PORT) || 2525,
+            auth: {
+                user: process.env.MAILTRAP_USER,
+                pass: process.env.MAILTRAP_PASS,
+            },
+        });
+    }
+    return null;
+};
 
 /**
  * Renders the Quantify-branded HTML email template.
- * @param {string} userName
- * @param {string} otp  - The 6-digit reset code
- * @returns {string}    - Full HTML string
  */
 const buildResetEmailHTML = (userName, otp) => `
 <!doctype html>
@@ -29,13 +41,9 @@ const buildResetEmailHTML = (userName, otp) => `
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#111111;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
-
-          <!-- Header gradient bar -->
           <tr>
             <td height="4" style="background:linear-gradient(90deg,#00c2ff,#7b61ff,#00c2ff);"></td>
           </tr>
-
-          <!-- Logo + Brand -->
           <tr>
             <td align="center" style="padding:40px 40px 24px;">
               <table role="presentation" cellpadding="0" cellspacing="0">
@@ -47,8 +55,6 @@ const buildResetEmailHTML = (userName, otp) => `
               </table>
             </td>
           </tr>
-
-          <!-- Main Content -->
           <tr>
             <td style="padding:0 40px 32px;">
               <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">
@@ -58,8 +64,6 @@ const buildResetEmailHTML = (userName, otp) => `
                 Hola, <strong style="color:#cccccc;">${userName}</strong>. Recibimos una solicitud para restablecer la contraseña de tu cuenta.
                 Usa el código de verificación de abajo. Es válido por <strong style="color:#cccccc;">15 minutos</strong>.
               </p>
-
-              <!-- OTP Box -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding:28px;background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-radius:16px;margin-bottom:24px;">
@@ -70,48 +74,11 @@ const buildResetEmailHTML = (userName, otp) => `
                   </td>
                 </tr>
               </table>
-
               <p style="margin:24px 0 0;font-size:12px;color:#555555;line-height:1.6;">
                 Si no solicitaste este cambio, puedes ignorar este correo. Tu contraseña no se modificará.
               </p>
             </td>
           </tr>
-
-          <!-- Security Notice -->
-          <tr>
-            <td style="padding:0 40px 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:16px;background:#ffffff05;border:1px solid rgba(255,255,255,0.05);border-radius:12px;">
-                    <p style="margin:0;font-size:11px;color:#555555;line-height:1.6;">
-                      🔒 <strong style="color:#777777;">Consejo de seguridad:</strong> Quantify nunca te pedirá tu contraseña actual por correo. Este código solo sirve para acceder al formulario de restablecimiento.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.05);">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td>
-                    <p style="margin:0;font-size:11px;color:#444444;">
-                      © ${new Date().getFullYear()} Quantify Intelligence · Ingeniería Personal Bio-Sincrónica
-                    </p>
-                  </td>
-                  <td align="right">
-                    <p style="margin:0;font-size:11px;color:#444444;">
-                      No responder a este correo
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
         </table>
       </td>
     </tr>
@@ -119,22 +86,6 @@ const buildResetEmailHTML = (userName, otp) => `
 </body>
 </html>
 `;
-
-/**
- * Sends a password reset OTP email via Mailtrap sandbox.
- * @param {string} toEmail
- * @param {string} userName
- * @param {string} otp
- */
-export const sendPasswordResetEmail = async (toEmail, userName, otp) => {
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER || 'Quantify <no-reply@quantify.app>',
-        to: toEmail,
-        subject: `${otp} — Tu código de recuperación Quantify`,
-        text: `Hola ${userName},\n\nTu código de recuperación es: ${otp}\nEste código expira en 15 minutos.\n\nSi no lo solicitaste, ignora este mensaje.`,
-        html: buildResetEmailHTML(userName, otp),
-    });
-};
 
 const buildVerificationEmailHTML = (userName, otp) => `
 <!doctype html>
@@ -169,7 +120,7 @@ const buildVerificationEmailHTML = (userName, otp) => `
                 Verifica tu correo electrónico
               </h1>
               <p style="margin:0 0 24px;font-size:14px;color:#888888;line-height:1.6;">
-                Hola, <strong style="color:#cccccc;">${userName}</strong>. Estamos casi listos para iniciar tu protocolo. Ingresa el código a continuación para verificar tu cuenta. Este código es válido por <strong style="color:#cccccc;">15 minutos</strong>.
+                Hola, <strong style="color:#cccccc;">${userName}</strong>. Ingresa el código a continuación para verificar tu correo. Este código es válido por <strong style="color:#cccccc;">15 minutos</strong>.
               </p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
@@ -178,22 +129,6 @@ const buildVerificationEmailHTML = (userName, otp) => `
                     <span style="display:inline-block;font-size:52px;font-weight:900;letter-spacing:12px;color:#ffffff;line-height:1;">
                       ${otp}
                     </span>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin:24px 0 0;font-size:12px;color:#555555;line-height:1.6;">
-                Si no intentaste crear una cuenta en Quantify, por favor ignora este correo.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.05);">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td>
-                    <p style="margin:0;font-size:11px;color:#444444;">
-                      © ${new Date().getFullYear()} Quantify Intelligence · Ingeniería Personal Bio-Sincrónica
-                    </p>
                   </td>
                 </tr>
               </table>
@@ -207,12 +142,44 @@ const buildVerificationEmailHTML = (userName, otp) => `
 </html>
 `;
 
+export const sendPasswordResetEmail = async (toEmail, userName, otp) => {
+    console.log(`🔑 [EMAIL RESET OTP] Enviando a ${toEmail}: ${otp}`);
+    const transporter = getTransporter();
+    if (!transporter) {
+        console.warn('⚠️ No SMTP or Mailtrap auth found. Using fallback console OTP mode.');
+        return;
+    }
+    try {
+        await transporter.sendMail({
+            from: process.env.SMTP_FROM || process.env.MAILTRAP_FROM || 'Quantify <no-reply@quantify.app>',
+            to: toEmail,
+            subject: `${otp} — Tu código de recuperación Quantify`,
+            text: `Hola ${userName},\n\nTu código de recuperación es: ${otp}\nEste código expira en 15 minutos.\n\nSi no lo solicitaste, ignora este mensaje.`,
+            html: buildResetEmailHTML(userName, otp),
+        });
+        console.log(`✅ Correo de recuperación enviado con éxito a ${toEmail}`);
+    } catch (err) {
+        console.error('❌ Error al enviar correo por SMTP:', err.message);
+    }
+};
+
 export const sendVerificationEmail = async (toEmail, userName, otp) => {
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER || 'Quantify <no-reply@quantify.app>',
-        to: toEmail,
-        subject: `${otp} — Verifica tu cuenta de Quantify`,
-        text: `Hola ${userName},\n\nTu código de verificación es: ${otp}\nEste código expira en 15 minutos.\n\nSi no lo solicitaste, ignora este mensaje.`,
-        html: buildVerificationEmailHTML(userName, otp),
-    });
+    console.log(`🔑 [EMAIL VERIFY OTP] Enviando a ${toEmail}: ${otp}`);
+    const transporter = getTransporter();
+    if (!transporter) {
+        console.warn('⚠️ No SMTP or Mailtrap auth found. Using fallback console OTP mode.');
+        return;
+    }
+    try {
+        await transporter.sendMail({
+            from: process.env.SMTP_FROM || process.env.MAILTRAP_FROM || 'Quantify <no-reply@quantify.app>',
+            to: toEmail,
+            subject: `${otp} — Verifica tu cuenta de Quantify`,
+            text: `Hola ${userName},\n\nTu código de verificación es: ${otp}\nEste código expira en 15 minutos.`,
+            html: buildVerificationEmailHTML(userName, otp),
+        });
+        console.log(`✅ Correo de verificación enviado con éxito a ${toEmail}`);
+    } catch (err) {
+        console.error('❌ Error al enviar correo por SMTP:', err.message);
+    }
 };

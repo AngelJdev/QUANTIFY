@@ -1,4 +1,4 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const CustomTooltip = ({ active, payload, label, isGlobal }) => {
     if (active && payload && payload.length) {
@@ -31,15 +31,18 @@ const CustomTooltip = ({ active, payload, label, isGlobal }) => {
 };
 
 const AdherenceChart = ({ data, isGlobal }) => {
+    const gradientId = isGlobal ? 'colorGlobal' : 'colorHabit';
+
     return (
         <div className="h-[350px] w-full mt-6">
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                    data={data}
+                    key={isGlobal ? 'global-chart-view' : `habit-chart-view-${data?.length || 0}`}
+                    data={data || []}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                     <defs>
-                        <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={isGlobal ? "#3B82F6" : "#10B981"} stopOpacity={0.4}/>
                             <stop offset="95%" stopColor={isGlobal ? "#3B82F6" : "#10B981"} stopOpacity={0}/>
                         </linearGradient>
@@ -49,6 +52,7 @@ const AdherenceChart = ({ data, isGlobal }) => {
                         stroke="var(--color-chart-text)" 
                         tick={{fill: 'var(--color-chart-text)', fontSize: 11, fontWeight: 600}} 
                         tickFormatter={(str) => {
+                            if (!str) return '';
                             const date = new Date(str);
                             return `${date.getDate()}/${date.getMonth()+1}`;
                         }}
@@ -66,8 +70,10 @@ const AdherenceChart = ({ data, isGlobal }) => {
                         stroke={isGlobal ? "#3B82F6" : "#10B981"} 
                         strokeWidth={4}
                         fillOpacity={1} 
-                        fill="url(#colorValor)" 
-                        animationDuration={1500}
+                        fill={`url(#${gradientId})`} 
+                        connectNulls={true}
+                        isAnimationActive={true}
+                        animationDuration={1000}
                     />
                 </AreaChart>
             </ResponsiveContainer>

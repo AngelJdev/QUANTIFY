@@ -59,6 +59,31 @@ Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Database schema is managed explicitly via migrations / manual scripts to prevent column drops.
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         const { default: sequelize } = await import('./config/db.mysql.js');
+        
+        // Agregar automáticamente columnas faltantes de biometría a MySQL si no existen
+        try {
+            const queryInterface = sequelize.getQueryInterface();
+            const tableDescription = await queryInterface.describeTable('Users');
+            const newColumns = {
+                peso: { type: sequelize.Sequelize.FLOAT, allowNull: true },
+                altura: { type: sequelize.Sequelize.FLOAT, allowNull: true },
+                edad: { type: sequelize.Sequelize.INTEGER, allowNull: true },
+                genero: { type: sequelize.Sequelize.STRING, allowNull: true },
+                nivel_actividad: { type: sequelize.Sequelize.STRING, allowNull: true },
+                meta_peso: { type: sequelize.Sequelize.FLOAT, allowNull: true },
+                bio: { type: sequelize.Sequelize.TEXT, allowNull: true }
+            };
+
+            for (const [colName, colDef] of Object.entries(newColumns)) {
+                if (!tableDescription[colName]) {
+                    await queryInterface.addColumn('Users', colName, colDef);
+                    console.log(`✅ Columna de biometría añadida a MySQL: Users.${colName}`);
+                }
+            }
+        } catch (colErr) {
+            console.warn('ℹ️  Verificación de columnas Users:', colErr.message);
+        }
+
         await sequelize.sync();
         console.log('✅ Database models synchronized (MySQL).');
         

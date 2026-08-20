@@ -71,11 +71,11 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
 
-          {/* Rutas de Autenticación */}
+          {/* Rutas Públicas de Autenticación */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

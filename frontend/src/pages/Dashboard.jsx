@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getHabits, createHabit, createLog, getAdherence, deleteHabit, getGlobalStats } from '../services/habitService';
 import { FiPlus, FiCheckCircle, FiTrash2, FiChevronRight, FiHome, FiActivity, FiZap, FiLock } from 'react-icons/fi';
 import api from '../services/api';
@@ -34,6 +34,15 @@ const Dashboard = () => {
     const [userLevelData, setUserLevelData] = useState({ currentLevel: 1, progressXP: 0, totalXP: 0, xpNextLevel: 100 });
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [onboardingInitialStep, setOnboardingInitialStep] = useState(0);
+
+    // Refs para evitar problemas de cierre obsoleto en el intervalo de polling
+    const isGlobalViewRef = useRef(isGlobalView);
+    const selectedHabitIdRef = useRef(selectedHabitId);
+
+    useEffect(() => {
+        isGlobalViewRef.current = isGlobalView;
+        selectedHabitIdRef.current = selectedHabitId;
+    }, [isGlobalView, selectedHabitId]);
     
     // Admin users AND explicitly premium users have AI access.
     const isPremium = user?.rol === 0 || user?.is_premium;
@@ -87,10 +96,16 @@ const Dashboard = () => {
             // Use actual user streak from database
             setCurrentStreak(user?.current_streak || 0);
 
-            // By default, show global view on first load
-            if (isGlobalView) {
+            // Usar referencias para leer el estado más reciente y evitar sobrescribir con datos globales
+            if (isGlobalViewRef.current) {
                 setChartData(globalRes.data.dailyPerformance || []);
                 setAdherenceScore(globalRes.data.globalScore || 0);
+            } else if (selectedHabitIdRef.current) {
+                const habitStats = await getAdherence(selectedHabitIdRef.current).catch(() => null);
+                if (habitStats?.data?.chartData) {
+                    setChartData(habitStats.data.chartData);
+                    setAdherenceScore(habitStats.data.adherenceScore || 0);
+                }
             }
         } catch (error) {
             console.error(error);
