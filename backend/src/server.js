@@ -13,6 +13,7 @@ import jwt from 'jsonwebtoken';
 import { jwtConfig } from './config/jwt.config.js';
 import { registerCommunityHandlers } from './sockets/community.socket.js';
 import { registerChallengeHandlers } from './sockets/challenge.socket.js';
+import { registerFeedHandlers } from './sockets/feed.socket.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -32,6 +33,7 @@ import './models/userMetric.model.js';
 import './models/achievement.model.js';
 import './models/friendship.model.js';
 import './models/challenge.model.js';
+import './models/communityPost.model.js';
 
 dotenv.config();
 
@@ -129,6 +131,7 @@ io.on('connection', (socket) => {
     socket.on('join_user_room', () => socket.join(`user_${userId}`));
     registerCommunityHandlers(io, socket, onlineUsers);
     registerChallengeHandlers(io, socket, onlineUsers);
+    registerFeedHandlers(io, socket, onlineUsers);
 
     socket.on('disconnect', () => {
         const userSockets = onlineUsers.get(userId);
