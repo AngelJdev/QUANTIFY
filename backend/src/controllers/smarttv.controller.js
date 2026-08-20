@@ -1,22 +1,22 @@
 import Habit from '../models/habit.model.js';
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { getIO } from '../utils/socket.js';
+import { jwtConfig } from '../config/jwt.config.js';
+import SmartTVPairing from '../models/nosql/smartTVPairing.nosql.js';
+import ActiveSmartTV from '../models/nosql/activeSmartTV.nosql.js';
 
-// Almacenamiento en memoria para códigos de vinculación de Smart TV
-// Estructura: Map<code, { createdAt, status: 'pending'|'linked', userId, token, userDetails }>
-const pendingTVCodes = new Map();
-const linkedTVUsers = new Set();
+const PAIRING_CHARACTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-// Limpiar códigos expirados cada 2 minutos (códigos duran 5 minutos)
-setInterval(() => {
-    const now = Date.now();
-    for (const [code, data] of pendingTVCodes.entries()) {
-        if (now - data.createdAt > 5 * 60 * 1000) {
-            pendingTVCodes.delete(code);
-        }
-    }
-}, 2 * 60 * 1000);
+const generatePairingCode = () => Array.from(
+    { length: 6 },
+    () => PAIRING_CHARACTERS[crypto.randomInt(PAIRING_CHARACTERS.length)]
+).join('');
+
+const pairingExpired = (pairing) => (
+    !pairing?.created_at || Date.now() - new Date(pairing.created_at).getTime() > 5 * 60 * 1000
+);
 
 /**
  * Genera un código de 6 caracteres para vinculación en Smart TV
@@ -24,26 +24,31 @@ setInterval(() => {
  */
 export const requestPairingCode = async (req, res) => {
     try {
-        const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-            code += characters.charAt(Math.floor(Math.random() * characters.length));
+        let pairing = null;
+
+        for (let attempt = 0; attempt < 5 && !pairing; attempt += 1) {
+            const code = generatePairingCode();
+            const exists = await SmartTVPairing.exists({ code });
+            if (!exists) {
+                pairing = await SmartTVPairing.create({
+                    code,
+                    device_name: req.body?.device_name || 'QUANTIFY Smart TV'
+                });
+            }
         }
 
-        pendingTVCodes.set(code.toUpperCase(), {
-            code: code.toUpperCase(),
-            createdAt: Date.now(),
-            status: 'pending',
-            userId: null,
-            token: null,
-            userDetails: null
-        });
+        if (!pairing) {
+            return res.status(503).json({
+                success: false,
+                message: 'No fue posible generar un código. Intenta nuevamente.'
+            });
+        }
 
         res.status(200).json({
             success: true,
             data: {
-                code,
-                expires_in: 300 // 5 minutos
+                code: pairing.code,
+                expires_in: 300
             }
         });
     } catch (error) {
@@ -66,24 +71,25 @@ export const checkPairingStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Código es requerido' });
         }
 
-        const data = pendingTVCodes.get(code.toUpperCase());
-        if (!data) {
+        const pairing = await SmartTVPairing.findOne({ code: code.trim().toUpperCase() });
+        if (!pairing || pairingExpired(pairing)) {
+            if (pairing) await SmartTVPairing.deleteOne({ _id: pairing._id });
             return res.status(404).json({
                 success: false,
                 message: 'Código inválido o expirado'
             });
         }
 
-        if (data.status === 'linked') {
-            // Eliminar el código del mapa una vez entregado
-            pendingTVCodes.delete(code.toUpperCase());
+        if (pairing.authorized) {
+            const responseData = {
+                status: 'linked',
+                token: pairing.token,
+                user: pairing.user_data
+            };
+            await SmartTVPairing.deleteOne({ _id: pairing._id });
             return res.status(200).json({
                 success: true,
-                data: {
-                    status: 'linked',
-                    token: data.token,
-                    user: data.userDetails
-                }
+                data: responseData
             });
         }
 
@@ -119,9 +125,10 @@ export const verifyPairingCode = async (req, res) => {
         }
 
         const formattedCode = code.trim().toUpperCase();
-        const data = pendingTVCodes.get(formattedCode);
+        const pairing = await SmartTVPairing.findOne({ code: formattedCode });
 
-        if (!data) {
+        if (!pairing || pairingExpired(pairing)) {
+            if (pairing) await SmartTVPairing.deleteOne({ _id: pairing._id });
             return res.status(404).json({
                 success: false,
                 message: 'Código inválido o expirado. Genera uno nuevo en tu Smart TV.'
@@ -139,24 +146,32 @@ export const verifyPairingCode = async (req, res) => {
         // Generar un token JWT para la Smart TV (duración extendida a 30 días)
         const tvToken = jwt.sign(
             { id: user.id, rol: user.rol, device: 'smarttv' },
-            process.env.JWT_SECRET || 'secret_quantify_key_2026',
+            jwtConfig.secret,
             { expiresIn: '30d' }
         );
 
-        // Registrar usuario con Smart TV vinculada
-        linkedTVUsers.add(userId);
-
-        // Actualizar el estado en memoria para que la TV lo reciba en la siguiente petición de polling
-        data.status = 'linked';
-        data.userId = user.id;
-        data.token = tvToken;
-        data.userDetails = {
+        const userDetails = {
             id: user.id,
             nombre: user.nombre,
             email: user.email,
             avatar: user.avatar_url,
             is_premium: user.is_premium
         };
+
+        pairing.authorized = true;
+        pairing.usuario_id = user.id;
+        pairing.token = tvToken;
+        pairing.user_data = userDetails;
+        await pairing.save();
+
+        await ActiveSmartTV.findOneAndUpdate(
+            { usuario_id: user.id },
+            {
+                device_name: pairing.device_name || 'QUANTIFY Smart TV',
+                linked_at: new Date()
+            },
+            { upsert: true, new: true }
+        );
 
         // Notificar por websockets a la sala del usuario
         const io = getIO();
@@ -172,7 +187,7 @@ export const verifyPairingCode = async (req, res) => {
             message: '¡Smart TV vinculada exitosamente con tu cuenta!',
             data: {
                 deviceName: 'QUANTIFY Smart TV',
-                user: data.userDetails
+                user: userDetails
             }
         });
     } catch (error) {
@@ -196,7 +211,8 @@ export const getSmartTVDashboard = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
 
-        const isLinked = linkedTVUsers.has(userId) || req.user.device === 'smarttv';
+        const activeDevice = await ActiveSmartTV.findOne({ usuario_id: userId });
+        const isLinked = Boolean(activeDevice);
         if (!isLinked) {
             return res.status(200).json({
                 success: true,
@@ -260,7 +276,8 @@ export const getSmartTVDashboard = async (req, res) => {
 export const unlinkSmartTV = async (req, res) => {
     try {
         const userId = req.user.id;
-        linkedTVUsers.delete(userId);
+        await ActiveSmartTV.deleteOne({ usuario_id: userId });
+        await SmartTVPairing.deleteMany({ usuario_id: userId });
 
         const io = getIO();
         if (io) {

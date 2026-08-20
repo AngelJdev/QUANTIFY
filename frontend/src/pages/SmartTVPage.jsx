@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { FiTv, FiWifi, FiCheckCircle, FiAlertTriangle, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import { verifySmartTVCode, getSmartTVDashboard, unlinkSmartTV } from '../services/smarttvService';
 import ConfirmModal from '../components/ConfirmModal';
@@ -22,8 +22,27 @@ const SmartTVPage = () => {
     });
     const inputRefs = useRef([]);
 
+    const checkLinkedDevice = useCallback(async () => {
+        try {
+            const data = await getSmartTVDashboard();
+            if (data.success && data.is_linked && data.data) {
+                setLinkedDevice({ nombre: 'QUANTIFY Smart TV' });
+                setDashboardData(data.data);
+                setStatus('linked');
+            } else {
+                setLinkedDevice(null);
+                setDashboardData(null);
+                setStatus('idle');
+            }
+        } catch {
+            setLinkedDevice(null);
+            setDashboardData(null);
+            setStatus('idle');
+        }
+    }, []);
+
     useEffect(() => {
-        checkLinkedDevice();
+        const initialCheck = window.setTimeout(checkLinkedDevice, 0);
 
         let socketInstance;
         import('../services/api').then(({ default: apiInstance }) => {
@@ -44,29 +63,11 @@ const SmartTVPage = () => {
         });
 
         return () => {
+            window.clearTimeout(initialCheck);
             socketInstance?.off('smarttv_unlinked');
             socketInstance?.off('smarttv_linked');
         };
-    }, []);
-
-    const checkLinkedDevice = async () => {
-        try {
-            const data = await getSmartTVDashboard();
-            if (data.success && data.is_linked && data.data) {
-                setLinkedDevice({ nombre: 'QUANTIFY Smart TV' });
-                setDashboardData(data.data);
-                setStatus('linked');
-            } else {
-                setLinkedDevice(null);
-                setDashboardData(null);
-                setStatus('idle');
-            }
-        } catch {
-            setLinkedDevice(null);
-            setDashboardData(null);
-            setStatus('idle');
-        }
-    };
+    }, [checkLinkedDevice]);
 
     const handleInputChange = (index, value) => {
         const val = value.toUpperCase().slice(-1);
@@ -111,7 +112,7 @@ const SmartTVPage = () => {
             const res = await verifySmartTVCode(pairingCode);
             if (res.success) {
                 setStatus('success');
-                setLinkedDevice(res.data?.deviceName || { nombre: 'QUANTIFY Smart TV' });
+                setLinkedDevice({ nombre: res.data?.deviceName || 'QUANTIFY Smart TV' });
                 setTimeout(() => {
                     checkLinkedDevice();
                 }, 2000);
@@ -136,7 +137,7 @@ const SmartTVPage = () => {
         setConfirmModal({
             open: true,
             title: 'Desvincular Smart TV',
-            message: '¿Seguro que deseas desvincular tu Smart TV? Dejará de recibir actualizaciones en vivo.',
+            message: '¿Seguro que deseas desvincular tu Smart TV? Dejará de recibir actualizaciones de tu cuenta.',
             variant: 'danger',
             confirmText: 'Desvincular Televisor',
             cancelText: 'Cancelar',
@@ -168,7 +169,7 @@ const SmartTVPage = () => {
 
     return (
         <>
-            <motion.div
+            <Motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -192,7 +193,6 @@ const SmartTVPage = () => {
                             {status === 'linked' || linkedDevice ? (
                                 <LinkedDeviceView
                                     key="linked"
-                                    device={linkedDevice}
                                     dashboard={dashboardData}
                                     onUnlink={handleUnlink}
                                 />
@@ -224,7 +224,7 @@ const SmartTVPage = () => {
                                     { step: '1', title: 'Abre QUANTIFY en tu Smart TV', desc: 'Inicia la aplicación de QUANTIFY en tu televisor Android TV.' },
                                     { step: '2', title: 'Obtén el código de 6 caracteres', desc: 'En la pantalla principal del televisor aparecerá un código en grande.' },
                                     { step: '3', title: 'Ingresa el código a la izquierda', desc: 'Escribe el código para conectar la TV a tu cuenta en segundos.' },
-                                    { step: '4', title: '¡Visualiza todo en grande!', desc: 'Tus gráficos y hábitos se mostrarán en vivo en el televisor.' }
+                                    { step: '4', title: '¡Visualiza todo en grande!', desc: 'Tus gráficos y hábitos se actualizarán automáticamente en el televisor.' }
                                 ].map((item) => (
                                     <div key={item.step} className="flex gap-4">
                                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center">
@@ -245,14 +245,14 @@ const SmartTVPage = () => {
                                 <div>
                                     <p className="font-semibold text-gray-900 dark:text-white text-sm">Sincronización Multidispositivo</p>
                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                        Tu Smart TV recibirá actualizaciones instantáneas por WebSockets cada vez que completes hábitos o alcances un nuevo logro.
+                                        Tu Smart TV consulta automáticamente tus avances para mantener visibles tus hábitos, métricas y logros recientes.
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </Motion.div>
 
             <ConfirmModal
                 isOpen={confirmModal.open}
@@ -272,7 +272,7 @@ const SmartTVPage = () => {
 /* ─── Sub-Components ─── */
 
 const PairingView = ({ code, status, errorMsg, inputRefs, onInputChange, onKeyDown, onPaste, onSubmit, onReset }) => (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className="text-center mb-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-purple-500/10 dark:bg-purple-400/10 rounded-full flex items-center justify-center">
                 <FiTv className="w-8 h-8 text-purple-500 dark:text-purple-400" />
@@ -303,14 +303,14 @@ const PairingView = ({ code, status, errorMsg, inputRefs, onInputChange, onKeyDo
 
         {/* Error message */}
         {status === 'error' && (
-            <motion.div
+            <Motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-center justify-center gap-2 p-3 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-semibold text-center"
             >
                 <FiAlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{errorMsg}</span>
-            </motion.div>
+            </Motion.div>
         )}
 
         {/* Actions */}
@@ -342,11 +342,11 @@ const PairingView = ({ code, status, errorMsg, inputRefs, onInputChange, onKeyDo
                 )}
             </button>
         </div>
-    </motion.div>
+    </Motion.div>
 );
 
 const SuccessView = ({ device }) => (
-    <motion.div
+    <Motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0 }}
@@ -359,17 +359,17 @@ const SuccessView = ({ device }) => (
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             {device?.nombre || 'Tu televisor'} está conectado y listo para mostrar tus datos.
         </p>
-    </motion.div>
+    </Motion.div>
 );
 
-const LinkedDeviceView = ({ device, dashboard, onUnlink }) => (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+const LinkedDeviceView = ({ dashboard, onUnlink }) => (
+    <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <div className="text-center mb-6">
             <div className="w-16 h-16 mx-auto mb-4 bg-purple-500/10 rounded-full flex items-center justify-center">
                 <FiTv className="w-8 h-8 text-purple-500" />
             </div>
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Smart TV Conectada</h2>
-            <p className="text-sm text-purple-500 font-medium mt-1">● Transmitiendo en tiempo real</p>
+            <p className="text-sm text-purple-500 font-medium mt-1">● Vinculación activa</p>
         </div>
 
         {dashboard?.stats && (
@@ -395,7 +395,7 @@ const LinkedDeviceView = ({ device, dashboard, onUnlink }) => (
         >
             <FiTrash2 className="w-4 h-4" /> Desvincular Smart TV
         </button>
-    </motion.div>
+    </Motion.div>
 );
 
 export default SmartTVPage;
