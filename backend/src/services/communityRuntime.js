@@ -1,5 +1,3 @@
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
 import Friendship from '../models/friendship.model.js';
 import { Challenge, ChallengeParticipant } from '../models/challenge.model.js';
 import {
@@ -44,6 +42,9 @@ export const configureCommunityScaling = async (communityNamespace) => {
     let subscriber;
 
     try {
+        const { createAdapter } = await import('@socket.io/redis-adapter');
+        const { createClient } = await import('redis');
+
         publisher = createClient({ url: redisUrl });
         subscriber = publisher.duplicate();
 
