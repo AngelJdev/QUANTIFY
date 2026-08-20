@@ -1,33 +1,24 @@
-import { Router } from 'express';
-import { verifyToken } from '../middleware/auth.middleware.js';
-import User from '../models/user.model.js';
-import { sendSuccess, sendError } from '../utils/response.js';
+import express from 'express';
 import {
     updateName,
     updateAvatar,
+    updateBiometrics,
+    updateBio,
+    changePasswordDirect,
     requestEmailChange,
     confirmEmailChange
 } from '../controllers/profile.controller.js';
+import { verifyToken } from '../middleware/auth.middleware.js';
 
-const router = Router();
+const router = express.Router();
 
-// All profile routes require authentication
-router.use(verifyToken);
-
-router.patch('/name',                 updateName);
-router.patch('/avatar',               updateAvatar);
-router.post('/request-email-change',  requestEmailChange);
-router.post('/confirm-email-change',  confirmEmailChange);
-
-router.patch('/premium-activate', async (req, res, next) => {
-    try {
-        const user = await User.findByPk(req.user.id);
-        if (!user) return sendError(res, 404, 'Usuario no encontrado');
-        await user.update({ is_premium: true });
-        return sendSuccess(res, 200, 'Premium activado');
-    } catch (err) {
-        next(err);
-    }
-});
+// Todas las rutas de perfil requieren estar autenticado
+router.patch('/name', verifyToken, updateName);
+router.patch('/avatar', verifyToken, updateAvatar);
+router.patch('/biometrics', verifyToken, updateBiometrics);
+router.patch('/bio', verifyToken, updateBio);
+router.patch('/change-password', verifyToken, changePasswordDirect);
+router.post('/request-email-change', verifyToken, requestEmailChange);
+router.post('/confirm-email-change', verifyToken, confirmEmailChange);
 
 export default router;
