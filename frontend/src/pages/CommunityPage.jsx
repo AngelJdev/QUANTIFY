@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    FiCheck, FiClock, FiRefreshCw, FiSearch, FiUserMinus,
+    FiCheck, FiClock, FiEdit3, FiRefreshCw, FiSearch, FiUserMinus,
     FiTarget, FiUserPlus, FiUsers, FiWifi, FiWifiOff, FiX
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import ChallengesPanel from '../components/community/ChallengesPanel';
+import CommunityFeed from '../components/community/CommunityFeed';
 import { initSocket } from '../services/socket';
 import {
     getCommunityState, removeFriendship, respondToFriendRequest,
@@ -213,6 +214,12 @@ const CommunityPage = () => {
                 >
                     <FiTarget /> Retos
                 </button>
+                <button
+                    onClick={() => setActiveTab('feed')}
+                    className={`relative inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all ${activeTab === 'feed' ? 'bg-primary text-surface shadow-sm dark:bg-white dark:text-black' : 'text-textMuted hover:bg-gray-500/10'}`}
+                >
+                    <FiEdit3 /> Muro
+                </button>
             </nav>
 
             {activeTab === 'friends' ? (
@@ -309,8 +316,10 @@ const CommunityPage = () => {
                 )}
             </section>
                 </>
-            ) : (
+            ) : activeTab === 'challenges' ? (
                 <ChallengesPanel friends={community.friends} showNotice={showNotice} />
+            ) : (
+                <CommunityFeed currentUser={currentUser} showNotice={showNotice} />
             )}
 
             <p className="text-center text-xs text-textMuted">Sesión activa como <span className="font-black text-textPrimary">{currentUser?.nombre}</span>. Sincronización mediante Socket.IO.</p>

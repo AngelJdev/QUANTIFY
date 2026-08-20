@@ -39,3 +39,18 @@ export const addChallengeProgress = (challengeId, amount) => (
 export const cancelCommunityChallenge = (challengeId) => (
     emitWithAck('community:challenge_cancel', { challengeId })
 );
+
+export const getCommunityFeed = () => emitWithAck('community:feed_get');
+export const createCommunityPost = (content, visibility) => (
+    emitWithAck('community:post_create', { content, visibility })
+);
+export const deleteCommunityPost = (postId) => emitWithAck('community:post_delete', { postId });
+export const reactToCommunityPost = (postId, type) => (
+    emitWithAck('community:post_react', { postId, type })
+);
+export const createCommunityComment = (postId, content) => (
+    emitWithAck('community:comment_create', { postId, content })
+);
+export const deleteCommunityComment = (commentId) => (
+    emitWithAck('community:comment_delete', { commentId })
+);
