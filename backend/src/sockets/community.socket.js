@@ -28,10 +28,10 @@ const maskEmail = (email = '') => {
     return `${name.slice(0, 2)}${name.length > 2 ? '***' : ''}@${domain}`;
 };
 
-const publicUser = (user, isOnline) => ({
+const publicUser = (user, isOnline, showFullEmail = false) => ({
     id: user.id,
     nombre: user.nombre,
-    email: maskEmail(user.email),
+    email: showFullEmail ? user.email : maskEmail(user.email),
     avatar_url: user.avatar_url,
     current_streak: user.current_streak || 0,
     max_streak: user.max_streak || 0,
@@ -163,11 +163,16 @@ export const registerCommunityHandlers = (io, socket, presence) => {
                 });
             });
 
-            const results = users.map((user) => ({
-                ...publicUser(user, isOnline),
-                relationship: relationshipByUserId.get(user.id)?.relationship || null,
-                friendshipId: relationshipByUserId.get(user.id)?.friendshipId || null
-            }));
+            const normalizedEmailQuery = normalizedQuery.toLowerCase();
+            const results = users.map((user) => {
+                const showFullEmail = user.email.toLowerCase() === normalizedEmailQuery;
+
+                return {
+                    ...publicUser(user, isOnline, showFullEmail),
+                    relationship: relationshipByUserId.get(user.id)?.relationship || null,
+                    friendshipId: relationshipByUserId.get(user.id)?.friendshipId || null
+                };
+            });
 
             ack?.({ success: true, data: { users: results } });
         } catch (error) {
