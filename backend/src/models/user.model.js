@@ -63,6 +63,34 @@ const User = sequelize.define('User', {
     last_login_date: {
         type: DataTypes.DATEONLY,
         allowNull: true,
+    },
+    peso: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    altura: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    edad: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    genero: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    nivel_actividad: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    meta_peso: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+    },
+    bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
     }
 }, {
     tableName: 'Users',
@@ -86,6 +114,13 @@ const User = sequelize.define('User', {
                     current_streak: user.current_streak,
                     max_streak: user.max_streak,
                     last_login_date: user.last_login_date,
+                    peso: user.peso,
+                    altura: user.altura,
+                    edad: user.edad,
+                    genero: user.genero,
+                    nivel_actividad: user.nivel_actividad,
+                    meta_peso: user.meta_peso,
+                    bio: user.bio,
                     fecha_creacion: user.fecha_creacion
                 });
 
@@ -110,7 +145,14 @@ const User = sequelize.define('User', {
                         avatar_url: user.avatar_url,
                         current_streak: user.current_streak,
                         max_streak: user.max_streak,
-                        last_login_date: user.last_login_date
+                        last_login_date: user.last_login_date,
+                        peso: user.peso,
+                        altura: user.altura,
+                        edad: user.edad,
+                        genero: user.genero,
+                        nivel_actividad: user.nivel_actividad,
+                        meta_peso: user.meta_peso,
+                        bio: user.bio
                     },
                     { upsert: true }
                 );
