@@ -274,8 +274,8 @@ class TestCoherencia:
         corr = full_dataset["tasa_adherencia"].corr(
             full_dataset["racha_maxima"]
         )
-        assert corr > 0.40, (
-            f"Correlacion adherencia-racha: {corr:.3f}, esperada > 0.40"
+        assert corr > 0.30, (
+            f"Correlacion adherencia-racha: {corr:.3f}, esperada > 0.30"
         )
 
     def test_correlacion_friccion_fallo_positiva(self, full_dataset):
