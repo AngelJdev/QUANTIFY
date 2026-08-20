@@ -140,3 +140,9 @@ vite.config.ts.timestamp-*
 
 backend/admin_credentials.txt
 backend/users_dataset.json
+
+# Python & Pytest Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
