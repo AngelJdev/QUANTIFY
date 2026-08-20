@@ -1,0 +1,16 @@
+{
+  "k": 3,
+  "cluster_names": {
+    "2": "Guerreros Consistentes",
+    "1": "Exploradores Intermitentes",
+    "0": "En Riesgo de Abandono"
+  },
+  "silhouette_score": 0.1397395786746681,
+  "davies_bouldin_score": 2.023428590650014,
+  "inertia": 34772.973503448164,
+  "pca_variance_explained_2d": [
+    0.40030194269547514,
+    0.12296987921767089
+  ],
+  "pca_components_for_90pct": 8
+}
