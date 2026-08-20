@@ -2,11 +2,13 @@ import Habit from '../models/habit.model.js';
 import Log from '../models/log.model.js';
 import User from '../models/user.model.js';
 import UserMetric from '../models/userMetric.model.js';
+import ActiveSmartwatch from '../models/nosql/activeSmartwatch.nosql.js';
+import WatchTelemetry from '../models/nosql/watchTelemetry.nosql.js';
 import moment from 'moment';
 
 /**
  * Catálogo Maestro de Logros de Quantify (25 logros)
- * Define todos los logros del sistema, sus requisitos, categorías y funciones evaluadoras.
+ * Define todos los logros del sistema, sus requisitos, categorías y funciones evaluadoras reales.
  */
 export const ACHIEVEMENTS_CATALOG = [
     {
@@ -20,7 +22,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🌟',
         evaluate: async (userId) => {
             const count = await Habit.count({ where: { usuario_id: userId } });
-            return count > 0;
+            return count >= 1;
         }
     },
     {
@@ -34,7 +36,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '⚡',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.current_streak >= 3 || user.max_streak >= 3);
+            return Boolean(user && (user.current_streak >= 3 || user.max_streak >= 3));
         }
     },
     {
@@ -48,7 +50,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '⭐',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.current_streak >= 7 || user.max_streak >= 7);
+            return Boolean(user && (user.current_streak >= 7 || user.max_streak >= 7));
         }
     },
     {
@@ -62,7 +64,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🔗',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.current_streak >= 21 || user.max_streak >= 21);
+            return Boolean(user && (user.current_streak >= 21 || user.max_streak >= 21));
         }
     },
     {
@@ -76,7 +78,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🛸',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.current_streak >= 66 || user.max_streak >= 66);
+            return Boolean(user && (user.current_streak >= 66 || user.max_streak >= 66));
         }
     },
     {
@@ -90,7 +92,7 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '👑',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.current_streak >= 100 || user.max_streak >= 100);
+            return Boolean(user && (user.current_streak >= 100 || user.max_streak >= 100));
         }
     },
     {
@@ -104,20 +106,23 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🏃',
         evaluate: async (userId) => {
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
-            const stepHabits = habits.filter(h => h.nombre.toLowerCase().includes('paso'));
+            const stepHabits = habits.filter(h => {
+                const n = h.nombre.toLowerCase();
+                return n.includes('paso') || n.includes('caminar') || n.includes('walk') || n.includes('step');
+            });
             if (stepHabits.length === 0) return false;
-            
-            const weekAgo = moment().subtract(7, 'days').toDate();
-            for (const h of stepHabits) {
-                const count = await Log.countDocuments({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: weekAgo },
-                    valor_registrado: { $gte: 10000 }
-                });
-                if (count >= 7) return true;
-            }
-            return false;
+
+            const habitIds = stepHabits.map(h => h.id);
+            const weekAgo = moment().subtract(7, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: weekAgo },
+                valor_registrado: { $gte: 10000 }
+            });
+
+            const distinctDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            return distinctDays.size >= 7;
         }
     },
     {
@@ -133,21 +138,21 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
             const cardioHabits = habits.filter(h => {
                 const n = h.nombre.toLowerCase();
-                return n.includes('cardio') || n.includes('bici') || n.includes('correr') || n.includes('cycling');
+                return n.includes('cardio') || n.includes('bici') || n.includes('correr') || n.includes('cycling') || n.includes('runner') || n.includes('corredor');
             });
             if (cardioHabits.length === 0) return false;
 
-            const weekAgo = moment().subtract(7, 'days').toDate();
-            for (const h of cardioHabits) {
-                const count = await Log.countDocuments({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: weekAgo },
-                    completado: true
-                });
-                if (count >= 3) return true;
-            }
-            return false;
+            const habitIds = cardioHabits.map(h => h.id);
+            const weekAgo = moment().subtract(7, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: weekAgo },
+                completado: true
+            });
+
+            const distinctDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            return distinctDays.size >= 3;
         }
     },
     {
@@ -163,26 +168,32 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
             const gymHabits = habits.filter(h => {
                 const n = h.nombre.toLowerCase();
-                return n.includes('fuerza') || n.includes('pesas') || n.includes('gym');
+                return n.includes('fuerza') || n.includes('pesas') || n.includes('gym') || n.includes('musculo') || n.includes('workout');
             });
             if (gymHabits.length === 0) return false;
 
-            const threeWeeksAgo = moment().subtract(21, 'days').toDate();
-            for (const h of gymHabits) {
-                const logs = await Log.find({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: threeWeeksAgo },
-                    valor_registrado: { $ne: null }
-                }).sort({ fecha_registro: 1 });
+            const habitIds = gymHabits.map(h => h.id);
+            const threeWeeksAgo = moment().subtract(21, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: threeWeeksAgo },
+                valor_registrado: { $ne: null, $gt: 0 }
+            }).sort({ fecha_registro: 1 });
 
-                if (logs.length >= 6) {
-                    const values = logs.map(l => l.valor_registrado);
-                    const isProgressing = values.slice(1).every((val, i) => val >= values[i]);
-                    if (isProgressing && values[values.length - 1] > values[0]) return true;
-                }
-            }
-            return false;
+            if (logs.length < 3) return false;
+
+            const week1 = logs.filter(l => moment(l.fecha_registro).isBefore(moment().subtract(14, 'days')));
+            const week2 = logs.filter(l => moment(l.fecha_registro).isBetween(moment().subtract(14, 'days'), moment().subtract(7, 'days')));
+            const week3 = logs.filter(l => moment(l.fecha_registro).isSameOrAfter(moment().subtract(7, 'days')));
+
+            if (week1.length === 0 || week2.length === 0 || week3.length === 0) return false;
+
+            const avg1 = week1.reduce((sum, l) => sum + l.valor_registrado, 0) / week1.length;
+            const avg2 = week2.reduce((sum, l) => sum + l.valor_registrado, 0) / week2.length;
+            const avg3 = week3.reduce((sum, l) => sum + l.valor_registrado, 0) / week3.length;
+
+            return avg1 < avg2 && avg2 < avg3;
         }
     },
     {
@@ -198,21 +209,21 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
             const sleepHabits = habits.filter(h => {
                 const n = h.nombre.toLowerCase();
-                return n.includes('sueño') || n.includes('dormir');
+                return n.includes('sueño') || n.includes('dormir') || n.includes('sleep') || n.includes('descanso');
             });
             if (sleepHabits.length === 0) return false;
 
-            const tenDaysAgo = moment().subtract(10, 'days').toDate();
-            for (const h of sleepHabits) {
-                const count = await Log.countDocuments({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: tenDaysAgo },
-                    valor_registrado: { $gte: 7 }
-                });
-                if (count >= 10) return true;
-            }
-            return false;
+            const habitIds = sleepHabits.map(h => h.id);
+            const rangeStart = moment().subtract(14, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: rangeStart },
+                valor_registrado: { $gte: 7 }
+            });
+
+            const distinctDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            return distinctDays.size >= 10;
         }
     },
     {
@@ -228,22 +239,26 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
             const waterHabits = habits.filter(h => {
                 const n = h.nombre.toLowerCase();
-                return n.includes('agua') || n.includes('hidrat');
+                return n.includes('agua') || n.includes('hidrat') || n.includes('water');
             });
             if (waterHabits.length === 0) return false;
 
+            const habitIds = waterHabits.map(h => h.id);
             const startOfMonth = moment().startOf('month').toDate();
-            for (const h of waterHabits) {
-                const logs = await Log.find({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: startOfMonth }
-                });
-                const daysInMonthSoFar = Math.max(1, moment().date());
-                const completedCount = logs.filter(l => l.completado).length;
-                if ((completedCount / daysInMonthSoFar) >= 0.9) return true;
-            }
-            return false;
+            const daysInMonthSoFar = Math.max(1, moment().date());
+
+            if (daysInMonthSoFar < 7) return false;
+
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: startOfMonth },
+                completado: true
+            });
+
+            const distinctCompletedDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            const adherenceRate = (distinctCompletedDays.size / daysInMonthSoFar) * 100;
+            return adherenceRate >= 90 && distinctCompletedDays.size >= 7;
         }
     },
     {
@@ -259,16 +274,15 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId, tipo_medicion: 'TIEMPO' } });
             if (habits.length === 0) return false;
 
-            const startOfWeek = moment().startOf('week').toDate();
-            let totalHours = 0;
-            for (const h of habits) {
-                const logs = await Log.find({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: startOfWeek }
-                });
-                totalHours += logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
-            }
+            const habitIds = habits.map(h => h.id);
+            const startOfWeek = moment().subtract(7, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: startOfWeek }
+            });
+
+            const totalHours = logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
             return totalHours >= 20;
         }
     },
@@ -311,11 +325,10 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '⌚',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.smartwatch_connected || user.smartwatch_id);
+            const activeSmartwatch = await ActiveSmartwatch.findOne({ usuario_id: userId });
+            return Boolean(user && (user.smartwatch_connected || user.smartwatch_id || activeSmartwatch));
         }
     },
-
-    // ─── NUEVOS 10 LOGROS AÑADIDOS ───────────────────────────────────────────
     {
         id: 'maestro_rutina',
         titulo: 'Maestro de la Rutina 🎯',
@@ -326,16 +339,22 @@ export const ACHIEVEMENTS_CATALOG = [
         icono_key: 'rutina',
         icono: '🎯',
         evaluate: async (userId) => {
-            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            const habits = await Habit.findAll({ where: { usuario_id: userId, activo: true } });
             if (habits.length === 0) return false;
+
             const startOfDay = moment().startOf('day').toDate();
             const endOfDay = moment().endOf('day').toDate();
+
+            const habitIds = habits.map(h => h.id);
             const logs = await Log.find({
                 usuario_id: userId,
+                habito_id: { $in: habitIds },
                 fecha_registro: { $gte: startOfDay, $lte: endOfDay },
                 completado: true
             });
-            return logs.length >= habits.length;
+
+            const completedHabitIds = new Set(logs.map(l => l.habito_id));
+            return habits.every(h => completedHabitIds.has(h.id));
         }
     },
     {
@@ -348,8 +367,23 @@ export const ACHIEVEMENTS_CATALOG = [
         icono_key: 'finsemana',
         icono: '🛡️',
         evaluate: async (userId) => {
-            const count = await Log.countDocuments({ usuario_id: userId });
-            return count >= 10;
+            const twoWeeksAgo = moment().subtract(14, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                fecha_registro: { $gte: twoWeeksAgo },
+                completado: true
+            });
+
+            let hasSaturday = false;
+            let hasSunday = false;
+
+            logs.forEach(l => {
+                const day = moment(l.fecha_registro).day();
+                if (day === 6) hasSaturday = true;
+                if (day === 0) hasSunday = true;
+            });
+
+            return hasSaturday && hasSunday;
         }
     },
     {
@@ -362,8 +396,19 @@ export const ACHIEVEMENTS_CATALOG = [
         icono_key: 'madrugador',
         icono: '🌅',
         evaluate: async (userId) => {
-            const user = await User.findByPk(userId);
-            return Boolean(user);
+            const habits = await Habit.findAll({ where: { usuario_id: userId } });
+            for (const h of habits) {
+                const hourCreated = moment(h.fecha_creacion).hour();
+                if (hourCreated >= 5 && hourCreated < 8) return true;
+            }
+
+            const logs = await Log.find({ usuario_id: userId, completado: true });
+            for (const l of logs) {
+                const logHour = moment(l.fecha_registro).hour();
+                if (logHour >= 5 && logHour < 8) return true;
+            }
+
+            return false;
         }
     },
     {
@@ -377,19 +422,23 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🌌',
         evaluate: async (userId) => {
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
-            const sleepHabits = habits.filter(h => h.nombre.toLowerCase().includes('sueño'));
+            const sleepHabits = habits.filter(h => {
+                const n = h.nombre.toLowerCase();
+                return n.includes('sueño') || n.includes('dormir') || n.includes('sleep');
+            });
             if (sleepHabits.length === 0) return false;
-            const fiveDaysAgo = moment().subtract(5, 'days').toDate();
-            for (const h of sleepHabits) {
-                const count = await Log.countDocuments({
-                    usuario_id: userId,
-                    habito_id: h.id,
-                    fecha_registro: { $gte: fiveDaysAgo },
-                    valor_registrado: { $gte: 8 }
-                });
-                if (count >= 5) return true;
-            }
-            return false;
+
+            const habitIds = sleepHabits.map(h => h.id);
+            const rangeStart = moment().subtract(14, 'days').startOf('day').toDate();
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                fecha_registro: { $gte: rangeStart },
+                valor_registrado: { $gte: 8 }
+            });
+
+            const distinctDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            return distinctDays.size >= 5;
         }
     },
     {
@@ -403,7 +452,18 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '❤️',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return user && (user.smartwatch_connected || user.smartwatch_id);
+            const activeSmartwatch = await ActiveSmartwatch.findOne({ usuario_id: userId });
+            if (!user || (!user.smartwatch_connected && !user.smartwatch_id && !activeSmartwatch)) {
+                return false;
+            }
+
+            const telemetry = await WatchTelemetry.find({
+                usuario_id: userId,
+                avg_bpm: { $gt: 0 }
+            });
+
+            const distinctDays = new Set(telemetry.map(t => moment(t.start_time || t.createdAt).format('YYYY-MM-DD')));
+            return distinctDays.size >= 7;
         }
     },
     {
@@ -417,13 +477,15 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '🏅',
         evaluate: async (userId) => {
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
-            const stepHabits = habits.filter(h => h.nombre.toLowerCase().includes('paso'));
+            const stepHabits = habits.filter(h => {
+                const n = h.nombre.toLowerCase();
+                return n.includes('paso') || n.includes('caminar') || n.includes('walk') || n.includes('step');
+            });
             if (stepHabits.length === 0) return false;
-            let totalSteps = 0;
-            for (const h of stepHabits) {
-                const logs = await Log.find({ usuario_id: userId, habito_id: h.id });
-                totalSteps += logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
-            }
+
+            const habitIds = stepHabits.map(h => h.id);
+            const logs = await Log.find({ usuario_id: userId, habito_id: { $in: habitIds } });
+            const totalSteps = logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
             return totalSteps >= 100000;
         }
     },
@@ -439,11 +501,10 @@ export const ACHIEVEMENTS_CATALOG = [
         evaluate: async (userId) => {
             const habits = await Habit.findAll({ where: { usuario_id: userId, tipo_medicion: 'TIEMPO' } });
             if (habits.length === 0) return false;
-            let totalHours = 0;
-            for (const h of habits) {
-                const logs = await Log.find({ usuario_id: userId, habito_id: h.id });
-                totalHours += logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
-            }
+
+            const habitIds = habits.map(h => h.id);
+            const logs = await Log.find({ usuario_id: userId, habito_id: { $in: habitIds } });
+            const totalHours = logs.reduce((acc, l) => acc + (l.valor_registrado || 0), 0);
             return totalHours >= 50;
         }
     },
@@ -460,14 +521,19 @@ export const ACHIEVEMENTS_CATALOG = [
             const habits = await Habit.findAll({ where: { usuario_id: userId } });
             const zenHabits = habits.filter(h => {
                 const n = h.nombre.toLowerCase();
-                return n.includes('medita') || n.includes('mindful') || n.includes('respir');
+                return n.includes('medita') || n.includes('mindful') || n.includes('respir') || n.includes('zen') || n.includes('yoga');
             });
             if (zenHabits.length === 0) return false;
-            for (const h of zenHabits) {
-                const count = await Log.countDocuments({ usuario_id: userId, habito_id: h.id, completado: true });
-                if (count >= 14) return true;
-            }
-            return false;
+
+            const habitIds = zenHabits.map(h => h.id);
+            const logs = await Log.find({
+                usuario_id: userId,
+                habito_id: { $in: habitIds },
+                completado: true
+            });
+
+            const distinctDays = new Set(logs.map(l => moment(l.fecha_registro).format('YYYY-MM-DD')));
+            return distinctDays.size >= 14;
         }
     },
     {
@@ -481,7 +547,9 @@ export const ACHIEVEMENTS_CATALOG = [
         icono: '👥',
         evaluate: async (userId) => {
             const user = await User.findByPk(userId);
-            return Boolean(user);
+            if (!user) return false;
+            const prefs = user.preferencias || {};
+            return Boolean(prefs.has_contacted_support || prefs.community_accessed);
         }
     },
     {
@@ -498,6 +566,137 @@ export const ACHIEVEMENTS_CATALOG = [
             if (!user || user.max_streak < 30) return false;
             const count = await Log.countDocuments({ usuario_id: userId });
             return count >= 50;
+        }
+    },
+    // ─── NUEVOS LOGROS DEL ECOSISTEMA Y PLATAFORMA (32 en total) ──────────────────────
+    {
+        id: 'ecosistema_completo',
+        titulo: 'Ecosistema Completo 🌐',
+        descripcion: 'Sincronizaste tu cuenta en todo el ecosistema Quantify: Web/Móvil, Smartwatch y Smart TV.',
+        requisito: 'Vincular Web/Móvil, Smartwatch y Smart TV.',
+        categoria: 'Plataforma',
+        rareza: 'Legendario',
+        icono_key: 'ecosistema',
+        icono: '🌐',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user) return false;
+            const prefs = user.preferencias || {};
+            const activeSmartwatch = await ActiveSmartwatch.findOne({ usuario_id: userId });
+            const hasWatch = Boolean(user.smartwatch_connected || user.smartwatch_id || activeSmartwatch);
+            const hasTV = Boolean(prefs.smarttv_connected || prefs.smarttv_accessed);
+            return hasWatch && hasTV;
+        }
+    },
+    {
+        id: 'vision_gran_pantalla',
+        titulo: 'Visión Gran Pantalla 📺',
+        descripcion: 'Visualizaste tu tablero de hábitos en gran formato accediendo desde tu Smart TV.',
+        requisito: 'Iniciar sesión o consultar hábitos en la Smart TV.',
+        categoria: 'Smart TV',
+        rareza: 'Épico',
+        icono_key: 'pantalla',
+        icono: '📺',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user) return false;
+            const prefs = user.preferencias || {};
+            return Boolean(prefs.smarttv_connected || prefs.smarttv_accessed);
+        }
+    },
+    {
+        id: 'trio_en_accion',
+        titulo: 'Trío en Acción ⌚📺',
+        descripcion: 'Completaste un hábito desde tu Smartwatch y monitoreaste tu progreso en la Smart TV el mismo día.',
+        requisito: 'Registrar hábito en Smartwatch y consultar Smart TV hoy.',
+        categoria: 'Ecosistema',
+        rareza: 'Legendario',
+        icono_key: 'trio',
+        icono: '⚡',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user) return false;
+            const prefs = user.preferencias || {};
+            const hasTVToday = Boolean(prefs.smarttv_last_access_today);
+            const startOfDay = moment().startOf('day').toDate();
+            const endOfDay = moment().endOf('day').toDate();
+            const watchLogToday = await Log.findOne({
+                usuario_id: userId,
+                fecha_registro: { $gte: startOfDay, $lte: endOfDay },
+                notas: { $regex: /smartwatch/i }
+            });
+            return Boolean(hasTVToday && watchLogToday);
+        }
+    },
+    {
+        id: 'inteligencia_cuantica',
+        titulo: 'Inteligencia Cuántica 🤖',
+        descripcion: 'Potencias tu ingeniería personal consultando recomendaciones del Quantify Intelligence Agent.',
+        requisito: 'Consultar y recibir una sugerencia de la IA.',
+        categoria: 'Productividad',
+        rareza: 'Raro',
+        icono_key: 'inteligencia',
+        icono: '🤖',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user) return false;
+            const prefs = user.preferencias || {};
+            return Boolean(prefs.used_ai || prefs.ai_consulted);
+        }
+    },
+    {
+        id: 'biotelemetria_total',
+        titulo: 'Bio-Telemetría Total 📈',
+        descripcion: 'Perfil biológico completo con edad, peso, estatura, nivel de actividad y telemetría de pulso cardíaco.',
+        requisito: 'Completar biometría y registrar pulso cardíaco.',
+        categoria: 'Salud',
+        rareza: 'Épico',
+        icono_key: 'telemetria',
+        icono: '📈',
+        evaluate: async (userId) => {
+            const metric = await UserMetric.findOne({ where: { usuario_id: userId } });
+            if (!metric || !metric.peso || !metric.estatura || !metric.edad || !metric.nivel_actividad) return false;
+            const telemetry = await WatchTelemetry.findOne({ usuario_id: userId, avg_bpm: { $gt: 0 } });
+            return Boolean(telemetry);
+        }
+    },
+    {
+        id: 'perfil_alta_precision',
+        titulo: 'Perfil de Alta Precisión 👤',
+        descripcion: 'Perfeccionaste tu cuenta completando tu información de perfil, avatar y configuración.',
+        requisito: 'Completar perfil, avatar y preferencias.',
+        categoria: 'Plataforma',
+        rareza: 'Común',
+        icono_key: 'perfil',
+        icono: '👤',
+        evaluate: async (userId) => {
+            const user = await User.findByPk(userId);
+            if (!user) return false;
+            return Boolean(user.nombre && user.email && user.avatar_url && user.preferencias);
+        }
+    },
+    {
+        id: 'dominio_holistico',
+        titulo: 'Dominio Holístico 🎨',
+        descripcion: 'Mantienes un estilo de vida integral con hábitos activos en Salud, Bienestar y Productividad.',
+        requisito: 'Mantener hábitos en Salud, Bienestar y Productividad.',
+        categoria: 'Productividad',
+        rareza: 'Épico',
+        icono_key: 'holistico',
+        icono: '🎨',
+        evaluate: async (userId) => {
+            const habits = await Habit.findAll({ where: { usuario_id: userId, activo: true } });
+            if (habits.length < 3) return false;
+            let hasSalud = false;
+            let hasBienestar = false;
+            let hasProductividad = false;
+            habits.forEach(h => {
+                const n = h.nombre.toLowerCase();
+                if (n.includes('paso') || n.includes('cardio') || n.includes('fuerza') || n.includes('pesas') || n.includes('gym') || n.includes('correr')) hasSalud = true;
+                if (n.includes('sueño') || n.includes('agua') || n.includes('medita') || n.includes('zen') || n.includes('respir')) hasBienestar = true;
+                if (h.tipo_medicion === 'TIEMPO' || n.includes('estudio') || n.includes('lectura') || n.includes('trabajo') || n.includes('enfoque')) hasProductividad = true;
+            });
+            return hasSalud && hasBienestar && hasProductividad;
         }
     }
 ];
