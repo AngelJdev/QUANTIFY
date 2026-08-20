@@ -20,6 +20,7 @@ import achievementRoutes from './routes/achievement.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import smartwatchRoutes from './routes/smartwatch.routes.js';
+import supportRoutes from './routes/support.routes.js';
 
 // Pre-load relationships & Models to trigger automatic sync
 import './models/user.model.js';
@@ -45,7 +46,7 @@ Promise.all([connectMySQL(), connectMongo()]).then(async () => {
     // Database schema is managed explicitly via migrations / manual scripts to prevent column drops.
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         const { default: sequelize } = await import('./config/db.mysql.js');
-        await sequelize.sync({ alter: true });
+        await sequelize.sync();
         console.log('✅ Database models synchronized (MySQL).');
         
         // Seed admin users
@@ -68,6 +69,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/smartwatch', smartwatchRoutes);
+app.use('/api/support', supportRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Quantify API is running' });
