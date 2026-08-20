@@ -143,11 +143,11 @@ export const registerFeedHandlers = (io, socket, presence) => {
     socket.on('community:post_create', async ({ content, visibility = 'FRIENDS' } = {}, ack) => {
         try {
             const cleanContent = String(content || '').trim();
-            if (tooSoon(socket, 'lastPostAt', 1500)) {
-                return ack?.({ success: false, message: 'Espera un momento antes de publicar otra vez.' });
-            }
             if (cleanContent.length < 1 || cleanContent.length > 600 || !['FRIENDS', 'PUBLIC'].includes(visibility)) {
                 return ack?.({ success: false, message: 'La publicación debe tener entre 1 y 600 caracteres.' });
+            }
+            if (tooSoon(socket, 'lastPostAt', 1500)) {
+                return ack?.({ success: false, message: 'Espera un momento antes de publicar otra vez.' });
             }
             const post = await CommunityPost.create({ user_id: currentUserId, content: cleanContent, visibility });
             await notifyFeed(io, post, 'POST_CREATED');
@@ -203,11 +203,11 @@ export const registerFeedHandlers = (io, socket, presence) => {
     socket.on('community:comment_create', async ({ postId, content } = {}, ack) => {
         try {
             const cleanContent = String(content || '').trim();
-            if (tooSoon(socket, 'lastCommentAt', 800)) {
-                return ack?.({ success: false, message: 'Espera un momento antes de comentar otra vez.' });
-            }
             if (cleanContent.length < 1 || cleanContent.length > 300) {
                 return ack?.({ success: false, message: 'El comentario debe tener entre 1 y 300 caracteres.' });
+            }
+            if (tooSoon(socket, 'lastCommentAt', 800)) {
+                return ack?.({ success: false, message: 'Espera un momento antes de comentar otra vez.' });
             }
             const post = await CommunityPost.findByPk(Number(postId));
             if (!post || !(await canViewPost(post, currentUserId))) {

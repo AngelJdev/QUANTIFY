@@ -101,10 +101,12 @@ const CommunityFeed = ({ currentUser, showNotice }) => {
         };
         const initialLoad = window.setTimeout(() => loadFeed(), 0);
         socket.on('community:feed_changed', onFeedChanged);
+        socket.on('community:state_changed', onFeedChanged);
         socket.on('community:presence_changed', onPresenceChanged);
         return () => {
             window.clearTimeout(initialLoad);
             socket.off('community:feed_changed', onFeedChanged);
+            socket.off('community:state_changed', onFeedChanged);
             socket.off('community:presence_changed', onPresenceChanged);
         };
     }, [loadFeed]);
