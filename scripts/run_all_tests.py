@@ -37,7 +37,7 @@ def run_python_tests():
     ]
     result = subprocess.run(cmd, cwd=str(BASE_DIR))
     elapsed = time.time() - start
-    print(f"\n⏱️  Tiempo de ejecucion Pytest: {elapsed:.2f}s")
+    print(f"\nTiempo de ejecucion Pytest: {elapsed:.2f}s")
     return result.returncode == 0
 
 
@@ -47,7 +47,7 @@ def run_backend_tests():
     cmd = ["npm", "test"]
     result = subprocess.run(cmd, cwd=str(BASE_DIR / "backend"), shell=True)
     elapsed = time.time() - start
-    print(f"\n⏱️  Tiempo de ejecucion Jest: {elapsed:.2f}s")
+    print(f"\nTiempo de ejecucion Jest: {elapsed:.2f}s")
     return result.returncode == 0
 
 
@@ -62,17 +62,17 @@ def main():
     print_banner("RESUMEN GLOBAL DE RESULTADOS")
 
     print(f"  [16.1 - 16.4] Dataset, Simulacion, ETL, Modelos (Python): "
-          f"{'✅ APROBADO (99 tests)' if py_ok else '❌ FALLIDO'}")
+          f"{'[OK] APROBADO (99 tests)' if py_ok else '[FAIL] FALLIDO'}")
     print(f"  [16.5 - 16.6] API REST, Socket.IO, Persistencia (Node.js): "
-          f"{'✅ APROBADO (45 tests)' if node_ok else '❌ FALLIDO'}")
+          f"{'[OK] APROBADO (45 tests)' if node_ok else '[FAIL] FALLIDO'}")
     print(f"\n  Tiempo total: {total_elapsed:.2f}s")
 
     all_passed = py_ok and node_ok
     if all_passed:
-        print("\n🎉 TODAS LAS 144 PRUEBAS DEL SISTEMA QUANTIFY PASARON EXITOSAMENTE.")
+        print("\n[OK] TODAS LAS 144 PRUEBAS DEL SISTEMA QUANTIFY PASARON EXITOSAMENTE.")
         sys.exit(0)
     else:
-        print("\n⚠️ EXISTEN FALLOS EN LA SUITE DE PRUEBAS. REVISAR REPORTES.")
+        print("\n[FAIL] EXISTEN FALLOS EN LA SUITE DE PRUEBAS. REVISAR REPORTES.")
         sys.exit(1)
 
 
