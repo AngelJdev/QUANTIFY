@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
@@ -39,10 +40,20 @@ const PublicRoute = () => {
 };
 
 const ProtectedLayout = () => {
+  const location = useLocation();
+  const mainRef = useRef(null);
+
+  // Reiniciar scroll de la ventana principal de contenido pero preservar el Sidebar
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [location.pathname]);
+
   return (
     <div className="flex flex-1 relative w-full h-full overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
+      <div ref={mainRef} className="flex-1 flex flex-col items-center bg-background h-screen overflow-y-auto">
         <div className="w-full max-w-7xl px-6 md:px-10 py-8 space-y-8 fade-in">
           <Breadcrumbs />
           <Outlet />
@@ -67,7 +78,7 @@ function App() {
         )}
       </AnimatePresence>
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
+        <Routes location={location}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
 
