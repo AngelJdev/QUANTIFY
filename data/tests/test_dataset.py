@@ -75,7 +75,7 @@ class TestRangos:
         "tendencia_crecimiento": (-1.0, 1.0),
         "horas_sueno": (3.0, 10.0),
         "pasos_diarios": (500, 30000),
-        "fc_media": (50, 110),
+        "fc_media": (50, 115),  # Incluye outliers biometricos inyectados (Tipo 3)
         "spo2_promedio": (89, 100),
         "nivel_estres": (1, 5),
     }
