@@ -38,7 +38,7 @@ import './SQL/models/userMetric.model.js';
 import './SQL/models/achievement.model.js';
 import './SQL/models/bitacora.model.js';
 
-import http from 'http';
+
 import { Server as SocketIOServer } from 'socket.io';
 
 dotenv.config();
