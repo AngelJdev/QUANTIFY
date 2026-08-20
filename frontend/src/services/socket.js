@@ -1,11 +1,9 @@
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 const getSocketUrl = () => {
-    if (typeof window === 'undefined') return 'http://localhost:5000';
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:5000';
-    }
-    return window.location.origin;
+  if (typeof window === "undefined") return "http://localhost:5000";
+  // En desarrollo Vite reenvía /socket.io al backend configurado.
+  return window.location.origin;
 };
 
 const SOCKET_URL = getSocketUrl();
@@ -13,37 +11,33 @@ let socket = null;
 
 /**
  * Initialize or get the Socket.io client instance.
- * Automatically joins user's private notification room.
+ * The backend resolves the private room from the authenticated JWT.
  */
-export const initSocket = (userId) => {
-    if (!socket) {
-        socket = io(SOCKET_URL, {
-            transports: ['websocket', 'polling'],
-            autoConnect: true,
-            reconnection: true
-        });
+export const initSocket = () => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-        socket.on('connect', () => {
-            if (userId) {
-                socket.emit('join_user_room', userId);
-            }
-        });
-    }
+  if (!socket) {
+    socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
+      autoConnect: true,
+      reconnection: true,
+      auth: { token },
+    });
+  } else {
+    socket.auth = { token };
+    if (!socket.connected) socket.connect();
+  }
 
-    if (userId && socket.connected) {
-        socket.emit('join_user_room', userId);
-    }
-
-    return socket;
+  return socket;
 };
 
 export const getSocket = () => socket;
 
 export const disconnectSocket = () => {
-    if (socket) {
-        socket.disconnect();
-        socket = null;
-    }
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };
 
 export default { initSocket, getSocket, disconnectSocket };

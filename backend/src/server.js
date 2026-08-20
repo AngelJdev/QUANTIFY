@@ -9,6 +9,9 @@ import { connectMySQL } from './config/db.mysql.js';
 import { connectMongo } from './config/db.mongo.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 import { setIO } from './utils/socket.js';
+import jwt from 'jsonwebtoken';
+import { jwtConfig } from './config/jwt.config.js';
+import { registerCommunityHandlers } from './sockets/community.socket.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -26,6 +29,7 @@ import './models/user.model.js';
 import './models/habit.model.js';
 import './models/userMetric.model.js';
 import './models/achievement.model.js';
+import './models/friendship.model.js';
 
 dotenv.config();
 
@@ -86,16 +90,53 @@ const io = new SocketServer(httpServer, {
 setIO(io);
 app.set('io', io);
 
+const onlineUsers = new Map();
+
+io.use(async (socket, next) => {
+    try {
+        const token = socket.handshake.auth?.token;
+        if (!token) return next(new Error('AUTH_REQUIRED'));
+
+        const decoded = jwt.verify(token, jwtConfig.secret);
+        if (decoded.device) return next(new Error('AUTH_INVALID'));
+        const user = await (await import('./models/user.model.js')).default.findByPk(decoded.id, {
+            attributes: ['id', 'rol']
+        });
+        if (!user) return next(new Error('AUTH_INVALID'));
+
+        socket.user = { id: user.id, rol: user.rol };
+        next();
+    } catch (_error) {
+        next(new Error('AUTH_INVALID'));
+    }
+});
+
 io.on('connection', (socket) => {
-    console.log(`🔌 Socket connected: ${socket.id}`);
-    
-    socket.on('join_user_room', (userId) => {
-        socket.join(`user_${userId}`);
-        console.log(`👤 User joined room: user_${userId}`);
-    });
+    const userId = socket.user.id;
+    const existingSockets = onlineUsers.get(userId) || new Set();
+    const wasOffline = existingSockets.size === 0;
+
+    existingSockets.add(socket.id);
+    onlineUsers.set(userId, existingSockets);
+    socket.join(`user_${userId}`);
+    console.log(`🔌 Socket connected: ${socket.id} (user ${userId})`);
+
+    if (wasOffline) io.emit('community:presence_changed', { userId, online: true });
+
+    // Compatibilidad con clientes anteriores, sin permitir entrar a salas ajenas.
+    socket.on('join_user_room', () => socket.join(`user_${userId}`));
+    registerCommunityHandlers(io, socket, onlineUsers);
 
     socket.on('disconnect', () => {
-        console.log(`🔌 Socket disconnected: ${socket.id}`);
+        const userSockets = onlineUsers.get(userId);
+        userSockets?.delete(socket.id);
+
+        if (!userSockets?.size) {
+            onlineUsers.delete(userId);
+            io.emit('community:presence_changed', { userId, online: false });
+        }
+
+        console.log(`🔌 Socket disconnected: ${socket.id} (user ${userId})`);
     });
 });
 
