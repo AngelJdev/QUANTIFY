@@ -3,7 +3,7 @@ import crypto from 'crypto';
 /**
  * Pairing Service — manages smartwatch device linking codes.
  * 
- * In-memory store with TTL. For production, move to Redis.
+ * In-memory store with TTL.
  * 
  * Flow:
  * 1. Watch requests a code → generateCode(deviceId)
@@ -76,12 +76,6 @@ export const verifyCode = (code) => {
     return { valid: true, deviceId: entry.deviceId };
 };
 
-/**
- * Authorize a device (called after web user verifies the code).
- * @param {string} deviceId
- * @param {object} user - User data { id, nombre, email, current_streak, max_streak }
- * @param {string} token - JWT token for the watch
- */
 const activeLinkedUsers = new Set();
 const unlinkedUsers = new Set();
 
@@ -175,5 +169,3 @@ export const clearUnlinkedUser = (userId) => {
     unlinkedUsers.delete(userId);
     activeLinkedUsers.add(userId);
 };
-
-

@@ -37,10 +37,6 @@ fun HabitListScreen(
         viewModel.refreshHabits()
     }
 
-    LaunchedEffect(allCompleted) {
-        if (allCompleted && habits.isNotEmpty()) onAllCompleted()
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()

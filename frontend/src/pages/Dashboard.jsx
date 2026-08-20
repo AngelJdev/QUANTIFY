@@ -51,6 +51,11 @@ const Dashboard = () => {
 
         loadHabits();
 
+        // Polling fallback to guarantee instant updates in serverless environments
+        const interval = setInterval(() => {
+            loadHabits();
+        }, 4000);
+
         // Real-time synchronization via Socket.io
         let socketInstance;
         api.get('/auth/profile').then(res => {
@@ -63,6 +68,7 @@ const Dashboard = () => {
         }).catch(() => { });
 
         return () => {
+            clearInterval(interval);
             socketInstance?.off('habit_updated');
             socketInstance?.off('dashboard_updated');
         };
