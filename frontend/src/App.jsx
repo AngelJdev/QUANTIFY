@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import ProfilePage from './pages/ProfilePage';
 import SmartwatchPage from './pages/SmartwatchPage';
+import SmartTVPage from './pages/SmartTVPage';
 import SupportPage from './pages/SupportPage';
 import AchievementsPage from './pages/AchievementsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -84,6 +85,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/smartwatch" element={<SmartwatchPage />} />
+              <Route path="/smarttv" element={<SmartTVPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />

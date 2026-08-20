@@ -3,6 +3,7 @@ import { jwtConfig } from '../config/jwt.config.js';
 import { sendError } from '../utils/response.js';
 import User from '../models/user.model.js';
 import ActiveSmartwatch from '../models/nosql/activeSmartwatch.nosql.js';
+import ActiveSmartTV from '../models/nosql/activeSmartTV.nosql.js';
 
 export const verifyToken = (req, res, next) => {
     let token = req.headers['authorization'];
@@ -20,10 +21,15 @@ export const verifyToken = (req, res, next) => {
             return sendError(res, 401, 'Unauthorized! Invalid token.');
         }
 
-        // If this token belongs to a smartwatch device, verify active link in database
+        // Los tokens de dispositivos solo son válidos mientras sigan vinculados.
         if (decoded.device) {
             try {
-                const active = await ActiveSmartwatch.findOne({ usuario_id: decoded.id });
+                const active = decoded.device === 'smarttv'
+                    ? await ActiveSmartTV.findOne({ usuario_id: decoded.id })
+                    : await ActiveSmartwatch.findOne({
+                        usuario_id: decoded.id,
+                        device_id: decoded.device
+                    });
                 if (!active) {
                     return sendError(res, 401, 'Dispositivo desvinculado por el usuario.');
                 }
