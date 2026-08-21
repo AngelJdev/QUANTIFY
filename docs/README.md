@@ -18,8 +18,8 @@ Para facilitar la lectura y el mantenimiento, los documentos se han organizado p
 ## 3. Integracion de Inteligencia Artificial (AI y Machine Learning)
 El nucleo analitico de QUANTIFY se basa en modelos de Machine Learning entrenados y expuestos a traves de la API:
 
-* **Modelos Supervisados**: Empleados para predecir escenarios con etiquetas claras, especificamente un clasificador para detectar probabilidad y riesgo de *Burnout* de un usuario basado en metricas historicas de estres, descanso y horas de trabajo. (Ver codigo en `notebooks/supervised/03_burnout_classifier.py`).
-* **Modelos No Supervisados**: Utilizados para descubrir estructuras subyacentes en el uso del sistema sin etiquetas previas, como la segmentacion de *arquetipos de usuario* a traves de algoritmos de clustering (Ej. K-Means), permitiendo personalizar la experiencia del usuario (Ver codigo en `notebooks/unsupervised/04_user_archetypes.py`).
+* **Modelos Supervisados**: Empleados para predecir escenarios con etiquetas claras, especificamente un clasificador para detectar probabilidad y riesgo de *Burnout* de un usuario basado en metricas historicas de estres, descanso y horas de trabajo. (Ver codigo en `notebooks/supervised/03_burnout_classifier.ipynb`).
+* **Modelos No Supervisados**: Utilizados para descubrir estructuras subyacentes en el uso del sistema sin etiquetas previas, como la segmentacion de *arquetipos de usuario* a traves de algoritmos de clustering (Ej. K-Means), permitiendo personalizar la experiencia del usuario (Ver codigo en `notebooks/unsupervised/04_user_archetypes.ipynb`).
 
 Estos modelos se empaquetan en `joblib` y son interceptados mediante subprocesos (`child_process`) dentro de los controladores de Node.js (`/api/ml/predict-burnout` y `/api/ml/predict-archetype`).
 
@@ -155,14 +155,14 @@ Se automatizaron las canalizaciones o pipelines de datos (Extract, Transform, Lo
 
 ### 8. Analisis Exploratorio de Datos (EDA)
 Previó al aislamiento algoritmico, se inspecciono la varianza metodologica y tendencias ocultas en el dataset dentro del motor analitico.
-- **Evidencia**: [`../notebooks/eda/01_exploratory_analysis.py`](../notebooks/eda/01_exploratory_analysis.py)
+- **Evidencia**: [`../notebooks/eda/01_exploratory_analysis.ipynb`](../notebooks/eda/01_exploratory_analysis.ipynb)
 
 ### 9. Implementacion de modelos supervisados
 El area de Machine Learning ejecuto entrenamiento guiado por etiquetas (Supervisado) desarrollando un algoritmo que diagnostica el indice de Burnout en funcion a horas productivas y descansos.
-- **Evidencia**: [`../notebooks/supervised/03_burnout_classifier.py`](../notebooks/supervised/03_burnout_classifier.py)
+- **Evidencia**: [`../notebooks/supervised/03_burnout_classifier.ipynb`](../notebooks/supervised/03_burnout_classifier.ipynb)
 
 ```python
-# Fragmento demostrativo: 03_burnout_classifier.py
+# Fragmento demostrativo: 03_burnout_classifier.ipynb
 from sklearn.ensemble import RandomForestClassifier
 
 X = df[['stress_level', 'work_hours', 'sleep_hours']]
@@ -176,10 +176,10 @@ print(f"Accuracy de Validación: {model.score(X_test, y_test):.2f}")
 
 ### 10. Implementacion de modelos no supervisados
 Para generar un analisis cognitivo del usuario sin etiquetas rigidas, se emplearon algoritmos de de segmentacion (clustering multidimensional) descubriendo "Arquetipos de Usuarios" intrinsecos en el sistema.
-- **Evidencia**: [`../notebooks/unsupervised/04_user_archetypes.py`](../notebooks/unsupervised/04_user_archetypes.py)
+- **Evidencia**: [`../notebooks/unsupervised/04_user_archetypes.ipynb`](../notebooks/unsupervised/04_user_archetypes.ipynb)
 
 ```python
-# Fragmento demostrativo: 04_user_archetypes.py
+# Fragmento demostrativo: 04_user_archetypes.ipynb
 from sklearn.cluster import KMeans
 
 # Agrupando usuarios en 3 arquetipos: 'Intenso', 'Equilibrado', 'Inconsistente'
@@ -189,7 +189,7 @@ df['archetype_id'] = kmeans.fit_predict(df[['activity_freq', 'goal_completion']]
 
 ### 11. Evaluacion y optimizacion de modelos
 Multiples algoritmos fueron comparados en rendimiento para determinar su acierto (Accuracy) pre-despliegue, resultando en la seleccion de los parametros optimos finales.
-- **Evidencia**: [`../notebooks/evaluation/05_model_comparison.py`](../notebooks/evaluation/05_model_comparison.py)
+- **Evidencia**: [`../notebooks/evaluation/05_model_comparison.ipynb`](../notebooks/evaluation/05_model_comparison.ipynb)
 
 ### 12. Seleccion de dos mecanismos despliegue
 Tras someter los prototipos de prueba cruzada y de iteracion final, los modelos ganadores fueron empaquetados, serializados y almacenados.
