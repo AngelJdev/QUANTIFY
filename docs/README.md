@@ -29,8 +29,8 @@ La plataforma requiere retroalimentacion inmediata al usuario, por ende, hace us
 ## 5. Capturas de Pantalla y Evidencias Visuales
 
 ### 5.1. Plataforma Web (Dashboard)
-![Captura Web - Dashboard Principal](./assets/images/placeholder_web.png)
-*(Ruta sugerida: integrar captura final en ./assets/images/)*
+![Captura Web - Dashboard Principal](./assets/images/dash1.png)
+![Analíticas Detalladas](./assets/images/dash2.png)
 
 ### 5.2. Smartwatch (Wearables)
 
@@ -55,12 +55,42 @@ La integracion de QUANTIFY con dispositivos Wear OS se realiza mediante un proce
 ![Registro Completado](./assets/images/smartwatch_06_registered.jpeg)
 
 ### 5.3. Pantalla TV (Dashboard Ejecutivo)
-![Captura TV - Vista Ejecutiva](./assets/images/placeholder_tv.png)
-*(Ruta sugerida: integrar captura final en ./assets/images/)*
+![Captura TV - Vista Ejecutiva](./assets/images/tv.jpeg)
+![Métricas y Progreso](./assets/images/tv1.jpeg)
 
 ### 5.4. Pruebas y Consumo API (Swagger/Postman)
-![Captura API - Endpoints y Swagger](./assets/images/placeholder_api.png)
-*(Ruta sugerida: integrar captura final en ./assets/images/)*
+A continuación, se documenta la prueba de integración y payload del análisis predictivo de Burnout:
+
+**Petición POST:**
+```json
+POST /api/ml/predict-burnout HTTP/1.1
+Host: api.quantify.ai
+Content-Type: application/json
+
+{
+  "user_metrics": {
+    "stress_level": 8,
+    "sleep_hours": 4.5,
+    "work_hours": 12.5,
+    "tasks_completed": 15
+  }
+}
+```
+
+**Respuesta Exitosa (200 OK):**
+```json
+{
+  "status": "success",
+  "data": {
+    "risk_probability": 0.88,
+    "classification": "Riesgo Alto",
+    "recommendations": [
+      "Aplicar bloqueo estricto de notificaciones laborales",
+      "Sugerir ejercicio de respiración guiado de 5 min"
+    ]
+  }
+}
+```
 
 ---
 
@@ -88,9 +118,36 @@ Se documentaron los origenes de datos biometricos y comportamentales. Se modelo 
 Para someter el sistema a alta disponibilidad e ingenieria robusta, se desarrollo un script algoritmico en Python que simula e inyecta historiales masivos de telemetria humana.
 - **Evidencia**: [`../simulation/generate_dataset.py`](../simulation/generate_dataset.py)
 
+```python
+# Fragmento demostrativo: generate_dataset.py
+def generate_telemetry_logs(user_count=1000):
+    logs = []
+    for user_id in range(user_count):
+        logs.append({
+            "user_id": f"usr_{user_id}",
+            "heart_rate_avg": random.randint(60, 100),
+            "sleep_hours": round(random.uniform(4.0, 9.0), 1),
+            "focus_time_mins": random.randint(30, 240),
+            "timestamp": datetime.now().isoformat()
+        })
+    return pd.DataFrame(logs)
+```
+
 ### 6. Modelo de Data Warehouse o Data Mart
 El almacenamiento analitico se preparo bajo un modelo logico de Estrella (Star Schema), asegurando consultas eficientes sobre enormes cantidades de logs de racha.
 - **Evidencia**: [`../database/warehouse/star_schema.sql`](../database/warehouse/star_schema.sql)
+
+```sql
+-- Fragmento demostrativo: star_schema.sql
+CREATE TABLE Fact_DailyMetrics (
+    metric_id SERIAL PRIMARY KEY,
+    user_id VARCHAR(50) REFERENCES Dim_Users(user_id),
+    date_id INT REFERENCES Dim_Time(date_id),
+    total_steps INT,
+    calories_burned DECIMAL(5,2),
+    stress_score INT
+);
+```
 
 ### 7. Proceso ETL
 Se automatizaron las canalizaciones o pipelines de datos (Extract, Transform, Load) para acondicionar e inyectar el dataset simulado limpiamente en las estructuras del Data Warehouse.
@@ -104,9 +161,31 @@ Previó al aislamiento algoritmico, se inspecciono la varianza metodologica y te
 El area de Machine Learning ejecuto entrenamiento guiado por etiquetas (Supervisado) desarrollando un algoritmo que diagnostica el indice de Burnout en funcion a horas productivas y descansos.
 - **Evidencia**: [`../notebooks/supervised/03_burnout_classifier.py`](../notebooks/supervised/03_burnout_classifier.py)
 
+```python
+# Fragmento demostrativo: 03_burnout_classifier.py
+from sklearn.ensemble import RandomForestClassifier
+
+X = df[['stress_level', 'work_hours', 'sleep_hours']]
+y = df['burnout_risk'] # 0 = Estable, 1 = Riesgo Alto
+
+model = RandomForestClassifier(n_estimators=100, max_depth=5)
+model.fit(X_train, y_train)
+
+print(f"Accuracy de Validación: {model.score(X_test, y_test):.2f}")
+```
+
 ### 10. Implementacion de modelos no supervisados
 Para generar un analisis cognitivo del usuario sin etiquetas rigidas, se emplearon algoritmos de de segmentacion (clustering multidimensional) descubriendo "Arquetipos de Usuarios" intrinsecos en el sistema.
 - **Evidencia**: [`../notebooks/unsupervised/04_user_archetypes.py`](../notebooks/unsupervised/04_user_archetypes.py)
+
+```python
+# Fragmento demostrativo: 04_user_archetypes.py
+from sklearn.cluster import KMeans
+
+# Agrupando usuarios en 3 arquetipos: 'Intenso', 'Equilibrado', 'Inconsistente'
+kmeans = KMeans(n_clusters=3, random_state=42)
+df['archetype_id'] = kmeans.fit_predict(df[['activity_freq', 'goal_completion']])
+```
 
 ### 11. Evaluacion y optimizacion de modelos
 Multiples algoritmos fueron comparados en rendimiento para determinar su acierto (Accuracy) pre-despliegue, resultando en la seleccion de los parametros optimos finales.
@@ -119,6 +198,20 @@ Tras someter los prototipos de prueba cruzada y de iteracion final, los modelos 
 ### 13. Dos endpoints inteligentes
 Se acoplo eficientemente la logica externa de Python abriendo microservicios mediante subprocesos nativos que interceptan la solicitud HTTPS de prediccion y dirigen la red.
 - **Evidencia**: Controladores (`child_process`) ubicados en [`../backend/API/`](../backend/API/)
+
+```javascript
+// Fragmento demostrativo: predictController.js
+const { spawn } = require('child_process');
+
+exports.predictBurnout = (req, res) => {
+    const pythonProc = spawn('python', ['scripts/predict.py', JSON.stringify(req.body)]);
+    
+    pythonProc.stdout.on('data', (data) => {
+        const prediction = JSON.parse(data.toString());
+        res.status(200).json({ status: "success", data: prediction });
+    });
+};
+```
 
 ### 14. Dashboard con actualizacion en tiempo real
 Para proveer fluidez e inmunidad a procesos bloqueantes por peticiones, se instanció WebSockets (Socket.IO). El frontend mutea estado magicamente cuando finalizan asincronamente las rutinas matematicas del backend.
@@ -135,6 +228,14 @@ Se desarrollo software multi-plataforma logrando retroalimentacion ininterrumpid
 Se proveen documentaciones UML y explicaciones fisicas evidenciando la topologia e intercomunicacion orientada a micro-arquitecturas MVC, hibridas y logica cliente/servidor.
 - **Evidencia**: Diagramas en [`./architecture/`](./architecture/)
 
+```mermaid
+graph LR;
+    Client[Web / Wearable] -->|HTTPS / Sockets| API[Node.js API Gateway]
+    API -->|Consultas| DB[(PostgreSQL)]
+    API -->|Subprocesos| ML[Python ML Engine]
+    ML -.->|Joblib| Models[Modelos Entrenados]
+```
+
 ### 18. Documentacion tecnica
 Documentacion funcional orientada a Ops/DevOps mediante estandares Swagger para navegacion e inspeccion en memoria (OpenAPI), e interfaces de indexacion.
 - **Evidencia**: Repositorio y `/api-docs` activado via Backend Express.
@@ -143,7 +244,12 @@ Documentacion funcional orientada a Ops/DevOps mediante estandares Swagger para 
 El proyecto se cimento en un entorno cooperativo registrado a traves de control de versiones. Se documentan las metricas del repositorio mostrando la grafica de Git (GitGraph), tablas de frecuencias de commits por desarrollador, porcentajes de carga de codigo y la funcion especifica que cumplio cada quien, evidenciando equidad en la contribucion.
 - **Evidencia**: Graficas de Commits, Gitgraph y estadisticas de repositorio (Documentado transversalmente usando herramientas de analitica de Git).
 
+![Git Graph - Evidencia 1](./assets/images/gr1.jpeg)
+![Git Graph - Evidencia 2](./assets/images/gr2.jpeg)
+![Git Graph - Evidencia 3](./assets/images/gr3.jpeg)
+
 ### 20. Presentacion y defensa
-*(FASE PENDIENTE: Por consolidar diagramacion, guiones o material grafico explicativo de la defensa.)*
+La defensa oficial del proyecto, argumentación técnica y justificación gráfica se han consolidado en el material de presentación integrado.
+- **Evidencia**: Presentación oficial interactiva descargable: [`QUANTIFY Presentación Completa.pptx`](./QUANTIFY%20Presentaci%C3%B3n%20Completa.pptx)
 
 
